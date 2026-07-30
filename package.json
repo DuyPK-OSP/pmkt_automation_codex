@@ -1,0 +1,29 @@
+{
+  "name": "codex-testing-kit-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:login": "playwright test src/tests/auth/login.spec.ts",
+    "test:login:headed": "playwright test src/tests/auth/login.spec.ts --headed",
+    "test:purchase-list": "playwright test src/tests/mua-hang/chung-tu-mua-hang.spec.ts",
+    "test:purchase-list:headed": "playwright test src/tests/mua-hang/chung-tu-mua-hang.spec.ts --headed",
+    "test:vat-tu-tao-moi": "playwright test src/tests/danh-muc/vat-tu-tao-moi.spec.ts",
+    "test:vat-tu-tao-moi:headed": "playwright test src/tests/danh-muc/vat-tu-tao-moi.spec.ts --headed",
+    "test:list": "playwright test --list",
+    "typecheck": "tsc --noEmit",
+    "report:html": "playwright show-report playwright-report",
+    "report:allure:generate": "allure generate allure-results --clean -o allure-report",
+    "report:allure:open": "allure open allure-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^22.15.0",
+    "allure-commandline": "^2.34.1",
+    "allure-playwright": "^3.3.0",
+    "dotenv": "^16.5.0",
+    "typescript": "^5.8.3"
+  },
+  "engines": { "node": ">=20" }
+}
