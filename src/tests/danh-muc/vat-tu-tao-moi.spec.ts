@@ -4,6 +4,7 @@ import { MATERIAL_TYPES } from '@pages/vat-tu.page';
 import { expectedMaterialTypeCards } from '@test-data/vat-tu.data';
 import { requireCredentials } from '@utils/env.config';
 import { statusPair } from '@utils/vat-tu-test.util';
+import { TestDataGenerator } from '@utils/test-data';
 
 test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   test.beforeEach(async ({ loginPage }) => {
@@ -413,5 +414,210 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
       ),
       'Chi tiết phải hiển thị đúng Phương pháp tính giá',
     ).toBeVisible();
+  });
+
+  test('CL-UAT-U-00106-34 - tạo Hàng hóa với trạng thái Ngừng hoạt động', async ({ vatTuPage }) => {
+    const data = new TestDataGenerator();
+    const code = data.uniqueCode('TC34');
+    const name = `Vật tư TC34 ${code}`;
+    const pricingMethod = 'Nhập trước xuất trước';
+    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const mainUnit = catalogues.units.find(
+      (unit) => unit.name === 'Cái' && unit.status === 'HoatDong',
+    );
+    test.skip(
+      mainUnit === undefined,
+      'Thiếu precondition: không có Đơn vị tính chính Cái ở trạng thái hoạt động',
+    );
+    if (!mainUnit) return;
+
+    await vatTuPage.openMaterialTypePopup();
+    await vatTuPage.selectMaterialType('Hàng hóa');
+    await vatTuPage.fillRequiredMaterialFields(code, name, mainUnit);
+    await vatTuPage.setMaterialStatus(false);
+    await expect(
+      vatTuPage.statusSwitch(),
+      'Trạng thái trên form phải là Ngừng hoạt động',
+    ).not.toBeChecked();
+    await vatTuPage.selectPricingMethod(pricingMethod);
+
+    const successNotificationPromise = vatTuPage.waitForSuccessNotification();
+    await vatTuPage.saveMaterial();
+    const successNotification = await successNotificationPromise;
+    expect.soft(
+      successNotification,
+      'Thông báo thành công phải đúng manual testcase',
+    ).toBe('Thêm mới thành công');
+
+    await vatTuPage.searchMaterial(code);
+    await expect(
+      vatTuPage.materialRow(code),
+      'Bản ghi Ngừng hoạt động vừa tạo phải hiển thị trên danh sách',
+    ).toBeVisible();
+    await vatTuPage.openMaterialDetails(code);
+    await expect(
+      vatTuPage.materialDetailControl(code, 'Mã vật tư', 'textbox'),
+      'Chi tiết phải hiển thị đúng Mã vật tư',
+    ).toHaveValue(code);
+    await expect(
+      vatTuPage.materialDetailControl(code, 'Tên vật tư', 'textbox'),
+      'Chi tiết phải hiển thị đúng Tên vật tư',
+    ).toHaveValue(name);
+    await expect(
+      vatTuPage.materialDetailStatusSwitch(code),
+      'Chi tiết phải hiển thị Trạng thái Ngừng hoạt động',
+    ).not.toBeChecked();
+  });
+
+  test('CL-UAT-U-00106-35 - tạo Hàng hóa bằng Lưu và Thêm mới', async ({ vatTuPage }) => {
+    const data = new TestDataGenerator();
+    const code = data.uniqueCode('TC35');
+    const name = `Vật tư TC35 ${code}`;
+    const pricingMethod = 'Nhập trước xuất trước';
+    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const mainUnit = catalogues.units.find(
+      (unit) => unit.name === 'Cái' && unit.status === 'HoatDong',
+    );
+    test.skip(
+      mainUnit === undefined,
+      'Thiếu precondition: không có Đơn vị tính chính Cái ở trạng thái hoạt động',
+    );
+    if (!mainUnit) return;
+
+    await vatTuPage.openMaterialTypePopup();
+    await vatTuPage.selectMaterialType('Hàng hóa');
+    await vatTuPage.fillRequiredMaterialFields(code, name, mainUnit);
+    await vatTuPage.selectPricingMethod(pricingMethod);
+
+    const successNotificationPromise = vatTuPage.waitForSuccessNotification();
+    await vatTuPage.saveAndAddMaterial();
+    const successNotification = await successNotificationPromise;
+    expect.soft(
+      successNotification,
+      'Thông báo thành công phải đúng manual testcase',
+    ).toBe('Thêm mới thành công');
+    await expect(
+      vatTuPage.createMaterialDialog,
+      'Form tạo mới phải tiếp tục mở sau khi Lưu và Thêm mới',
+    ).toBeVisible();
+    await expect(
+      vatTuPage.materialCodeInput(),
+      'Mã vật tư phải được reset',
+    ).toHaveValue('');
+    await expect(
+      vatTuPage.materialNameInput(),
+      'Tên vật tư phải được reset',
+    ).toHaveValue('');
+    await expect(
+      vatTuPage.mainUnitCombobox,
+      'Đơn vị tính chính phải được reset',
+    ).toHaveValue('');
+    await expect(
+      vatTuPage.statusSwitch(),
+      'Trạng thái phải reset về mặc định Hoạt động',
+    ).toBeChecked();
+    await expect(
+      vatTuPage.materialRow(code),
+      'Bản ghi vừa tạo phải hiển thị trên danh sách phía sau form',
+    ).toBeAttached();
+  });
+
+  test('CL-UAT-U-00106-36 - hủy tạo mới khi chưa nhập dữ liệu', async ({ vatTuPage }) => {
+    await vatTuPage.openFromDanhMuc();
+    await vatTuPage.openMaterialTypePopup();
+    await vatTuPage.selectMaterialType('Hàng hóa');
+
+    await vatTuPage.cancelCreatingMaterial();
+
+    await expect(
+      vatTuPage.closeConfirmationDialog,
+      'Không được hiển thị popup xác nhận khi người dùng chưa nhập dữ liệu',
+    ).toBeHidden();
+    await expect(
+      vatTuPage.createMaterialDialog,
+      'Form tạo mới phải đóng ngay khi chưa có dữ liệu thay đổi',
+    ).toBeHidden();
+    await expect(
+      vatTuPage.addButton,
+      'Hệ thống phải quay lại màn hình danh sách Vật tư',
+    ).toBeVisible();
+  });
+
+  test('CL-UAT-U-00106-37 - hủy tạo mới khi đã nhập dữ liệu', async ({ vatTuPage }) => {
+    const data = new TestDataGenerator();
+    const code = data.uniqueCode('TC37');
+    const name = `Vật tư TC37 ${code}`;
+    await vatTuPage.openFromDanhMuc();
+    await vatTuPage.openMaterialTypePopup();
+    await vatTuPage.selectMaterialType('Hàng hóa');
+    await vatTuPage.materialCodeInput().fill(code);
+    await vatTuPage.materialNameInput().fill(name);
+
+    await vatTuPage.cancelCreatingMaterial();
+    await expect(vatTuPage.closeConfirmationDialog).toBeVisible();
+    await expect.soft(
+      vatTuPage.closeConfirmationMessage(),
+      'Nội dung popup xác nhận phải đúng manual testcase',
+    ).toHaveText(
+      'Dữ liệu đã có thay đổi. Bạn có chắc chắn muốn đóng? Thay đổi sẽ không được lưu.',
+    );
+
+    await vatTuPage.dismissCloseConfirmation();
+    await expect(vatTuPage.closeConfirmationDialog).toBeHidden();
+    await expect(vatTuPage.createMaterialDialog).toBeVisible();
+    await expect(vatTuPage.materialCodeInput()).toHaveValue(code);
+    await expect(vatTuPage.materialNameInput()).toHaveValue(name);
+
+    await vatTuPage.cancelCreatingMaterial();
+    await vatTuPage.confirmClose();
+    await expect(vatTuPage.createMaterialDialog).toBeHidden();
+    await expect(vatTuPage.addButton).toBeVisible();
+    await vatTuPage.searchMaterial(code);
+    await expect(
+      vatTuPage.materialRow(code),
+      'Dữ liệu đã hủy không được lưu vào danh sách',
+    ).toBeHidden();
+  });
+
+  test('CL-UAT-U-00106-38 - đổi Hàng hóa sang Dịch vụ phải ẩn và reset dữ liệu đặc thù', async ({ vatTuPage }) => {
+    const data = new TestDataGenerator();
+    const code = data.uniqueCode('TC38');
+    const pricingMethod = 'Nhập trước xuất trước';
+    await vatTuPage.openFromDanhMuc();
+    await vatTuPage.openMaterialTypePopup();
+    await vatTuPage.selectMaterialType('Hàng hóa');
+    await vatTuPage.materialCodeInput().fill(code);
+    await vatTuPage.materialNameInput().fill(`Vật tư TC38 ${code}`);
+    await vatTuPage.selectPricingMethod(pricingMethod);
+    await expect(vatTuPage.selectedPricingMethod(pricingMethod)).toBeVisible();
+
+    await vatTuPage.openFormTab('Đơn vị quy đổi');
+    await vatTuPage.addConversionRow();
+    await vatTuPage.conversionRowControls('spinbutton').fill('2');
+    await expect(vatTuPage.conversionRowControls('spinbutton')).toHaveValue('2');
+
+    await vatTuPage.changeMaterialType();
+    await vatTuPage.selectMaterialType('Dịch vụ');
+    await expect(vatTuPage.formTab('Thông tin kho')).toBeHidden();
+    await expect(vatTuPage.formTab('Đơn vị quy đổi')).toBeHidden();
+    await vatTuPage.openDefaultAccountingTab();
+    await expect(vatTuPage.formField('Tài khoản vật tư')).toBeHidden();
+    await expect(vatTuPage.formField('Tài khoản giá vốn')).toBeHidden();
+    for (const account of [
+      'Tài khoản doanh thu',
+      'Tài khoản hàng bán trả lại',
+      'Tài khoản chi phí',
+      'Tài khoản chiết khấu',
+      'Tài khoản giảm giá',
+    ]) {
+      await expect(vatTuPage.formField(account), `${account} phải tiếp tục hiển thị`).toBeVisible();
+    }
+
+    await vatTuPage.changeMaterialType();
+    await vatTuPage.selectMaterialType('Hàng hóa');
+    await vatTuPage.openFormTab('Thông tin kho');
+    await expect(vatTuPage.selectedPricingMethod(pricingMethod)).toBeHidden();
+    await vatTuPage.openFormTab('Đơn vị quy đổi');
+    await expect(vatTuPage.conversionRowControls('spinbutton')).toHaveCount(0);
   });
 });

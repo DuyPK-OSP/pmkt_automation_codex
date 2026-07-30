@@ -60,6 +60,7 @@ export class VatTuPage extends BasePage {
   readonly materialTypeDialog: Locator;
   readonly createMaterialDialog: Locator;
   readonly changeMaterialTypeButton: Locator;
+  readonly closeConfirmationDialog: Locator;
   readonly groupCombobox: Locator;
   readonly mainUnitCombobox: Locator;
   readonly defaultAccountingTab: Locator;
@@ -77,6 +78,9 @@ export class VatTuPage extends BasePage {
       name: 'Thay đổi tính chất',
       exact: true,
     });
+    this.closeConfirmationDialog = page
+      .getByRole('dialog')
+      .filter({ hasText: 'Xác nhận đóng' });
     this.groupCombobox = this.createMaterialDialog.getByRole('combobox', {
       name: 'Nhóm vật tư',
       exact: true,
@@ -164,6 +168,37 @@ export class VatTuPage extends BasePage {
   async changeMaterialType(): Promise<void> {
     await this.click(this.changeMaterialTypeButton, 'Thay đổi Loại vật tư');
     await this.materialTypeDialog.waitFor({ state: 'visible' });
+  }
+
+  cancelButton(): Locator {
+    return this.createMaterialDialog.getByRole('button', {
+      name: 'Hủy',
+      exact: true,
+    });
+  }
+
+  async cancelCreatingMaterial(): Promise<void> {
+    await this.click(this.cancelButton(), 'Hủy tạo mới vật tư');
+  }
+
+  closeConfirmationMessage(): Locator {
+    return this.closeConfirmationDialog.getByText(
+      /Dữ liệu đã có thay đổi|Bạn có chắc chắn muốn hủy/,
+    );
+  }
+
+  async dismissCloseConfirmation(): Promise<void> {
+    await this.click(
+      this.closeConfirmationDialog.getByRole('button', { name: 'Hủy', exact: true }),
+      'Hủy thao tác đóng form',
+    );
+  }
+
+  async confirmClose(): Promise<void> {
+    await this.click(
+      this.closeConfirmationDialog.getByRole('button', { name: 'Xác nhận', exact: true }),
+      'Xác nhận đóng form',
+    );
   }
 
   async openGroupDropdown(): Promise<void> {
@@ -298,6 +333,16 @@ export class VatTuPage extends BasePage {
     return this.createMaterialDialog.getByRole('switch');
   }
 
+  async setMaterialStatus(active: boolean): Promise<void> {
+    const statusSwitch = this.statusSwitch();
+    if ((await statusSwitch.isChecked()) !== active) {
+      await this.click(
+        statusSwitch,
+        `Chuyển Trạng thái sang ${active ? 'Hoạt động' : 'Ngừng hoạt động'}`,
+      );
+    }
+  }
+
   materialCodeInput(): Locator {
     return this.formFieldControl('Mã vật tư', 'textbox');
   }
@@ -328,6 +373,17 @@ export class VatTuPage extends BasePage {
     await this.click(this.saveButton(), 'Lưu vật tư');
   }
 
+  saveAndAddButton(): Locator {
+    return this.createMaterialDialog.getByRole('button', {
+      name: 'Lưu và Thêm mới',
+      exact: true,
+    });
+  }
+
+  async saveAndAddMaterial(): Promise<void> {
+    await this.click(this.saveAndAddButton(), 'Lưu vật tư và mở form thêm mới');
+  }
+
   successNotification(): Locator {
     return this.page.getByRole('alert');
   }
@@ -346,6 +402,12 @@ export class VatTuPage extends BasePage {
       .locator('.ant-select-dropdown:visible')
       .locator('.ant-select-item-option-content')
       .filter({ hasText: new RegExp(`^${name}$`) });
+  }
+
+  selectedPricingMethod(name: string): Locator {
+    return this.formField('Phương pháp tính giá').getByTitle(name, {
+      exact: true,
+    });
   }
 
   async selectPricingMethod(name: string): Promise<void> {

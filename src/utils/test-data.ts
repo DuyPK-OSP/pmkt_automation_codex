@@ -16,4 +16,11 @@ export class TestDataGenerator {
     const suffix = createHash('sha256').update(`${this.seed}:${testName}:${runId}`).digest('hex').slice(0, 8);
     return `auto_${safeName}_${runId}_${suffix}`;
   }
+
+  uniqueCode(testName: string): string {
+    const safeName = testName.toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 20);
+    const runId = process.env.GITHUB_RUN_ID ?? Date.now().toString();
+    const suffix = createHash('sha256').update(`${this.seed}:${testName}:${runId}`).digest('hex').slice(0, 6).toUpperCase();
+    return `AUTO_${safeName}_${runId}_${suffix}`;
+  }
 }
