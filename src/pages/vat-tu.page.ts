@@ -29,6 +29,47 @@ export interface VatTuCatalogues {
   readonly units: readonly CatalogueOption[];
 }
 
+export interface FullGoodsMaterialInput {
+  readonly code: string;
+  readonly name: string;
+  readonly description: string;
+  readonly purchaseName: string;
+  readonly saleName: string;
+  readonly imagePath: string;
+  readonly group: CatalogueOption;
+  readonly mainUnit: CatalogueOption;
+}
+
+export interface FullGoodsMaterialSelection {
+  readonly specialGoodsType: string;
+  readonly warrantyUnit: string;
+  readonly expenseAccount: string;
+  readonly warehouse: string;
+  readonly pricingMethod: string;
+  readonly vatRate: string;
+  readonly exciseTax: string;
+  readonly resourceTax: string;
+  readonly conversion: Readonly<{ unit: string; operation: string }>;
+}
+
+export interface FullServiceMaterialInput {
+  readonly code: string;
+  readonly name: string;
+  readonly description: string;
+  readonly purchaseName: string;
+  readonly saleName: string;
+  readonly group: CatalogueOption;
+  readonly mainUnit: CatalogueOption;
+}
+
+export interface FullServiceMaterialSelection {
+  readonly accounts: Readonly<Record<string, string>>;
+  readonly vatRate: string;
+  readonly exciseTax: string;
+  readonly resourceTax: string;
+  readonly alternativeUnit: string;
+}
+
 interface GroupResponseItem {
   readonly ma: string;
   readonly ten: string;
@@ -46,6 +87,18 @@ interface AccountResponseItem {
   readonly tenTaiKhoan: string;
   readonly trangThai: string;
   readonly choPhepHachToan: boolean;
+}
+
+interface WarehouseResponseItem {
+  readonly maKho: string;
+  readonly tenKho: string;
+  readonly trangThai: string;
+}
+
+interface TaxResponseItem {
+  readonly ma: string;
+  readonly ten: string;
+  readonly trangThai: string;
 }
 
 interface ListResponse<T> {
@@ -149,6 +202,39 @@ export class VatTuPage extends BasePage {
     await this.addButton.waitFor({ state: 'visible' });
 
     return this.parseAccounts(accountResponse);
+  }
+
+  async openFromDanhMucAndCollectWarehouses(): Promise<readonly CatalogueOption[]> {
+    await this.navigate('/danh-muc');
+    const responsePromise = this.page.waitForResponse((response) =>
+      this.isCatalogueResponse(response, '/api/master-data/kho'),
+    );
+    await this.click(
+      this.page.getByRole('button', { name: 'Vật tư', exact: true }),
+      'Truy cập menu Vật tư',
+    );
+    const response = await responsePromise;
+    await this.page.waitForURL((url) => url.pathname === '/danh-muc/vat-tu');
+    await this.addButton.waitFor({ state: 'visible' });
+    const payload = (await response.json()) as ListResponse<WarehouseResponseItem>;
+    return (payload.data ?? []).map((item) => ({
+      code: item.maKho,
+      name: item.tenKho,
+      status: item.trangThai,
+      label: `${item.maKho} — ${item.tenKho}`,
+    }));
+  }
+
+  async openFromDanhMucAndCollectResourceTaxes(): Promise<readonly CatalogueOption[]> {
+    await this.navigate('/danh-muc');
+    const responsePromise = this.page.waitForResponse((response) =>
+      this.isCatalogueResponse(response, '/api/master-data/thue-tai-nguyen'),
+    );
+    await this.click(this.page.getByRole('button', { name: 'Vật tư', exact: true }), 'Truy cập menu Vật tư');
+    const response = await responsePromise;
+    await this.page.waitForURL((url) => url.pathname === '/danh-muc/vat-tu');
+    await this.addButton.waitFor({ state: 'visible' });
+    return this.loadAllResourceTaxes(response);
   }
 
   async openMaterialTypePopup(): Promise<void> {
@@ -272,6 +358,194 @@ export class VatTuPage extends BasePage {
     return this.formField(label).getByRole(role).first();
   }
 
+  selectedFormValue(label: string): Locator {
+    return this.formField(label).locator('.ant-select-selection-item').first();
+  }
+
+  firstEnabledDropdownOption(): Locator {
+    return this.page
+      .locator('.ant-select-dropdown:visible')
+      .locator('.ant-select-item-option:not(.ant-select-item-option-disabled)')
+      .first();
+  }
+
+  async selectFirstFormOption(label: string): Promise<string> {
+    await this.click(
+      this.formFieldControl(label, 'combobox'),
+      `Mở danh sách ${label}`,
+    );
+    const option = this.firstEnabledDropdownOption();
+    const value = (await option.innerText()).trim();
+    await this.click(option, `Chọn giá trị hợp lệ đầu tiên của ${label}`);
+    await option.waitFor({ state: 'hidden' });
+    return value;
+  }
+
+  async ensureFirstFormOption(label: string): Promise<string> {
+    const selected = this.selectedFormValue(label);
+    if (await selected.count()) return (await selected.innerText()).trim();
+    return this.selectFirstFormOption(label);
+  }
+
+  async fillFormField(label: string, value: string): Promise<void> {
+    const field = this.formField(label);
+    const textbox = field.getByRole('textbox').first();
+    if (await textbox.count()) {
+      await this.type(textbox, value, label);
+      return;
+    }
+    await this.type(field.getByRole('spinbutton').first(), value, label);
+  }
+
+  async setCheckbox(name: string, checked: boolean): Promise<void> {
+    const checkbox = this.createMaterialDialog.getByRole('checkbox', {
+      name,
+      exact: true,
+    });
+    if ((await checkbox.isChecked()) !== checked) {
+      await this.click(checkbox, `${checked ? 'Bật' : 'Tắt'} ${name}`);
+    }
+  }
+
+  async uploadMaterialImage(filePath: string): Promise<void> {
+    const uploadCompleted = this.page.waitForResponse(
+      (response) =>
+        response.request().method() === 'POST' &&
+        new URL(response.url()).pathname === '/api/master-data/vat-tu/anh' &&
+        response.ok(),
+    );
+    await this.createMaterialDialog
+      .locator('input[type="file"]')
+      .setInputFiles(filePath);
+    await uploadCompleted;
+  }
+
+  async fillFullGoodsMaterial(
+    input: FullGoodsMaterialInput,
+  ): Promise<FullGoodsMaterialSelection> {
+    await this.fillRequiredMaterialFields(input.code, input.name, input.mainUnit);
+    await this.openGroupDropdown();
+    await this.selectGroup(input.group);
+    await this.closeDropdown();
+    await this.setCheckbox('Giảm thuế theo quy định', true);
+    const specialGoodsType = await this.specialGoodsTypeCombobox().isVisible()
+      ? await this.selectFirstFormOption('Loại hàng hóa đặc trưng')
+      : '';
+    await this.fillFormField('Thời hạn bảo hành', '12');
+    await this.fillFormField('Tên vật tư khi mua', input.purchaseName);
+    await this.fillFormField('Tên vật tư khi bán', input.saleName);
+    await this.fillFormField('Mô tả', input.description);
+    await this.uploadMaterialImage(input.imagePath);
+    await this.setMaterialStatus(true);
+
+    await this.openDefaultAccountingTab();
+    const expenseAccount = await this.selectFirstFormOption('Tài khoản chi phí');
+
+    await this.openFormTab('Thông tin kho');
+    const warehouse = await this.ensureFirstFormOption('Kho mặc định');
+    const pricingMethod = await this.selectFirstFormOption('Phương pháp tính giá');
+    await this.fillFormField('Tồn tối thiểu', '10');
+    await this.fillFormField('Tồn tối đa', '1000');
+    await this.setCheckbox('Theo dõi lô', true);
+    await this.setCheckbox('Theo dõi mã vạch', true);
+
+    await this.openFormTab('Thông tin thuế');
+    const vatRate = await this.selectFirstFormOption('Thuế suất GTGT mặc định');
+    await this.fillFormField('Thuế xuất khẩu', '0');
+    await this.fillFormField('Thuế nhập khẩu', '0');
+    const exciseTax = await this.selectFirstFormOption('Thuế tiêu thụ đặc biệt');
+    const resourceTax = await this.selectFirstFormOption('Thuế tài nguyên');
+
+    await this.openFormTab('Đơn vị quy đổi');
+    await this.addConversionRow();
+    const conversion = await this.fillFirstConversionRow('2', input.mainUnit.label);
+
+    return {
+      specialGoodsType,
+      warrantyUnit: 'Ngày',
+      expenseAccount,
+      warehouse,
+      pricingMethod,
+      vatRate,
+      exciseTax,
+      resourceTax,
+      conversion,
+    };
+  }
+
+  async fillMaterialIdentity(code: string, name: string): Promise<void> {
+    await this.type(this.materialCodeInput(), code, 'Mã vật tư');
+    await this.type(this.materialNameInput(), name, 'Tên vật tư');
+  }
+
+  async fillFullServiceMaterial(
+    input: FullServiceMaterialInput,
+  ): Promise<FullServiceMaterialSelection> {
+    await this.fillMaterialIdentity(input.code, input.name);
+    await this.openGroupDropdown();
+    await this.selectGroup(input.group);
+    await this.closeDropdown();
+    await this.openMainUnitDropdown();
+    await this.selectMainUnit(input.mainUnit);
+    await this.setCheckbox('Giảm thuế theo quy định', true);
+    await this.fillFormField('Tên vật tư khi mua', input.purchaseName);
+    await this.fillFormField('Tên vật tư khi bán', input.saleName);
+    await this.fillFormField('Mô tả', input.description);
+    await this.setMaterialStatus(true);
+
+    await this.openDefaultAccountingTab();
+    const accounts: Record<string, string> = {};
+    for (const label of [
+      'Tài khoản doanh thu',
+      'Tài khoản hàng bán trả lại',
+      'Tài khoản chi phí',
+      'Tài khoản chiết khấu',
+      'Tài khoản giảm giá',
+    ]) {
+      accounts[label] = await this.ensureFirstFormOption(label);
+    }
+
+    await this.openFormTab('Thông tin thuế');
+    const vatRate = await this.selectFirstFormOption('Thuế suất GTGT mặc định');
+    await this.fillFormField('Thuế xuất khẩu', '0');
+    await this.fillFormField('Thuế nhập khẩu', '0');
+    const exciseTax = await this.selectFirstFormOption('Thuế tiêu thụ đặc biệt');
+    const resourceTax = await this.selectFirstFormOption('Thuế tài nguyên');
+
+    const alternativeUnit = await this.fillFirstAlternativeUnit(input.mainUnit.label);
+    return { accounts, vatRate, exciseTax, resourceTax, alternativeUnit };
+  }
+
+  async fillFirstAlternativeUnit(mainUnit: string): Promise<string> {
+    await this.openFormTab('Đơn vị tính khác');
+    await this.addConversionRow();
+    const combobox = this.createMaterialDialog
+      .getByRole('tabpanel', { name: 'Đơn vị tính khác', exact: true })
+      .getByRole('combobox')
+      .first();
+    await this.click(combobox, 'Mở Đơn vị tính khác');
+    const option = this.page
+      .locator('.ant-select-dropdown:visible')
+      .locator('.ant-select-item-option:not(.ant-select-item-option-disabled)')
+      .filter({ hasNotText: mainUnit })
+      .first();
+    const value = (await option.innerText()).trim();
+    await this.click(option, 'Chọn Đơn vị tính khác hợp lệ đầu tiên');
+    await option.waitFor({ state: 'hidden' });
+    return value;
+  }
+
+  materialImagePreview(): Locator {
+    return this.createMaterialDialog.getByRole('button', {
+      name: 'Xóa',
+      exact: true,
+    });
+  }
+
+  materialImageSection(): Locator {
+    return this.createMaterialDialog.getByText('Hình ảnh hàng hóa', { exact: true });
+  }
+
   requiredFormField(label: string): Locator {
     const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return this.createMaterialDialog.getByText(
@@ -291,6 +565,32 @@ export class VatTuPage extends BasePage {
       .getByText('Ngày', { exact: true })
       .locator('..')
       .getByRole('combobox');
+  }
+
+  warrantyUnitOption(name: string): Locator {
+    return this.page.locator('.ant-select-dropdown:visible')
+      .locator('.ant-select-item-option-content')
+      .filter({ hasText: new RegExp(`^${name}$`) });
+  }
+
+  warrantyUnitOptions(): Locator {
+    return this.page.locator('.ant-select-dropdown:visible')
+      .locator('.ant-select-item-option:not(.ant-select-item-option-disabled)');
+  }
+
+  async openWarrantyUnitDropdown(): Promise<void> {
+    await this.click(this.warrantyUnitCombobox(), 'Mở Đơn vị thời hạn bảo hành');
+  }
+
+  async selectWarrantyUnit(name: string): Promise<void> {
+    if (!(await this.page.locator('.ant-select-dropdown:visible').count())) {
+      await this.openWarrantyUnitDropdown();
+    }
+    await this.click(this.warrantyUnitOption(name), `Chọn Đơn vị bảo hành ${name}`);
+  }
+
+  selectedWarrantyUnit(name: string): Locator {
+    return this.createMaterialDialog.getByTitle(name, { exact: true }).last();
   }
 
   specialGoodsTypeCombobox(): Locator {
@@ -362,6 +662,16 @@ export class VatTuPage extends BasePage {
     await this.selectMainUnit(unit);
   }
 
+  async fillRequiredInventoryMaterialFields(
+    code: string,
+    name: string,
+    unit: CatalogueOption,
+  ): Promise<string> {
+    await this.fillRequiredMaterialFields(code, name, unit);
+    await this.openFormTab('Thông tin kho');
+    return this.ensureFirstFormOption('Phương pháp tính giá');
+  }
+
   saveButton(): Locator {
     return this.createMaterialDialog.getByRole('button', {
       name: 'Lưu',
@@ -417,6 +727,101 @@ export class VatTuPage extends BasePage {
       this.pricingMethodOption(name),
       `Chọn Phương pháp tính giá ${name}`,
     );
+  }
+
+  warehouseCombobox(): Locator {
+    return this.formFieldControl('Kho mặc định', 'combobox');
+  }
+
+  warehouseDropdown(): Locator {
+    return this.page.locator('.ant-select-dropdown:visible');
+  }
+
+  warehouseColumnHeaders(): Locator {
+    return this.warehouseDropdown().locator('[role="columnheader"], th');
+  }
+
+  warehouseOption(label: string): Locator {
+    return this.warehouseDropdown().getByText(label, { exact: true });
+  }
+
+  warehouseOptionRow(label: string): Locator {
+    return this.warehouseDropdown().locator('.ant-select-item-option').filter({ hasText: label });
+  }
+
+  async openWarehouseDropdown(): Promise<void> {
+    await this.openFormTab('Thông tin kho');
+    await this.click(this.warehouseCombobox(), 'Mở combogrid Kho mặc định');
+    await this.warehouseDropdown().waitFor({ state: 'visible' });
+  }
+
+  async searchWarehouse(query: string): Promise<void> {
+    await this.type(this.warehouseCombobox(), query, 'Tìm kiếm Kho mặc định');
+  }
+
+  async selectWarehouse(option: CatalogueOption): Promise<void> {
+    await this.searchWarehouse(option.code);
+    await this.click(this.warehouseOption(option.label), `Chọn kho ${option.label}`);
+  }
+
+  selectedWarehouse(label: string): Locator {
+    return this.formField('Kho mặc định').getByTitle(label, { exact: true });
+  }
+
+  async openTaxDropdown(label: string): Promise<void> {
+    await this.openFormTab('Thông tin thuế');
+    await this.click(this.formFieldControl(label, 'combobox'), `Mở ${label}`);
+    await this.page.locator('.ant-select-dropdown:visible').waitFor({ state: 'visible' });
+  }
+
+  taxOption(label: string): Locator {
+    return this.page.locator('.ant-select-dropdown:visible').getByText(label, { exact: true });
+  }
+
+  async searchTax(label: string, query: string): Promise<void> {
+    await this.type(this.formFieldControl(label, 'combobox'), query, `Tìm kiếm ${label}`);
+  }
+
+  async selectTax(label: string, option: CatalogueOption): Promise<void> {
+    await this.searchTax(label, option.code);
+    await this.click(this.taxOption(option.label), `Chọn ${label} ${option.label}`);
+  }
+
+  selectedTax(label: string, value: string): Locator {
+    return this.formField(label).getByTitle(value, { exact: true });
+  }
+
+  async openFirstConversionUnitDropdown(): Promise<void> {
+    await this.click(this.conversionRowControls('combobox').first(), 'Mở Đơn vị tính quy đổi');
+  }
+
+  async searchFirstConversionUnit(query: string): Promise<void> {
+    await this.type(this.conversionRowControls('combobox').first(), query, 'Tìm kiếm Đơn vị tính quy đổi');
+  }
+
+  async selectFirstConversionUnit(option: CatalogueOption): Promise<void> {
+    await this.searchFirstConversionUnit(option.code);
+    await this.click(this.page.locator('.ant-select-dropdown:visible').getByText(option.label, { exact: true }), `Chọn Đơn vị quy đổi ${option.label}`);
+  }
+
+  selectedFirstConversionUnit(label: string): Locator {
+    return this.conversionGrid().getByTitle(label, { exact: true });
+  }
+
+  validationMessage(fieldLabel: string, message: string): Locator {
+    return this.formField(fieldLabel).getByText(message, { exact: true });
+  }
+
+  async commitCurrentFormField(): Promise<void> {
+    await this.page.keyboard.press('Tab');
+  }
+
+  async discardMaterialFormIfOpen(): Promise<void> {
+    if (!(await this.createMaterialDialog.isVisible())) return;
+    await this.cancelCreatingMaterial();
+    if (await this.closeConfirmationDialog.isVisible()) {
+      await this.confirmClose();
+    }
   }
 
   materialSearchInput(): Locator {
@@ -478,16 +883,30 @@ export class VatTuPage extends BasePage {
     });
   }
 
+  materialDetailText(code: string, value: string): Locator {
+    return this.materialDetails(code).getByText(value, { exact: true });
+  }
+
   materialDetailStatusSwitch(code: string): Locator {
     return this.materialDetails(code).getByRole('switch');
   }
 
+  materialDetailImage(code: string): Locator {
+    return this.materialDetails(code)
+      .locator('.ant-upload-list-item-thumbnail img, .ant-image-img')
+      .first();
+  }
+
+  materialDetailTab(code: string, tabName: string): Locator {
+    return this.materialDetails(code).getByRole('tab', {
+      name: tabName,
+      exact: true,
+    });
+  }
+
   async openMaterialDetailTab(code: string, tabName: string): Promise<void> {
     await this.click(
-      this.materialDetails(code).getByRole('tab', {
-        name: tabName,
-        exact: true,
-      }),
+      this.materialDetailTab(code, tabName),
       `Mở Tab ${tabName} trên chi tiết vật tư`,
     );
   }
@@ -516,6 +935,39 @@ export class VatTuPage extends BasePage {
 
   conversionRowControls(role: Parameters<Locator['getByRole']>[0]): Locator {
     return this.conversionGrid().getByRole(role);
+  }
+
+  conversionValidationMessages(): Locator {
+    return this.conversionGrid().locator('.ant-form-item-explain-error');
+  }
+
+  async fillFirstConversionRow(ratio: string, mainUnit: string): Promise<{
+    readonly unit: string;
+    readonly operation: string;
+  }> {
+    const comboboxes = this.conversionRowControls('combobox');
+    await this.click(comboboxes.nth(0), 'Mở Đơn vị quy đổi');
+    const unitOption = this.page
+      .locator('.ant-select-dropdown:visible')
+      .locator('.ant-select-item-option:not(.ant-select-item-option-disabled)')
+      .filter({ hasNotText: mainUnit })
+      .first();
+    const unit = (await unitOption.innerText()).trim();
+    await this.click(unitOption, 'Chọn Đơn vị quy đổi hợp lệ đầu tiên');
+    await unitOption.waitFor({ state: 'hidden' });
+
+    await this.type(
+      this.conversionRowControls('spinbutton').first(),
+      ratio,
+      'Tỷ lệ quy đổi',
+    );
+
+    await this.click(comboboxes.nth(1), 'Mở Phép tính quy đổi');
+    const operationOption = this.firstEnabledDropdownOption();
+    const operation = (await operationOption.innerText()).trim();
+    await this.click(operationOption, 'Chọn Phép tính hợp lệ đầu tiên');
+    await operationOption.waitFor({ state: 'hidden' });
+    return { unit, operation };
   }
 
   accountingAccountOption(label: string): Locator {
@@ -628,6 +1080,25 @@ export class VatTuPage extends BasePage {
       name: item.tenDonViTinh,
       status: item.trangThai,
       label: `${item.maDonViTinh} — ${item.tenDonViTinh}`,
+    }));
+  }
+
+  private async loadAllResourceTaxes(sourceResponse: Response): Promise<readonly CatalogueOption[]> {
+    const authorization = sourceResponse.request().headers()['authorization'];
+    if (!authorization) throw new Error('Không lấy được quyền đọc danh mục Thuế tài nguyên từ request UI.');
+    const firstPage = (await sourceResponse.json()) as ListResponse<TaxResponseItem>;
+    const totalPages = firstPage.pagination?.totalPages ?? 1;
+    const remainingPages = await Promise.all(Array.from({ length: Math.max(totalPages - 1, 0) }, async (_, index) => {
+      const url = new URL(`/api/master-data/thue-tai-nguyen?pageSize=200&page=${index + 2}`, sourceResponse.url());
+      const response = await this.page.context().request.get(url.toString(), { headers: { authorization } });
+      if (!response.ok()) throw new Error(`Không đọc được danh mục Thuế tài nguyên: HTTP ${response.status()}.`);
+      return (await response.json()) as ListResponse<TaxResponseItem>;
+    }));
+    return [...(firstPage.data ?? []), ...remainingPages.flatMap((page) => page.data ?? [])].map((item) => ({
+      code: item.ma,
+      name: item.ten,
+      status: item.trangThai,
+      label: `${item.ma} — ${item.ten}`,
     }));
   }
 }

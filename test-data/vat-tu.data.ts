@@ -24,3 +24,48 @@ export const expectedMaterialTypeCards = [
     description: 'Sản phẩm đầu ra của một công đoạn sản xuất nhất định',
   },
 ] as const;
+
+export const materialFormProfiles = {
+  'Hàng hóa': {
+    hasSpecialGoodsType: true,
+    hasWarrantyAndImage: true,
+    hasInventoryTab: true,
+    hasConversionTab: true,
+    hasAlternativeUnitTab: false,
+  },
+  'Dịch vụ': {
+    hasSpecialGoodsType: false,
+    hasWarrantyAndImage: false,
+    hasInventoryTab: false,
+    hasConversionTab: false,
+    hasAlternativeUnitTab: true,
+  },
+  'Nguyên vật liệu': {
+    hasSpecialGoodsType: false,
+    hasWarrantyAndImage: true,
+    hasInventoryTab: true,
+    hasConversionTab: true,
+    hasAlternativeUnitTab: false,
+  },
+  'Công cụ, dụng cụ': {
+    hasSpecialGoodsType: false,
+    hasWarrantyAndImage: true,
+    hasInventoryTab: true,
+    hasConversionTab: true,
+    hasAlternativeUnitTab: false,
+  },
+  'Thành phẩm': {
+    hasSpecialGoodsType: false,
+    hasWarrantyAndImage: true,
+    hasInventoryTab: true,
+    hasConversionTab: true,
+    hasAlternativeUnitTab: false,
+  },
+  'Bán thành phẩm': {
+    hasSpecialGoodsType: false,
+    hasWarrantyAndImage: true,
+    hasInventoryTab: true,
+    hasConversionTab: true,
+    hasAlternativeUnitTab: false,
+  },
+} as const;

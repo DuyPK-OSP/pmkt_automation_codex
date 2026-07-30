@@ -10,7 +10,11 @@
 - Mỗi assertion phải truy ngược được tới một nội dung cụ thể trong manual test case.
 - Ví dụ: test case ghi `Checkbox` thì xác minh element là checkbox; không tự đổi expected result thành text hoặc accessible name `Select all`.
 - Khi test case mơ hồ hoặc khác UI/dữ liệu thực tế, phải ghi nhận điểm khác biệt và xin xác nhận; không tự sửa nghĩa của test case.
-- Khi thiếu pre-condition hoặc test data, đánh dấu `SKIP/BLOCKED` với lý do rõ ràng; không thay thế bằng dữ liệu hay kịch bản tự suy diễn.
+- Khi thiếu pre-condition, đánh dấu `SKIP/BLOCKED` với lý do rõ ràng; không tự suy diễn pre-condition nghiệp vụ.
+- Khi manual testcase không cung cấp Test Data cụ thể, áp dụng quy ước của repository:
+  - Trường text/number: tự sinh dữ liệu unique, traceable, hợp lệ và phù hợp nghiệp vụ kế toán.
+  - Trường select/combogrid: lấy option hợp lệ đầu tiên từ UI thực tế sau khi locator và dữ liệu đã được xác minh.
+  - Các loại dữ liệu khác hoặc ràng buộc chưa rõ: hỏi người dùng trước khi triển khai.
 - Trước khi chạy, phải thực hiện kiểm tra traceability: từng bước và từng assertion trong script tương ứng trực tiếp với manual test case.
 
 ## 1. Kiến Trúc & Framework

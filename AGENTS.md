@@ -22,6 +22,10 @@
 - Bảo toàn trạng thái code hiện tại trên máy. Không chạy các lệnh Git làm thay đổi trạng thái như `git pull`, `git checkout`, `git merge`, `git rebase` hoặc `git reset` nếu người dùng chưa yêu cầu rõ ràng. Được phép kiểm tra Git ở chế độ chỉ đọc.
 - Ưu tiên locator semantic ổn định và smart wait; không sử dụng fixed sleep nếu người dùng không yêu cầu rõ ràng.
 - Test data phải unique, traceable, deterministic khi dùng seed và không chứa thông tin cá nhân thật.
+- Khi manual testcase không cung cấp Test Data cụ thể:
+  - Với trường text hoặc number: tự sinh dữ liệu unique, traceable, hợp lệ và phù hợp nghiệp vụ kế toán; phải tôn trọng format, giới hạn và validation của trường.
+  - Với trường select hoặc combogrid: chọn giá trị hợp lệ đầu tiên từ dữ liệu UI thực tế; không hardcode option chưa được xác minh.
+  - Với loại dữ liệu khác, ràng buộc nghiệp vụ chưa rõ hoặc nhiều lựa chọn có thể làm thay đổi ý nghĩa testcase: phải hỏi người dùng trước khi triển khai.
 - Kiểm chứng automation được sinh bằng lệnh test, lint hoặc compile hẹp nhất phù hợp với phạm vi thay đổi.
 
 ## Quy tắc tạo báo cáo kiểm thử và lưu evidence
@@ -39,6 +43,8 @@
 - Đặt tên báo cáo có ý nghĩa và kèm timestamp của lần chạy, ví dụ `report/<feature>-report-YYYY-MM-DD-HHmmss.md`.
 - Xem `test-results/`, `playwright-report/` và `allure-results/` là artifacts tạm thời. Báo cáo cần đưa lên Git KHÔNG ĐƯỢC liên kết tới file nằm trong các thư mục này.
 - Với mỗi báo cáo cần lưu screenshot lâu dài, chỉ sao chép các evidence liên quan vào `report/evidence/<feature-or-run-id>/` và sử dụng tên file ổn định, có ý nghĩa.
+- Ưu tiên screenshot được attach ngay tại thời điểm mismatch. Với `expect.soft()` hoặc testcase tiếp tục thay đổi UI sau điểm lỗi, không dùng screenshot cuối testcase nếu nó không còn hiển thị triệu chứng; khi chưa có milestone evidence, phải trích đúng frame từ trace/video.
+- Bắt buộc mở kiểm tra trực quan từng ảnh trước khi đưa vào báo cáo, xác nhận ảnh thể hiện đúng trường, giá trị Actual và nội dung bug.
 - Liên kết evidence trong báo cáo Markdown bằng đường dẫn tương đối dưới `./evidence/...`; phải kiểm tra mọi file được liên kết đều tồn tại trước khi bàn giao.
 - Khi chuẩn bị thay đổi để commit, phải bao gồm cả file báo cáo Markdown và thư mục `report/evidence/` tương ứng.
 - Trước khi bàn giao báo cáo, BẮT BUỘC kiểm tra:
