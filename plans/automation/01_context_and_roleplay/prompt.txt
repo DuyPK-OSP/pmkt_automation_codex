@@ -7,7 +7,7 @@
 # CÁCH DÙNG:
 # 1. Copy nội dung bên dưới dòng "---START---"
 # 2. Thay thế các phần trong [...] bằng dữ liệu thực tế
-# 3. Paste vào Antigravity chat và gửi
+# 3. Paste vào Codex chat và gửi
 # 4. Chờ AI xác nhận → sang Bước 2
 # ============================================================
 
