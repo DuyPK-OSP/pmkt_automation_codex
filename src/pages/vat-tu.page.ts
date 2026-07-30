@@ -845,6 +845,42 @@ export class VatTuPage extends BasePage {
     });
   }
 
+  async deleteMaterialIfPresent(code: string): Promise<boolean> {
+    if (!code.startsWith('AUTO_')) {
+      throw new Error(`Từ chối cleanup vật tư không thuộc automation: ${code}`);
+    }
+
+    await this.discardMaterialFormIfOpen();
+    const details = this.materialDetails(code);
+    if (await details.isVisible()) {
+      await this.page.keyboard.press('Escape');
+      await details.waitFor({ state: 'hidden' });
+    }
+    await this.materialSearchInput().waitFor({ state: 'visible' });
+    await this.searchMaterial(code);
+    const row = this.materialRow(code);
+    if (!(await row.isVisible())) return false;
+
+    await this.click(
+      row.getByRole('button', { name: 'Xóa', exact: true }),
+      `Mở xác nhận xóa vật tư ${code}`,
+    );
+    const confirmation = this.page.getByRole('dialog').filter({
+      hasText: `Bạn có chắc chắn muốn xóa vật tư`,
+    });
+    await confirmation.waitFor({ state: 'visible' });
+    await this.click(
+      confirmation.getByRole('button', { name: 'Xóa', exact: true }),
+      `Xác nhận xóa vật tư ${code}`,
+    );
+    await confirmation.waitFor({ state: 'hidden' });
+    await this.searchMaterial(code);
+    if (await this.materialRow(code).isVisible()) {
+      throw new Error(`Cleanup ${code} thất bại: bản ghi vẫn hiển thị trên UI`);
+    }
+    return true;
+  }
+
   async openMaterialDetails(code: string): Promise<void> {
     await this.click(
       this.materialRow(code).getByRole('button', {

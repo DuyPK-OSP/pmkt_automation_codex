@@ -16,6 +16,7 @@
     "paths": {
       "@pages/*": ["src/pages/*"],
       "@fixtures/*": ["src/fixtures/*"],
+      "@cleanup/*": ["src/cleanup/*"],
       "@utils/*": ["src/utils/*"],
       "@helpers/*": ["src/helpers/*"],
       "@test-data/*": ["test-data/*"]

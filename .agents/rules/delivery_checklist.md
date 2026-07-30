@@ -8,6 +8,7 @@ Sử dụng checklist này trước khi xác nhận công việc automation đã
 - Xóa locator, import, biến không sử dụng và code đã bị comment.
 - Không để lại các lệnh chờ cố định như `waitForTimeout` hoặc `Thread.sleep`.
 - Đảm bảo các mã định danh duy nhất và dữ liệu test được sinh động, có thể truy vết.
+- Xác nhận bản ghi `AUTO_` được tạo thành công đã được teardown xóa và có attachment `test-data-cleanup` ghi rõ kết quả.
 
 ## Cấu trúc và chất lượng
 

@@ -93,3 +93,7 @@
 - Mỗi test case phải **độc lập** — không phụ thuộc kết quả test khác.
 - Setup/teardown rõ ràng (`@BeforeMethod/@AfterMethod` hoặc `beforeEach/afterEach`).
 - Không chia sẻ state giữa các test methods.
+- Bản ghi được tạo bởi automation phải dùng mã có tiền tố `AUTO_` và được cleanup trong teardown sau khi test hoàn tất, kể cả khi test fail.
+- Cleanup chỉ được xóa đúng bản ghi đã được testcase hiện tại tạo thành công; không tìm kiếm hoặc xóa hàng loạt theo tiền tố.
+- Việc chụp evidence và thu thập log lỗi phải hoàn tất trước cleanup để không làm mất trạng thái phục vụ điều tra.
+- Cleanup tiếp tục thao tác trên màn hình danh sách hiện tại, không điều hướng hoặc tải lại trang nếu không có yêu cầu riêng của testcase.

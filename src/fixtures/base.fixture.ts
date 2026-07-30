@@ -5,6 +5,7 @@ import { ChungTuMuaHangPage } from '@pages/chung-tu-mua-hang.page';
 import { VatTuPage } from '@pages/vat-tu.page';
 import { Logger } from '@utils/logger';
 import { ScreenshotUtil } from '@utils/screenshot.util';
+import { MaterialCleanupTracker } from '@cleanup/vat-tu.cleanup';
 
 interface FrameworkFixtures {
   readonly logger: Logger;
@@ -12,6 +13,7 @@ interface FrameworkFixtures {
   readonly dashboardPage: DashboardPage;
   readonly purchaseDocumentsPage: ChungTuMuaHangPage;
   readonly vatTuPage: VatTuPage;
+  readonly materialCleanup: MaterialCleanupTracker;
 }
 
 export const test = base.extend<FrameworkFixtures>({
@@ -20,6 +22,11 @@ export const test = base.extend<FrameworkFixtures>({
   dashboardPage: async ({ page, logger }, use) => { await use(new DashboardPage(page, logger)); },
   purchaseDocumentsPage: async ({ page, logger }, use) => { await use(new ChungTuMuaHangPage(page, logger)); },
   vatTuPage: async ({ page, logger }, use) => { await use(new VatTuPage(page, logger)); },
+  materialCleanup: [async ({ page, vatTuPage }, use, testInfo) => {
+    const tracker = new MaterialCleanupTracker(page, vatTuPage);
+    await use(tracker);
+    await tracker.cleanup(testInfo);
+  }, { auto: true }],
 });
 
 test.afterEach(async ({ page, logger }, testInfo) => {
