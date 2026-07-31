@@ -7,7 +7,7 @@
 | Hạng mục | Chi tiết |
 |---|---|
 | 🗓️ Thời gian | 30/07/2026, 10:53–10:55 — Asia/Saigon |
-| 🧪 Test suite | `src/tests/mua-hang/chung-tu-mua-hang.spec.ts` |
+| 🧪 Test suite | `src/tests/mua-hang/chung-tu-mua-hang-danh-sach.spec.ts` |
 | 🌐 Trình duyệt | Chromium — headed mode |
 | ⚙️ Cấu hình | `workers=1` · `retries=0` · reporter `line` |
 | ⏱️ Thời lượng | 106,8 giây — khoảng 1 phút 47 giây |
@@ -171,7 +171,7 @@ Người dùng không thể nhận biết chứng từ chưa ghi sổ bằng hig
 ### Lệnh đã chạy
 
 ```powershell
-npx playwright test src/tests/mua-hang/chung-tu-mua-hang.spec.ts --headed --workers=1 --retries=0 --reporter=line
+npx playwright test src/tests/mua-hang/chung-tu-mua-hang-danh-sach.spec.ts --headed --workers=1 --retries=0 --reporter=line
 ```
 
 ### Artifacts
