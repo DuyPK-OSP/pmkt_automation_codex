@@ -30,7 +30,7 @@ export async function verifyAccountingAccountCombobox(
   const columnHeaders = (await vatTuPage.accountingAccountColumnHeaders.allTextContents())
     .map((header) => header.trim())
     .filter(Boolean);
-  expect.soft(
+  await expect.soft(
     columnHeaders,
     `Combogrid ${fieldLabel} phải có đúng các cột theo BR5`,
   ).toEqual(['Số tài khoản', 'Tên tài khoản', 'Trạng thái']);
@@ -43,7 +43,7 @@ export async function verifyAccountingAccountCombobox(
   const activeRowText = await vatTuPage
     .accountingAccountOptionRow(coverage.activeAllowed.label)
     .innerText();
-  expect.soft(
+  await expect.soft(
     activeRowText,
     'Dòng tài khoản hoạt động phải hiển thị trạng thái Hoạt động',
   ).toContain('Hoạt động');
@@ -68,7 +68,7 @@ export async function verifyAccountingAccountCombobox(
   const inactiveRowText = await vatTuPage
     .accountingAccountOptionRow(coverage.inactive.label)
     .innerText();
-  expect.soft(
+  await expect.soft(
     inactiveRowText,
     'Dòng tài khoản ngừng hoạt động phải hiển thị trạng thái Ngừng hoạt động',
   ).toContain('Ngừng hoạt động');

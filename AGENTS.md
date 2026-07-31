@@ -44,19 +44,24 @@
 ## Quy tắc tạo báo cáo kiểm thử và lưu evidence
 
 - Khi người dùng nhập `Chạy và report <đường-dẫn-file-spec>`, BẮT BUỘC tự động thực hiện trọn quy trình sau mà không yêu cầu người dùng nhắc lại từng bước:
-  1. Chạy toàn bộ file spec được chỉ định bằng test runner và cấu hình phù hợp của repository.
-  2. Thu thập kết quả thực tế gồm PASS, FAIL, SKIP, thời lượng và artifacts.
-  3. Phân tích lỗi, gom nhóm các test có cùng triệu chứng hoặc cùng root cause hợp lý; phải ghi rõ nếu nhận định root cause chỉ là suy luận.
-  4. Sao chép các screenshot cần lưu lâu dài vào `report/evidence/<feature-or-run-id>/` và đặt tên theo bug/testcase.
-  5. Tạo file báo cáo mới theo `report/templates/test-execution-report-template.md`.
-  6. Kiểm tra số liệu, nội dung bug, link điều hướng, link evidence và trạng thái `.gitignore` trước khi bàn giao.
-  7. Trả lại đường dẫn file báo cáo hoàn chỉnh và tóm tắt kết quả chạy.
+  1. Chạy `npm run preflight:evidence -- <đường-dẫn-file-spec>`. Nếu preflight FAIL thì phải sửa vi phạm trước, không được chạy suite.
+  2. Chạy toàn bộ file spec được chỉ định bằng test runner và cấu hình phù hợp của repository.
+  3. Thu thập kết quả thực tế gồm PASS, FAIL, SKIP, thời lượng và artifacts.
+  4. Phân tích lỗi, gom nhóm các test có cùng triệu chứng hoặc cùng root cause hợp lý; phải ghi rõ nếu nhận định root cause chỉ là suy luận.
+  5. Sao chép các screenshot cần lưu lâu dài vào `report/evidence/<feature-or-run-id>/` và đặt tên theo bug/testcase.
+  6. Tạo file báo cáo mới theo `report/templates/test-execution-report-template.md`.
+  7. Kiểm tra số liệu, nội dung bug, link điều hướng, link evidence và trạng thái `.gitignore` trước khi bàn giao.
+  8. Trả lại đường dẫn file báo cáo hoàn chỉnh và tóm tắt kết quả chạy.
 - BẮT BUỘC sử dụng `report/templates/test-execution-report-template.md` làm mẫu nền mỗi khi tạo báo cáo kết quả chạy test. Phải giữ thứ tự các section, dashboard kết quả, điều hướng, các trường chi tiết bug, chú thích evidence và link quay lại đầu trang.
 - Nội dung báo cáo phải được tổng hợp từ kết quả chạy thật và artifacts tương ứng. KHÔNG tự tạo hoặc suy đoán kết quả, tần suất, test data, Expected/Actual hay evidence còn thiếu.
 - Đặt tên báo cáo có ý nghĩa và kèm timestamp của lần chạy, ví dụ `report/<feature>-report-YYYY-MM-DD-HHmmss.md`.
 - Xem `test-results/`, `playwright-report/` và `allure-results/` là artifacts tạm thời. Báo cáo cần đưa lên Git KHÔNG ĐƯỢC liên kết tới file nằm trong các thư mục này.
 - Với mỗi báo cáo cần lưu screenshot lâu dài, chỉ sao chép các evidence liên quan vào `report/evidence/<feature-or-run-id>/` và sử dụng tên file ổn định, có ý nghĩa.
 - Ưu tiên screenshot được attach ngay tại thời điểm mismatch. Với `expect.soft()` hoặc testcase tiếp tục thay đổi UI sau điểm lỗi, không dùng screenshot cuối testcase nếu nó không còn hiển thị triệu chứng; khi chưa có milestone evidence, phải trích đúng frame từ trace/video.
+- Mọi `expect.soft()` phải import `expect` từ `@fixtures/base.fixture` và bắt buộc có `await`. Fixture sẽ tự attach screenshot cùng JSON lỗi ngay tại mismatch, trước khi testcase tiếp tục thay đổi UI.
+- Không được bỏ qua, vô hiệu hóa hoặc chạy vòng qua `preflight:evidence` trong luồng `Chạy và report`.
+- Custom reporter phải ghi ngay một JSON riêng sau khi mỗi testcase kết thúc vào `test-results/run-<timestamp>/case-results/<TC-ID>--<project>--retry-<n>.json`, đồng thời cập nhật `index.json`. Không chờ toàn bộ suite kết thúc mới ghi kết quả.
+- Khi `Chạy và report`, không truyền `--reporter` trên CLI vì tùy chọn này thay thế reporter trong config và làm mất cơ chế ghi JSON từng testcase.
 - Bắt buộc mở kiểm tra trực quan từng ảnh trước khi đưa vào báo cáo, xác nhận ảnh thể hiện đúng trường, giá trị Actual và nội dung bug.
 - Liên kết evidence trong báo cáo Markdown bằng đường dẫn tương đối dưới `./evidence/...`; phải kiểm tra mọi file được liên kết đều tồn tại trước khi bàn giao.
 - Khi chuẩn bị thay đổi để commit, phải bao gồm cả file báo cáo Markdown và thư mục `report/evidence/` tương ứng.

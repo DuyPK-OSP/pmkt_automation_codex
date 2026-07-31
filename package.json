@@ -10,6 +10,7 @@
     "test:vat-tu-tao-moi": "playwright test src/tests/danh-muc/vat-tu-tao-moi.spec.ts",
     "test:vat-tu-tao-moi:headed": "playwright test src/tests/danh-muc/vat-tu-tao-moi.spec.ts --headed",
     "test:nganh-nghe-db": "playwright test src/tests/danh-muc/nganh-nghe-db.spec.ts",
+    "preflight:evidence": "node scripts/preflight-evidence.mjs",
     "test:list": "playwright test --list",
     "typecheck": "tsc --noEmit",
     "report:html": "playwright show-report playwright-report",

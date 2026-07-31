@@ -209,12 +209,47 @@ Chạy và report src/tests/danh-muc/vat-tu-tao-moi.spec.ts
 
 Agent sẽ:
 
+- Chạy preflight evidence trước; tự sửa mọi `expect.soft()` thiếu `await` hoặc import sai fixture rồi mới chạy suite.
 - Chạy toàn bộ spec và thu thập PASS, FAIL, SKIP, thời lượng cùng artifacts.
 - Phân tích lỗi và gom nhóm theo triệu chứng/root cause hợp lý.
 - Mở kiểm tra trực quan screenshot trước khi lưu làm evidence.
 - Lưu evidence lâu dài trong `report/evidence/<feature-or-run-id>/`.
 - Tạo báo cáo từ `report/templates/test-execution-report-template.md`.
 - Kiểm tra số liệu, bug mapping, liên kết evidence và `.gitignore` trước khi bàn giao.
+
+Quy tắc evidence tự động:
+
+- `expect.soft()` phải được import từ `@fixtures/base.fixture` và luôn có `await`.
+- Khi soft assertion mismatch, fixture tự attach screenshot và JSON lỗi ngay tại thời điểm đó.
+- Khi testcase kết thúc, custom reporter ghi ngay kết quả riêng vào:
+
+```text
+test-results/run-<timestamp>/case-results/<TC-ID>--<project>--retry-<n>.json
+```
+
+- `index.json` trong cùng thư mục được cập nhật sau từng testcase để report cuối có thể tổng hợp kết quả đã hoàn thành.
+- Không thêm `--reporter` khi cần cơ chế này vì CLI sẽ thay thế danh sách reporter trong `playwright.config.ts`.
+- Có thể kiểm tra thủ công trước khi chạy bằng:
+
+```powershell
+npm run preflight:evidence -- <đường-dẫn-file-spec>
+```
+
+### Khôi phục report khi suite chạy dở
+
+Nếu suite bị treo hoặc dừng giữa chừng, các testcase đã hoàn thành vẫn có JSON và evidence riêng trong thư mục run. Dùng prompt:
+
+```powershell
+Khôi phục và tạo report từ kết quả chạy dở trong test-results/run-<run-id>.
+```
+
+Ví dụ:
+
+```powershell
+Khôi phục và tạo report từ kết quả chạy dở trong test-results/run-20260731T104156Z.
+```
+
+Agent sẽ tổng hợp các JSON đã hoàn thành, xác định testcase chưa có kết quả hoặc bị treo, kiểm tra evidence và tạo báo cáo với trạng thái **INCOMPLETE/BLOCKED**. Số liệu PASS, FAIL và SKIP chỉ tính trên các testcase đã có kết quả; không cần chạy lại những testcase đã hoàn thành.
 
 Tên báo cáo:
 

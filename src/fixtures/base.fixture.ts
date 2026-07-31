@@ -1,4 +1,4 @@
-import { test as base, expect } from '@playwright/test';
+import { test as base } from '@playwright/test';
 import { DashboardPage } from '@pages/common/dashboard.page';
 import { LoginPage } from '@pages/common/login.page';
 import { ChungTuMuaHangPage } from '@pages/mua-hang/chung-tu-mua-hang.page';
@@ -13,8 +13,10 @@ import { PhieuNhapKhoDanhSachPage } from '@pages/kho/phieu-nhap-kho-danh-sach.pa
 import { TienMatChiTienDanhSachPage } from '@pages/tien-mat/tien-mat-chi-tien-danh-sach.page';
 import { TienGuiChiTienDanhSachPage } from '@pages/tien-gui/tien-gui-chi-tien-danh-sach.page';
 import { DatabaseContext } from '@database/database.context';
+import { expect, runWithEvidenceContext } from '@utils/evidence-expect';
 
 interface FrameworkFixtures {
+  readonly evidenceContext: void;
   readonly db: DatabaseContext;
   readonly logger: Logger;
   readonly loginPage: LoginPage;
@@ -31,6 +33,9 @@ interface FrameworkFixtures {
 }
 
 export const test = base.extend<FrameworkFixtures>({
+  evidenceContext: [async ({ page }, use, testInfo) => {
+    await runWithEvidenceContext(page, testInfo, use);
+  }, { auto: true }],
   db: async ({ }, use) => {
     const database = new DatabaseContext();
     await use(database);

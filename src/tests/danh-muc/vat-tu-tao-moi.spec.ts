@@ -38,7 +38,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
         vatTuPage.materialTypeTitle(card.type),
         `Phải hiển thị lựa chọn ${card.type}`,
       ).toBeVisible();
-      expect.soft(
+      await expect.soft(
         popupLines,
         `Mô tả của ${card.type} phải đúng manual testcase`,
       ).toContain(card.description);
@@ -369,7 +369,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
     const successNotificationPromise = vatTuPage.waitForSuccessNotification();
     await vatTuPage.saveMaterial();
     const successNotification = await successNotificationPromise;
-    expect.soft(successNotification, 'Thông báo thành công phải đúng manual testcase').toBe('Thêm mới thành công');
+    await expect.soft(successNotification, 'Thông báo thành công phải đúng manual testcase').toBe('Thêm mới thành công');
     await expect(vatTuPage.createMaterialDialog, 'Form tạo mới phải đóng sau khi lưu').toBeHidden();
 
     await verifyFullGoodsMaterialDetails(vatTuPage, material, selection);
@@ -411,7 +411,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
     const successNotificationPromise = vatTuPage.waitForSuccessNotification();
     await vatTuPage.saveMaterial();
     const successNotification = await successNotificationPromise;
-    expect.soft(
+    await expect.soft(
       successNotification,
       'Thông báo thành công phải đúng testcase',
     ).toBe('Thêm mới thành công');
@@ -489,7 +489,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
     const successNotificationPromise = vatTuPage.waitForSuccessNotification();
     await vatTuPage.saveMaterial();
     const successNotification = await successNotificationPromise;
-    expect.soft(
+    await expect.soft(
       successNotification,
       'Thông báo thành công phải đúng manual testcase',
     ).toBe('Thêm mới thành công');
@@ -537,7 +537,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
     const successNotificationPromise = vatTuPage.waitForSuccessNotification();
     await vatTuPage.saveAndAddMaterial();
     const successNotification = await successNotificationPromise;
-    expect.soft(
+    await expect.soft(
       successNotification,
       'Thông báo thành công phải đúng manual testcase',
     ).toBe('Thêm mới thành công');
@@ -694,7 +694,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
 
     const notificationPromise = vatTuPage.waitForSuccessNotification();
     await vatTuPage.saveMaterial();
-    expect.soft(await notificationPromise).toBe('Thêm mới thành công');
+    await expect.soft(await notificationPromise).toBe('Thêm mới thành công');
     await expect(vatTuPage.createMaterialDialog).toBeHidden();
     await verifyFullServiceMaterialDetails(vatTuPage, material, selection);
   });
@@ -712,7 +712,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
 
     const notificationPromise = vatTuPage.waitForSuccessNotification();
     await vatTuPage.saveMaterial();
-    expect.soft(await notificationPromise).toBe('Thêm mới thành công');
+    await expect.soft(await notificationPromise).toBe('Thêm mới thành công');
     await verifyBasicMaterialDetails(vatTuPage, code, name, true);
   });
 
@@ -729,7 +729,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
 
     const notificationPromise = vatTuPage.waitForSuccessNotification();
     await vatTuPage.saveMaterial();
-    expect.soft(await notificationPromise).toBe('Thêm mới thành công');
+    await expect.soft(await notificationPromise).toBe('Thêm mới thành công');
     await verifyBasicMaterialDetails(vatTuPage, code, name, false);
   });
 
@@ -744,7 +744,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
 
     const notificationPromise = vatTuPage.waitForSuccessNotification();
     await vatTuPage.saveAndAddMaterial();
-    expect.soft(await notificationPromise).toBe('Thêm mới thành công');
+    await expect.soft(await notificationPromise).toBe('Thêm mới thành công');
     await expect(vatTuPage.createMaterialDialog).toBeVisible();
     await expect(vatTuPage.materialCodeInput()).toHaveValue('');
     await expect(vatTuPage.materialNameInput()).toHaveValue('');
@@ -839,7 +839,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
     await vatTuPage.openMaterialTypePopup();
     await vatTuPage.selectMaterialType('Nguyên vật liệu');
     await vatTuPage.openWarehouseDropdown();
-    expect.soft((await vatTuPage.warehouseColumnHeaders().allTextContents()).map((value) => value.trim()).filter(Boolean))
+    await expect.soft((await vatTuPage.warehouseColumnHeaders().allTextContents()).map((value) => value.trim()).filter(Boolean))
       .toEqual(['Mã kho', 'Tên kho', 'Trạng thái']);
     await vatTuPage.searchWarehouse(pair.active.code);
     await expect(vatTuPage.warehouseOption(pair.active.label), 'Phải tìm được kho theo mã').toBeVisible();
@@ -999,7 +999,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
         'BUG-TC64-warranty-zero-toast-content-mismatch',
       );
     }
-    expect.soft(
+    await expect.soft(
       zeroWarrantyNotification,
       'THBH bằng 0 phải hiển thị đúng thông báo lỗi',
     ).toBe('Thời hạn bảo hành phải là số nguyên dương');
@@ -1159,7 +1159,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
     for (const limit of limits) {
       const actualLength = (await limit.field.inputValue()).length;
       if (actualLength > limit.max) exceededLimits.push(limit.name);
-      else expect.soft(actualLength, `${limit.name} không được vượt quá ${limit.max} ký tự`).toBeLessThanOrEqual(limit.max);
+      else await expect.soft(actualLength, `${limit.name} không được vượt quá ${limit.max} ký tự`).toBeLessThanOrEqual(limit.max);
     }
 
     if (exceededLimits.length) {
@@ -1249,7 +1249,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
 
     const notificationPromise = vatTuPage.waitForSuccessNotification();
     await vatTuPage.saveMaterial();
-    expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
+    await expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
     await expect(vatTuPage.createMaterialDialog).toBeHidden();
     await vatTuPage.searchMaterial(code);
     await expect(vatTuPage.materialRow(code)).toBeVisible();
@@ -1286,7 +1286,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
     await vatTuPage.setMaterialStatus(true);
     const notificationPromise = vatTuPage.waitForSuccessNotification();
     await vatTuPage.saveMaterial();
-    expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
+    await expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
     await verifyBasicMaterialDetails(vatTuPage, code, name, true);
     await expect(vatTuPage.materialDetailSelectedValue(code, 'Đơn vị tính chính', mainUnit.label)).toBeVisible();
     await vatTuPage.openMaterialDetailTab(code, 'Thông tin kho');
@@ -1307,7 +1307,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
     await vatTuPage.setMaterialStatus(false);
     const notificationPromise = vatTuPage.waitForSuccessNotification();
     await vatTuPage.saveMaterial();
-    expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
+    await expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
     await verifyBasicMaterialDetails(vatTuPage, code, name, false);
     await vatTuPage.openMaterialDetailTab(code, 'Thông tin kho');
     await expect(vatTuPage.materialDetailSelectedValue(code, 'Phương pháp tính giá', pricingMethod)).toBeVisible();
@@ -1325,7 +1325,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
     await vatTuPage.fillRequiredInventoryMaterialFields(code, `Nguyên vật liệu lưu thêm TC74 ${code}`, mainUnit);
     const notificationPromise = vatTuPage.waitForSuccessNotification();
     await vatTuPage.saveAndAddMaterial();
-    expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
+    await expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
     await expect(vatTuPage.createMaterialDialog).toBeVisible();
     await expect(vatTuPage.materialCodeInput()).toHaveValue('');
     await expect(vatTuPage.materialNameInput()).toHaveValue('');
@@ -1394,7 +1394,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
     await expect(vatTuPage.materialImagePreview()).toBeVisible();
     const notificationPromise = vatTuPage.waitForSuccessNotification();
     await vatTuPage.saveMaterial();
-    expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
+    await expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
     await expect(vatTuPage.createMaterialDialog).toBeHidden();
     await vatTuPage.searchMaterial(code);
     await expect(vatTuPage.materialRow(code)).toBeVisible();
@@ -1429,7 +1429,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
     await vatTuPage.setMaterialStatus(true);
     const notificationPromise = vatTuPage.waitForSuccessNotification();
     await vatTuPage.saveMaterial();
-    expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
+    await expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
     await verifyBasicMaterialDetails(vatTuPage, code, name, true);
     await expect(vatTuPage.materialDetailSelectedValue(code, 'Đơn vị tính chính', mainUnit.label)).toBeVisible();
     await vatTuPage.openMaterialDetailTab(code, 'Thông tin kho');
@@ -1450,7 +1450,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
     await vatTuPage.setMaterialStatus(false);
     const notificationPromise = vatTuPage.waitForSuccessNotification();
     await vatTuPage.saveMaterial();
-    expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
+    await expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
     await verifyBasicMaterialDetails(vatTuPage, code, name, false);
     await vatTuPage.openMaterialDetailTab(code, 'Thông tin kho');
     await expect(vatTuPage.materialDetailSelectedValue(code, 'Phương pháp tính giá', pricingMethod)).toBeVisible();
@@ -1468,7 +1468,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
     await vatTuPage.fillRequiredInventoryMaterialFields(code, `CCDC lưu thêm TC99 ${code}`, mainUnit);
     const notificationPromise = vatTuPage.waitForSuccessNotification();
     await vatTuPage.saveAndAddMaterial();
-    expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
+    await expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
     await expect(vatTuPage.createMaterialDialog).toBeVisible();
     await expect(vatTuPage.materialCodeInput()).toHaveValue('');
     await expect(vatTuPage.materialNameInput()).toHaveValue('');
@@ -1551,7 +1551,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
     await expect(vatTuPage.materialImagePreview()).toBeVisible();
     const notificationPromise = vatTuPage.waitForSuccessNotification();
     await vatTuPage.saveMaterial();
-    expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
+    await expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
     await expect(vatTuPage.createMaterialDialog).toBeHidden();
     await vatTuPage.searchMaterial(code);
     await expect(vatTuPage.materialRow(code)).toBeVisible();
@@ -1586,7 +1586,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
     await vatTuPage.setMaterialStatus(true);
     const notificationPromise = vatTuPage.waitForSuccessNotification();
     await vatTuPage.saveMaterial();
-    expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
+    await expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
     await verifyBasicMaterialDetails(vatTuPage, code, name, true);
     await expect(vatTuPage.materialDetailSelectedValue(code, 'Đơn vị tính chính', mainUnit.label)).toBeVisible();
     await vatTuPage.openMaterialDetailTab(code, 'Thông tin kho');
@@ -1607,7 +1607,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
     await vatTuPage.setMaterialStatus(false);
     const notificationPromise = vatTuPage.waitForSuccessNotification();
     await vatTuPage.saveMaterial();
-    expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
+    await expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
     await verifyBasicMaterialDetails(vatTuPage, code, name, false);
     await vatTuPage.openMaterialDetailTab(code, 'Thông tin kho');
     await expect(vatTuPage.materialDetailSelectedValue(code, 'Phương pháp tính giá', pricingMethod)).toBeVisible();
@@ -1625,7 +1625,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
     await vatTuPage.fillRequiredInventoryMaterialFields(code, `Thành phẩm lưu thêm TC123 ${code}`, mainUnit);
     const notificationPromise = vatTuPage.waitForSuccessNotification();
     await vatTuPage.saveAndAddMaterial();
-    expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
+    await expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
     await expect(vatTuPage.createMaterialDialog).toBeVisible();
     await expect(vatTuPage.materialCodeInput()).toHaveValue('');
     await expect(vatTuPage.materialNameInput()).toHaveValue('');
@@ -1709,7 +1709,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
     await expect(vatTuPage.materialImagePreview()).toBeVisible();
     const notificationPromise = vatTuPage.waitForSuccessNotification();
     await vatTuPage.saveMaterial();
-    expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
+    await expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
     await expect(vatTuPage.createMaterialDialog).toBeHidden();
     await vatTuPage.searchMaterial(code);
     await expect(vatTuPage.materialRow(code)).toBeVisible();
@@ -1744,7 +1744,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
     await vatTuPage.setMaterialStatus(true);
     const notificationPromise = vatTuPage.waitForSuccessNotification();
     await vatTuPage.saveMaterial();
-    expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
+    await expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
     await verifyBasicMaterialDetails(vatTuPage, code, name, true);
     await expect(vatTuPage.materialDetailSelectedValue(code, 'Đơn vị tính chính', mainUnit.label)).toBeVisible();
     await vatTuPage.openMaterialDetailTab(code, 'Thông tin kho');
@@ -1765,7 +1765,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
     await vatTuPage.setMaterialStatus(false);
     const notificationPromise = vatTuPage.waitForSuccessNotification();
     await vatTuPage.saveMaterial();
-    expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
+    await expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
     await verifyBasicMaterialDetails(vatTuPage, code, name, false);
     await vatTuPage.openMaterialDetailTab(code, 'Thông tin kho');
     await expect(vatTuPage.materialDetailSelectedValue(code, 'Phương pháp tính giá', pricingMethod)).toBeVisible();
@@ -1783,7 +1783,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
     await vatTuPage.fillRequiredInventoryMaterialFields(code, `Bán thành phẩm lưu thêm TC147 ${code}`, mainUnit);
     const notificationPromise = vatTuPage.waitForSuccessNotification();
     await vatTuPage.saveAndAddMaterial();
-    expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
+    await expect.soft(await notificationPromise, 'Phải hiển thị MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
     await expect(vatTuPage.createMaterialDialog).toBeVisible();
     await expect(vatTuPage.materialCodeInput()).toHaveValue('');
     await expect(vatTuPage.materialNameInput()).toHaveValue('');

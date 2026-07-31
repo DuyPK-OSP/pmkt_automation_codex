@@ -11,6 +11,7 @@ export default defineConfig({
   timeout: env.testTimeoutMs,
   expect: { timeout: env.expectTimeoutMs },
   reporter: [
+    ['./src/reporters/case-result.reporter.ts'],
     ['list'],
     ['html', { outputFolder: 'playwright-report', open: 'never' }],
     ['allure-playwright', { resultsDir: 'allure-results', detail: true }],
