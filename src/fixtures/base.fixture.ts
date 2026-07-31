@@ -12,8 +12,10 @@ import { ChungTuMuaHangDanhSachPage } from '@pages/chung-tu-mua-hang-danh-sach.p
 import { PhieuNhapKhoDanhSachPage } from '@pages/phieu-nhap-kho-danh-sach.page';
 import { TienMatChiTienDanhSachPage } from '@pages/tien-mat-chi-tien-danh-sach.page';
 import { TienGuiChiTienDanhSachPage } from '@pages/tien-gui-chi-tien-danh-sach.page';
+import { DatabaseContext } from '@database/database.context';
 
 interface FrameworkFixtures {
+  readonly db: DatabaseContext;
   readonly logger: Logger;
   readonly loginPage: LoginPage;
   readonly dashboardPage: DashboardPage;
@@ -29,6 +31,11 @@ interface FrameworkFixtures {
 }
 
 export const test = base.extend<FrameworkFixtures>({
+  db: async ({ }, use) => {
+    const database = new DatabaseContext();
+    await use(database);
+    await database.close();
+  },
   logger: async ({ }, use) => { await use(new Logger()); },
   loginPage: async ({ page, logger }, use) => { await use(new LoginPage(page, logger)); },
   dashboardPage: async ({ page, logger }, use) => { await use(new DashboardPage(page, logger)); },

@@ -29,6 +29,18 @@
   - Với loại dữ liệu khác, ràng buộc nghiệp vụ chưa rõ hoặc nhiều lựa chọn có thể làm thay đổi ý nghĩa testcase: phải hỏi người dùng trước khi triển khai.
 - Kiểm chứng automation được sinh bằng lệnh test, lint hoặc compile hẹp nhất phù hợp với phạm vi thay đổi.
 
+## Prompt chuẩn kiểm tra dữ liệu DB
+
+- Sau khi tạo mới thành công qua UI, người dùng có thể nhập:
+  - `Sau khi thêm mới thành công, check DB bằng mã vừa tạo và đối chiếu toàn bộ dữ liệu đã nhập.`
+  - Khi nhận prompt này, automation phải lấy mã unique do chính testcase tạo, truy vấn đúng tenant và đối chiếu dữ liệu DB sau khi UI báo lưu thành công.
+- Khi kiểm tra trực tiếp một bản ghi đã tồn tại, người dùng có thể nhập:
+  - `Check DB trực tiếp <module>, mã <mã-bản-ghi>, expected: <dữ liệu kỳ vọng>.`
+  - Khi nhận prompt này, chỉ chạy kiểm tra DB read-only; không thực hiện luồng UI và không sửa hoặc xóa dữ liệu.
+- Tái sử dụng DB fixture/client và repository theo module; không đặt SQL trực tiếp trong Page Object hoặc file spec.
+- Dùng parameterized query, không hardcode thông tin kết nối và không ghi credentials vào log/report.
+- Assertion nghiệp vụ đặt trong file spec. Truy vấn phải xác định đúng bản ghi bằng mã unique và `tenant_id` khi bảng có phân tách tenant.
+
 ## Quy tắc tạo báo cáo kiểm thử và lưu evidence
 
 - Khi người dùng nhập `Chạy và report <đường-dẫn-file-spec>`, BẮT BUỘC tự động thực hiện trọn quy trình sau mà không yêu cầu người dùng nhắc lại từng bước:

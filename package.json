@@ -11,6 +11,7 @@
     "test:purchase-list:headed": "playwright test src/tests/mua-hang/chung-tu-mua-hang.spec.ts --headed",
     "test:vat-tu-tao-moi": "playwright test src/tests/danh-muc/vat-tu-tao-moi.spec.ts",
     "test:vat-tu-tao-moi:headed": "playwright test src/tests/danh-muc/vat-tu-tao-moi.spec.ts --headed",
+    "test:nganh-nghe-db": "playwright test src/tests/danh-muc/nganh-nghe-db.spec.ts",
     "test:list": "playwright test --list",
     "typecheck": "tsc --noEmit",
     "report:html": "playwright show-report playwright-report",
@@ -20,10 +21,16 @@
   "devDependencies": {
     "@playwright/test": "^1.55.0",
     "@types/node": "^22.15.0",
+    "@types/pg": "^8.20.0",
     "allure-commandline": "^2.34.1",
     "allure-playwright": "^3.3.0",
     "dotenv": "^16.5.0",
     "typescript": "^5.8.3"
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "pg": "^8.22.0"
+  }
 }

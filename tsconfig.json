@@ -19,7 +19,8 @@
       "@cleanup/*": ["src/cleanup/*"],
       "@utils/*": ["src/utils/*"],
       "@helpers/*": ["src/helpers/*"],
-      "@test-data/*": ["test-data/*"]
+      "@test-data/*": ["test-data/*"],
+      "@database/*": ["src/database/*"]
     },
     "types": ["node", "@playwright/test"]
   },
