@@ -5,6 +5,7 @@
 - Sử dụng các skill của repository trong `.agents/skills` khi yêu cầu phù hợp với phần `description` của skill hoặc khi người dùng gọi skill bằng cú pháp `$skill-name`.
 - Chỉ đọc các file quy tắc liên quan trước khi triển khai hoặc review code automation:
   - `.agents/rules/automation_rules.md` cho quy ước automation và test data dùng chung.
+  - `.agents/rules/pmkt_rules.md` cho nghiệp vụ PMKT, chứng từ phát sinh liên phân hệ và teardown dữ liệu kế toán.
   - `.agents/rules/locator_strategy.md` cho chiến lược lựa chọn locator.
   - `.agents/rules/playwright_rules.md` cho công việc sử dụng Playwright.
 - Gọi workflow skill bằng ký hiệu `$` và tên kebab-case, ví dụ `$generate-locator` hoặc `$analyze-flaky-tests`.

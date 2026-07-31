@@ -829,14 +829,28 @@ export class VatTuPage extends BasePage {
   }
 
   async searchMaterial(query: string): Promise<void> {
+    const searchInput = this.materialSearchInput();
+    if (query.length > 0 && await searchInput.inputValue() === query) {
+      const resetResponse = this.page.waitForResponse((response) =>
+        this.isMaterialSearchResponse(response, ''),
+      );
+      await this.type(searchInput, '', 'Xóa điều kiện tìm kiếm vật tư');
+      await resetResponse;
+    }
+
     const searchResponse = this.page.waitForResponse((response) => {
-      const url = new URL(response.url());
-      return response.status() === 200
-        && url.pathname === '/api/master-data/vat-tu'
-        && url.searchParams.get('search') === query;
+      return this.isMaterialSearchResponse(response, query);
     });
-    await this.type(this.materialSearchInput(), query, 'Tìm kiếm vật tư');
+    await this.type(searchInput, query, 'Tìm kiếm vật tư');
     await searchResponse;
+  }
+
+  private isMaterialSearchResponse(response: Response, query: string): boolean {
+    const url = new URL(response.url());
+    const search = url.searchParams.get('search') ?? '';
+    return response.status() === 200
+      && url.pathname === '/api/master-data/vat-tu'
+      && search === query;
   }
 
   materialRow(code: string): Locator {

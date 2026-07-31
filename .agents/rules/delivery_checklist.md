@@ -13,9 +13,12 @@ Sử dụng checklist này trước khi xác nhận công việc automation đã
 ## Cấu trúc và chất lượng
 
 - Phân tách page object, test, tiện ích và dữ liệu test theo đúng kiến trúc của dự án.
+- Flow nghiệp vụ qua nhiều màn hình được đặt trong `src/helpers`; flow/helper không chứa assertion nghiệp vụ và trả kết quả thực tế về spec.
 - Khai báo locator trong page object hoặc screen object, không khai báo trực tiếp trong test.
 - Mỗi assertion phải có thông báo lỗi rõ ràng và mỗi test phải chạy độc lập.
+- Mỗi manual testcase độc lập có một test block riêng, hiển thị rõ ID testcase và có thể chạy riêng.
 - Xác minh locator trên giao diện thực tế, không suy đoán từ tên hoặc code cũ.
+- File upload phục vụ automation được lưu trong `test-data`, không nằm trong thư mục artifact tạm thời.
 
 ## Xác minh
 
