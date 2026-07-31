@@ -4,50 +4,55 @@
 
 Framework QA Automation cho PMKT, sử dụng **Playwright Test** và **TypeScript**. Repository hỗ trợ kiểm thử UI, đối chiếu PostgreSQL, teardown dữ liệu và sinh báo cáo kèm evidence.
 
-# Nội dung
+# 📚 Nội dung
 
-- [Cấu trúc thư mục](#cấu-trúc-thư-mục)
-- [Cài đặt](#cài-đặt)
-- [Cấu hình môi trường](#cấu-hình-môi-trường)
-- [Prompt gen script automation](#prompt-gen-script-automation)
-- [Chạy test và tạo báo cáo](#chạy-test-và-tạo-báo-cáo)
-- [Quy ước chính](#quy-ước-chính)
+- [Cấu trúc thư mục](#cau-truc-thu-muc)
+- [Cài đặt](#cai-dat)
+- [Cấu hình môi trường](#cau-hinh-moi-truong)
+- [Prompt tạo script automation](#prompt-tao-script-automation)
+- [Chạy test và tạo báo cáo](#chay-test-va-tao-bao-cao)
+- [Quy ước chính](#quy-uoc-chinh)
 
-# Cấu trúc thư mục
+<a id="cau-truc-thu-muc"></a>
+
+# 🗂️ Cấu trúc thư mục
 
 ```powershell
-codex-testing-kit/
+pmkt_automation_codex/
 ├── .agents/
 │   ├── rules/                      # Quy tắc QA và automation
 │   └── skills/                     # Codex skills/workflows
 ├── .github/                        # Pipeline CI/CD
 ├── plans/                          # Kế hoạch và kiến trúc automation
-├── src/
-│   ├── cleanup/                    # Teardown dữ liệu test
-│   ├── database/                   # PostgreSQL client và repositories
-│   ├── fixtures/                   # Fixtures UI, authentication và DB
-│   ├── helpers/                    # Flow/helper dùng chung
-│   ├── pages/                      # Page Objects
-│   ├── tests/                      # Automation specs theo module
-│   └── utils/                      # Env, logger, wait và utilities
-├── test-data/                      # Test data và file upload đầu vào
-├── testcases/                      # Manual testcases đầu vào
 ├── report/
 │   ├── evidence/                   # Evidence cần lưu lâu dài
 │   └── templates/                  # Mẫu báo cáo kiểm thử
+├── scripts/                        # Công cụ kiểm tra trước khi chạy và dọn dẹp kết quả tạm
+├── src/
+│   ├── cleanup/                    # Teardown dữ liệu tạo ra khi chạy test
+│   ├── database/                   # PostgreSQL client và repositories
+│   ├── fixtures/                   # Fixtures UI, authentication và DB
+│   ├── helpers/                    # Flow/helper dùng chung
+│   ├── pages/                      # Page Objects được nhóm theo phân hệ
+│   ├── reporters/                  # Reporter ghi kết quả riêng từng testcase
+│   ├── tests/                      # Automation specs được nhóm theo phân hệ
+│   └── utils/                      # Env, logger, wait và utilities
+├── test-data/                      # Test data và file upload đầu vào
+├── testcases/                      # Manual testcases đầu vào
 ├── .env.example                    # Mẫu cấu hình UI và DB
 ├── AGENTS.md                       # Hướng dẫn làm việc cho Codex
 ├── package.json                    # Dependencies và npm scripts
 ├── playwright.config.ts            # Cấu hình Playwright
-├── task.md                         # Tiến độ workflow và auto-heal
 └── tsconfig.json                   # Cấu hình TypeScript
 ```
 
-Các thư mục `node_modules/`, `test-results/`, `playwright-report/` và `allure-results/` là artifacts tạm, không thuộc source cần commit.
+Các thư mục `.gstack/`, `node_modules/`, `test-results/`, `playwright-report/`, `allure-results/` và `allure-report/` là dữ liệu công cụ hoặc artifacts tạm, không thuộc source cần commit.
 
 ⬆️ [Lên đầu](#top)
 
-# Cài đặt
+<a id="cai-dat"></a>
+
+# 🛠️ Cài đặt
 
 Yêu cầu:
 
@@ -55,18 +60,20 @@ Yêu cầu:
 - npm 10+
 
 ```powershell
-# Chạy các lệnh sau trong cửa sổ terminal
+# Sau khi clone Repo về, chạy các lệnh sau trong cửa sổ terminal (chỉ cần làm 1 lần)
 npm install
 npm ci
 npx playwright install chromium
 Copy-Item .env.example .env
 ```
 
-Sau khi sao chép, cập nhật `.env` bằng thông tin của môi trường cần kiểm thử.
+Sau khi sao chép, cập nhật `.env` bằng thông tin của môi trường cần kiểm thử (Xem phần Cấu hình môi trường bên dưới).
 
 ⬆️ [Lên đầu](#top)
 
-# Cấu hình môi trường
+<a id="cau-hinh-moi-truong"></a>
+
+# ⚙️ Cấu hình môi trường
 
 ```powershell
 # Ứng dụng và tài khoản automation
@@ -108,9 +115,11 @@ npm test
 
 ⬆️ [Lên đầu](#top)
 
-# Prompt gen script automation
+<a id="prompt-tao-script-automation"></a>
 
-### 1. Tạo mới qua UI rồi đối chiếu DB
+# 🤖 Prompt tạo script automation
+
+### 🆕 1. Tạo mới qua UI rồi đối chiếu DB
 
 Thay `<đường-dẫn-file-tcs>` bằng file manual testcase:
 
@@ -134,7 +143,7 @@ Agent sẽ tự động:
 
 SQL được đặt trong repository của module; assertion nghiệp vụ được đặt trong file spec. Nếu chưa xác định được bảng, agent sẽ đọc metadata trước khi triển khai.
 
-### 2. Kiểm tra trực tiếp bản ghi có sẵn
+### 🔍 2. Kiểm tra trực tiếp bản ghi có sẵn
 
 ```powershell
 Check DB trực tiếp <module>, mã <mã-bản-ghi>, expected: <dữ liệu kỳ vọng>.
@@ -144,9 +153,11 @@ Luồng này chỉ truy vấn read-only, không chạy UI và không sửa hoặ
 
 ⬆️ [Lên đầu](#top)
 
-# Chạy test và tạo báo cáo
+<a id="chay-test-va-tao-bao-cao"></a>
 
-## Chạy test bằng npm
+# 🧪 Chạy test và tạo báo cáo
+
+## 📦 Chạy test bằng npm
 
 ```powershell
 # Kiểm tra lỗi TypeScript mà không sinh file build
@@ -165,7 +176,7 @@ npm run test:vat-tu-tao-moi:headed
 npm test
 ```
 
-## Chạy test trực tiếp bằng Playwright CLI
+## 🎭 Chạy test trực tiếp bằng Playwright CLI
 
 ```powershell
 # Liệt kê toàn bộ testcase
@@ -195,7 +206,18 @@ npx playwright show-report playwright-report
 
 Khi phát triển hoặc debug locator, ưu tiên `--headed` với viewport `1920x1080`. Chỉ dùng headless sau khi testcase đã PASS ổn định hoặc khi chạy CI.
 
-## Prompt chạy và report
+## 🧹 Làm sạch dữ liệu kiểm thử (khi đã lưu report xong)
+
+Sau khi đã tạo report và lưu evidence cần thiết, chạy lệnh sau để xóa nhanh nội dung của `allure-results/`, `playwright-report/` và `test-results/`:
+
+```powershell
+npm run clean:test-artifacts
+# Nếu chưa lưu report thì đừng dại dột chạy lệnh này!!!
+```
+
+Lệnh giữ lại ba thư mục rỗng để lần chạy tiếp theo có thể sử dụng ngay. Không ảnh hưởng đến report và evidence lâu dài trong `report/`.
+
+## 📊 Prompt chạy và report
 
 ```powershell
 Chạy và report <đường-dẫn-file-spec>
@@ -235,7 +257,7 @@ test-results/run-<timestamp>/case-results/<TC-ID>--<project>--retry-<n>.json
 npm run preflight:evidence -- <đường-dẫn-file-spec>
 ```
 
-### Khôi phục report khi suite chạy dở
+### ♻️ Khôi phục report khi suite chạy dở
 
 Nếu suite bị treo hoặc dừng giữa chừng, các testcase đã hoàn thành vẫn có JSON và evidence riêng trong thư mục run. Dùng prompt:
 
@@ -261,7 +283,9 @@ Artifacts tạm trong `test-results/`, `playwright-report/` và `allure-results/
 
 ⬆️ [Lên đầu](#top)
 
-# Quy ước chính
+<a id="quy-uoc-chinh"></a>
+
+# 📌 Quy ước chính
 
 | Nội dung | Quy ước |
 |---|---|
