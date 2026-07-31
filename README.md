@@ -155,9 +155,6 @@ npm run typecheck
 # Liệt kê toàn bộ testcase Playwright được phát hiện
 npm run test:list
 
-# Chạy nhóm testcase đăng nhập với browser hiển thị
-npm run test:login:headed
-
 # Chạy danh sách Chứng từ mua hàng với browser hiển thị
 npm run test:purchase-list:headed
 

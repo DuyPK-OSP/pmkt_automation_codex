@@ -1,7 +1,7 @@
 import { purchaseDocumentData } from '@test-data/chung-tu-mua-hang.data';
 import type { PurchaseDocumentData } from '@test-data/chung-tu-mua-hang.data';
-import type { ChungTuMuaHangThemMoiPage, PurchaseDocumentAutoFilledValues } from '@pages/chung-tu-mua-hang-them-moi.page';
-import type { ChungTuMuaHangDanhSachPage } from '@pages/chung-tu-mua-hang-danh-sach.page';
+import type { ChungTuMuaHangThemMoiPage, PurchaseDocumentAutoFilledValues } from '@pages/mua-hang/chung-tu-mua-hang-them-moi.page';
+import type { ChungTuMuaHangDanhSachPage } from '@pages/mua-hang/chung-tu-mua-hang-danh-sach.page';
 import type { PurchaseDocumentCleanupTracker } from '@cleanup/chung-tu-mua-hang.cleanup';
 
 export type ImmediatePaymentType = 'Tiền mặt' | 'Ủy nhiệm chi' | 'Séc tiền mặt' | 'Séc chuyển khoản';

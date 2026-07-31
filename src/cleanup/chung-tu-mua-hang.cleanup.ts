@@ -1,9 +1,9 @@
 import type { Page, TestInfo } from '@playwright/test';
 import { expect } from '@playwright/test';
-import { ChungTuMuaHangDanhSachPage } from '@pages/chung-tu-mua-hang-danh-sach.page';
-import { PhieuNhapKhoDanhSachPage } from '@pages/phieu-nhap-kho-danh-sach.page';
-import { TienMatChiTienDanhSachPage } from '@pages/tien-mat-chi-tien-danh-sach.page';
-import { TienGuiChiTienDanhSachPage } from '@pages/tien-gui-chi-tien-danh-sach.page';
+import { ChungTuMuaHangDanhSachPage } from '@pages/mua-hang/chung-tu-mua-hang-danh-sach.page';
+import { PhieuNhapKhoDanhSachPage } from '@pages/kho/phieu-nhap-kho-danh-sach.page';
+import { TienMatChiTienDanhSachPage } from '@pages/tien-mat/tien-mat-chi-tien-danh-sach.page';
+import { TienGuiChiTienDanhSachPage } from '@pages/tien-gui/tien-gui-chi-tien-danh-sach.page';
 import type { Logger } from '@utils/logger';
 
 interface PurchaseCleanupResult {

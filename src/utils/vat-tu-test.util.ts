@@ -1,4 +1,4 @@
-import type { AccountOption, CatalogueOption } from '@pages/vat-tu.page';
+import type { AccountOption, CatalogueOption } from '@pages/danh-muc/vat-tu.page';
 
 export function statusPair(options: readonly CatalogueOption[]):
   | Readonly<{ active: CatalogueOption; inactive: CatalogueOption }>

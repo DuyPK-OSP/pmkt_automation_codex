@@ -1,5 +1,5 @@
 import type { Locator, Page, Response } from '@playwright/test';
-import { BasePage } from './base.page';
+import { BasePage } from '@pages/common/base.page';
 import type { Logger } from '@utils/logger';
 
 export const MATERIAL_TYPES = [

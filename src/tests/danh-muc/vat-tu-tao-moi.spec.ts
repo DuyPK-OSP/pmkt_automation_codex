@@ -6,7 +6,7 @@ import {
   verifyFullGoodsMaterialDetails,
   verifyFullServiceMaterialDetails,
 } from '@helpers/vat-tu-assertion.helper';
-import { MATERIAL_TYPES } from '@pages/vat-tu.page';
+import { MATERIAL_TYPES } from '@pages/danh-muc/vat-tu.page';
 import { expectedMaterialTypeCards } from '@test-data/vat-tu.data';
 import { requireCredentials } from '@utils/env.config';
 import { statusPair } from '@utils/vat-tu-test.util';

@@ -5,8 +5,6 @@
   "scripts": {
     "test": "playwright test",
     "test:headed": "playwright test --headed",
-    "test:login": "playwright test src/tests/auth/login.spec.ts",
-    "test:login:headed": "playwright test src/tests/auth/login.spec.ts --headed",
     "test:purchase-list": "playwright test src/tests/mua-hang/chung-tu-mua-hang.spec.ts",
     "test:purchase-list:headed": "playwright test src/tests/mua-hang/chung-tu-mua-hang.spec.ts --headed",
     "test:vat-tu-tao-moi": "playwright test src/tests/danh-muc/vat-tu-tao-moi.spec.ts",

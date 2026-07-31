@@ -1,17 +1,17 @@
 import { test as base, expect } from '@playwright/test';
-import { DashboardPage } from '@pages/dashboard.page';
-import { LoginPage } from '@pages/login.page';
-import { ChungTuMuaHangPage } from '@pages/chung-tu-mua-hang.page';
-import { VatTuPage } from '@pages/vat-tu.page';
+import { DashboardPage } from '@pages/common/dashboard.page';
+import { LoginPage } from '@pages/common/login.page';
+import { ChungTuMuaHangPage } from '@pages/mua-hang/chung-tu-mua-hang.page';
+import { VatTuPage } from '@pages/danh-muc/vat-tu.page';
 import { Logger } from '@utils/logger';
 import { ScreenshotUtil } from '@utils/screenshot.util';
 import { MaterialCleanupTracker } from '@cleanup/vat-tu.cleanup';
 import { PurchaseDocumentCleanupTracker } from '@cleanup/chung-tu-mua-hang.cleanup';
-import { ChungTuMuaHangThemMoiPage } from '@pages/chung-tu-mua-hang-them-moi.page';
-import { ChungTuMuaHangDanhSachPage } from '@pages/chung-tu-mua-hang-danh-sach.page';
-import { PhieuNhapKhoDanhSachPage } from '@pages/phieu-nhap-kho-danh-sach.page';
-import { TienMatChiTienDanhSachPage } from '@pages/tien-mat-chi-tien-danh-sach.page';
-import { TienGuiChiTienDanhSachPage } from '@pages/tien-gui-chi-tien-danh-sach.page';
+import { ChungTuMuaHangThemMoiPage } from '@pages/mua-hang/chung-tu-mua-hang-them-moi.page';
+import { ChungTuMuaHangDanhSachPage } from '@pages/mua-hang/chung-tu-mua-hang-danh-sach.page';
+import { PhieuNhapKhoDanhSachPage } from '@pages/kho/phieu-nhap-kho-danh-sach.page';
+import { TienMatChiTienDanhSachPage } from '@pages/tien-mat/tien-mat-chi-tien-danh-sach.page';
+import { TienGuiChiTienDanhSachPage } from '@pages/tien-gui/tien-gui-chi-tien-danh-sach.page';
 import { DatabaseContext } from '@database/database.context';
 
 interface FrameworkFixtures {

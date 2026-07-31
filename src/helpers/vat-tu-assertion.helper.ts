@@ -6,7 +6,7 @@ import type {
   FullServiceMaterialSelection,
   MaterialType,
   VatTuPage,
-} from '@pages/vat-tu.page';
+} from '@pages/danh-muc/vat-tu.page';
 import { accountingAccountCoverage } from '@utils/vat-tu-test.util';
 
 export async function verifyAccountingAccountCombobox(

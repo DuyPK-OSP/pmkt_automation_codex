@@ -1,5 +1,5 @@
 import type { Page, Response, TestInfo } from '@playwright/test';
-import type { VatTuPage } from '@pages/vat-tu.page';
+import type { VatTuPage } from '@pages/danh-muc/vat-tu.page';
 
 interface CleanupResult {
   readonly code: string;
