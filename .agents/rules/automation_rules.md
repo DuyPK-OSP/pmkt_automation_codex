@@ -51,8 +51,45 @@
 - Code phải đơn giản, dễ đọc, dễ bảo trì.
 - Trước khi deliver code:
   - Xóa toàn bộ `console.log`, `System.out.println`, `print()` sinh ra khi debug
-  - Xóa code bị comment (`//`, `/* */`)
+  - Xóa code đã bị vô hiệu hóa bằng comment (`//`, `/* */`); không áp dụng cho chú thích giải thích luồng testcase theo quy tắc bên dưới
   - Xóa locator / biến không sử dụng (unused code)
+
+### 3.1. Quy tắc chú thích cho toàn bộ code
+
+- Áp dụng BẮT BUỘC cho **mọi file code**: spec, Page Object, locator, test data, cleanup, fixture, helper/flow, database, reporter, utils, config, script và custom tooling. Khi sinh hoặc sửa code, agent phải tự bổ sung/cập nhật chú thích trong cùng thay đổi, không chờ người dùng yêu cầu.
+- Dùng tiếng Việt ngắn gọn và đúng nghiệp vụ PMKT; giữ nguyên thuật ngữ kỹ thuật như fixture, locator, retry, tenant, reporter, cleanup khi cần.
+- JSDoc bắt buộc cho class, interface/type có ràng buộc, function/method và exported API dùng chung; đồng thời áp dụng cho constructor/private helper có lifecycle, side effect, fallback, retry hoặc thuật toán không hiển nhiên.
+- Comment đặt ngay trước cụm code cần giải thích và phải làm rõ ít nhất một ý: nghiệp vụ gì, tại sao cần làm, chạy khi nào, tác động tới đâu hoặc dữ liệu trả về có ý nghĩa gì.
+
+| Loại code | Nội dung chú thích bắt buộc |
+|---|---|
+| **Spec** | `Chuẩn bị dữ liệu:` cho data/precondition; `Hành động:` mô tả flow bằng dấu `>`; `Xác nhận:` đặt trước assertion, tách `UI/API/DB` khi cần. Case SKIP chỉ ghi đúng precondition, không tạo flow giả. |
+| **Page Object / Locator** | JSDoc nêu ý nghĩa nghiệp vụ của method, tham số và kết quả trả về khi chưa rõ; không đưa Expected Result vào Page Object. |
+| **Cleanup / Fixture** | Tài nguyên được theo dõi/cung cấp, phần setup trước `use()`, teardown sau `use()`, điều kiện xóa an toàn và tác động cascade. |
+| **Helper / Flow** | Mục đích luồng, input/output, module liên phân hệ và side effect; assertion nghiệp vụ thuộc spec, trừ assertion helper dùng chung có chủ đích rõ ràng. |
+| **Database** | Mục đích query, tenant/khóa nghiệp vụ, read-only hay mutation, parameterized query và dữ liệu trả về. |
+| **Reporter** | Lifecycle hook, thời điểm ghi artifact/index, cách chuẩn hóa status, attachment và retry. |
+| **Utils / Config / Test data / Script** | Contract, format dữ liệu, fallback, retry, parsing, seed, side effect hoặc workaround không hiển nhiên. |
+
+Ví dụ chuẩn:
+
+```typescript
+// Chuẩn bị dữ liệu: Sinh Ngành nghề có mã unique để tránh trùng khi chạy lại testcase.
+// Hành động: Truy cập > Mở form Thêm mới > Nhập dữ liệu > Nhấn nút Lưu.
+// Xác nhận trong DB: Bản ghi có đúng Mã, Tên, Diễn giải và Trạng thái.
+
+/** Mở form Thêm mới Ngành nghề và chờ popup sẵn sàng thao tác. */
+async openCreateDialog(): Promise<void> {
+  // implementation
+}
+
+// Đăng ký mã để fixture cleanup sau khi testcase kết thúc; dữ liệu chưa bị xóa tại đây.
+industryCleanup.register(data.code);
+```
+
+- Không comment từng dòng, import, phép gán hoặc câu lệnh hiển nhiên; không lặp lại tên hàm, không dùng comment chung chung như `xử lý dữ liệu`, không thêm `Nhóm 1/2`, và không giữ code bị vô hiệu hóa bằng comment.
+- Khi logic thay đổi, comment liên quan phải được cập nhật trong cùng thay đổi; comment sai hoặc lỗi thời được xem là lỗi code.
+- Trước khi bàn giao, kiểm tra mọi file đã thay đổi: đủ JSDoc cần thiết; lifecycle/side effect/workaround đúng vị trí; không có comment thừa/sai vị trí; comment không làm đổi logic, dữ liệu hoặc Expected Result.
 
 ## 4. Quản Lý File & Thư Mục
 

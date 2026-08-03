@@ -2,6 +2,7 @@ import type { Page, TestInfo } from '@playwright/test';
 import { expect as playwrightExpect } from '@playwright/test';
 import { ScreenshotUtil } from '@utils/screenshot.util';
 
+/** Ngữ cảnh testcase hiện tại dùng để chụp milestone evidence tại thời điểm soft assertion mismatch. */
 interface EvidenceContext {
   readonly page: Page;
   readonly testInfo: TestInfo;
@@ -10,6 +11,7 @@ interface EvidenceContext {
 
 let activeEvidenceContext: EvidenceContext | undefined;
 
+/** Thiết lập ngữ cảnh evidence trong lifecycle fixture và luôn giải phóng khi testcase kết thúc. */
 export async function runWithEvidenceContext(
   page: Page,
   testInfo: TestInfo,
@@ -23,12 +25,14 @@ export async function runWithEvidenceContext(
   }
 }
 
+/** Sinh tên evidence tuần tự theo Test Case ID trong testcase hiện tại. */
 function evidenceName(context: EvidenceContext): string {
   context.sequence += 1;
   const testCaseId = context.testInfo.title.match(/CL-UAT-U-\d+-\d+/)?.[0] ?? 'test';
   return `mismatch-${testCaseId}-${String(context.sequence).padStart(2, '0')}`;
 }
 
+/** Attach screenshot và JSON lỗi mới phát sinh ngay tại thời điểm soft assertion mismatch. */
 async function attachMismatch(context: EvidenceContext, errorStartIndex: number): Promise<void> {
   const newErrors = context.testInfo.errors.slice(errorStartIndex);
   if (newErrors.length === 0) return;
@@ -53,6 +57,7 @@ async function attachMismatch(context: EvidenceContext, errorStartIndex: number)
   }
 }
 
+/** Bọc matcher bằng Proxy để tự attach evidence sau khi matcher hoàn tất. */
 function wrapSoftMatcher<T extends object>(
   matcher: T,
   context: EvidenceContext,
@@ -77,6 +82,7 @@ function wrapSoftMatcher<T extends object>(
   });
 }
 
+/** Proxy của Playwright expect; tự chụp milestone evidence khi expect.soft() ghi nhận mismatch. */
 export const expect = new Proxy(playwrightExpect, {
   get(target, property, receiver) {
     if (property !== 'soft') return Reflect.get(target, property, receiver);

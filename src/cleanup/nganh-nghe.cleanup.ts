@@ -1,16 +1,20 @@
 import type { TestInfo } from '@playwright/test';
 import type { NganhNghePage } from '@pages/danh-muc/nganh-nghe.page';
 
+/** Đăng ký và cleanup các Ngành nghề có mã automation sau testcase. */
 export class IndustryCleanupTracker {
   private readonly createdCodes = new Set<string>();
 
+  /** Khởi tạo tracker cleanup với Page Object Ngành nghề. */
   constructor(private readonly industryPage: NganhNghePage) {}
 
+  /** Đăng ký Mã ngành nghề automation cần cleanup; từ chối mã không có tiền tố AUTO_. */
   register(code: string): void {
     if (!code.startsWith('AUTO_')) throw new Error('Cleanup chỉ nhận mã automation bắt đầu bằng AUTO_.');
     this.createdCodes.add(code);
   }
 
+  /** Thực thi teardown, ghi nhận kết quả từng bản ghi và attach JSON cleanup vào test result. */
   async cleanup(testInfo: TestInfo): Promise<void> {
     const results: Array<{ code: string; deleted: boolean; detail: string }> = [];
     for (const code of [...this.createdCodes].reverse()) {

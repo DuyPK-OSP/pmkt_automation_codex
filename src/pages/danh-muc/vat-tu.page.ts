@@ -120,6 +120,7 @@ export class VatTuPage extends BasePage {
   readonly accountingAccountDropdown: Locator;
   readonly accountingAccountColumnHeaders: Locator;
 
+  /** Khởi tạo Page Object và các locator dùng chung của màn hình Danh mục Vật tư. */
   constructor(page: Page, logger: Logger) {
     super(page, logger);
     this.addButton = page.getByRole('button', { name: 'Thêm mới', exact: true });
@@ -151,6 +152,7 @@ export class VatTuPage extends BasePage {
     );
   }
 
+  /** Mở màn hình Danh mục Vật tư và chờ danh sách sẵn sàng thao tác. */
   async openFromDanhMuc(): Promise<void> {
     await this.navigate('/danh-muc');
     await this.click(
@@ -161,6 +163,7 @@ export class VatTuPage extends BasePage {
     await this.addButton.waitFor({ state: 'visible' });
   }
 
+  /** Mở Danh mục Vật tư, đồng thời thu thập Nhóm vật tư và Đơn vị tính thực tế từ API. */
   async openFromDanhMucAndCollectCatalogues(): Promise<VatTuCatalogues> {
     await this.navigate('/danh-muc');
     const groupResponsePromise = this.page.waitForResponse((response) =>
@@ -187,6 +190,7 @@ export class VatTuPage extends BasePage {
     };
   }
 
+  /** Mở Danh mục Vật tư và trả về danh sách Tài khoản kế toán thực tế từ API. */
   async openFromDanhMucAndCollectAccounts(): Promise<readonly AccountOption[]> {
     await this.navigate('/danh-muc');
     const accountResponsePromise = this.page.waitForResponse((response) =>
@@ -204,6 +208,7 @@ export class VatTuPage extends BasePage {
     return this.parseAccounts(accountResponse);
   }
 
+  /** Mở Danh mục Vật tư và trả về danh sách Kho thực tế từ API. */
   async openFromDanhMucAndCollectWarehouses(): Promise<readonly CatalogueOption[]> {
     await this.navigate('/danh-muc');
     const responsePromise = this.page.waitForResponse((response) =>
@@ -225,6 +230,7 @@ export class VatTuPage extends BasePage {
     }));
   }
 
+  /** Mở Danh mục Vật tư và trả về danh sách Thuế tài nguyên thực tế từ API. */
   async openFromDanhMucAndCollectResourceTaxes(): Promise<readonly CatalogueOption[]> {
     await this.navigate('/danh-muc');
     const responsePromise = this.page.waitForResponse((response) =>
@@ -237,25 +243,30 @@ export class VatTuPage extends BasePage {
     return this.loadAllResourceTaxes(response);
   }
 
+  /** Mở popup chọn Loại vật tư trước khi tạo mới. */
   async openMaterialTypePopup(): Promise<void> {
     await this.click(this.addButton, 'Nhấn Thêm mới');
     await this.materialTypeDialog.waitFor({ state: 'visible' });
   }
 
+  /** Trả về locator của một Loại vật tư theo tên hiển thị. */
   materialTypeTitle(type: MaterialType): Locator {
     return this.materialTypeDialog.getByText(type, { exact: true });
   }
 
+  /** Chọn Loại vật tư và chờ form Thêm mới tương ứng hiển thị. */
   async selectMaterialType(type: MaterialType): Promise<void> {
     await this.click(this.materialTypeTitle(type), `Chọn Loại vật tư ${type}`);
     await this.createMaterialDialog.waitFor({ state: 'visible' });
   }
 
+  /** Quay lại popup chọn Loại vật tư từ form Thêm mới hiện tại. */
   async changeMaterialType(): Promise<void> {
     await this.click(this.changeMaterialTypeButton, 'Thay đổi Loại vật tư');
     await this.materialTypeDialog.waitFor({ state: 'visible' });
   }
 
+  /** Trả về locator của nút Hủy trên form Thêm mới Vật tư. */
   cancelButton(): Locator {
     return this.createMaterialDialog.getByRole('button', {
       name: 'Hủy',
@@ -263,16 +274,19 @@ export class VatTuPage extends BasePage {
     });
   }
 
+  /** Nhấn Hủy để yêu cầu đóng form Thêm mới Vật tư. */
   async cancelCreatingMaterial(): Promise<void> {
     await this.click(this.cancelButton(), 'Hủy tạo mới vật tư');
   }
 
+  /** Trả về nội dung cảnh báo khi đóng form có dữ liệu chưa lưu. */
   closeConfirmationMessage(): Locator {
     return this.closeConfirmationDialog.getByText(
       /Dữ liệu đã có thay đổi|Bạn có chắc chắn muốn hủy/,
     );
   }
 
+  /** Hủy thao tác đóng để tiếp tục chỉnh sửa Vật tư. */
   async dismissCloseConfirmation(): Promise<void> {
     await this.click(
       this.closeConfirmationDialog.getByRole('button', { name: 'Hủy', exact: true }),
@@ -280,6 +294,7 @@ export class VatTuPage extends BasePage {
     );
   }
 
+  /** Xác nhận bỏ dữ liệu chưa lưu và đóng form Thêm mới. */
   async confirmClose(): Promise<void> {
     await this.click(
       this.closeConfirmationDialog.getByRole('button', { name: 'Xác nhận', exact: true }),
@@ -287,70 +302,85 @@ export class VatTuPage extends BasePage {
     );
   }
 
+  /** Mở danh sách Nhóm vật tư để tìm kiếm hoặc lựa chọn. */
   async openGroupDropdown(): Promise<void> {
     await this.click(this.groupCombobox, 'Mở dropdown Nhóm vật tư');
     await this.groupCombobox.waitFor({ state: 'visible' });
   }
 
+  /** Tìm kiếm Nhóm vật tư theo mã hoặc tên được truyền vào. */
   async searchGroup(query: string): Promise<void> {
     await this.type(this.groupCombobox, query, 'Tìm kiếm Nhóm vật tư');
   }
 
+  /** Trả về locator của một lựa chọn Nhóm vật tư theo nhãn hiển thị. */
   groupOption(label: string): Locator {
     return this.page.getByRole('treeitem', { name: label, exact: true });
   }
 
+  /** Tìm và chọn Nhóm vật tư theo dữ liệu danh mục thực tế. */
   async selectGroup(option: CatalogueOption): Promise<void> {
     await this.searchGroup(option.code);
     await this.click(this.groupOption(option.label), `Chọn Nhóm vật tư ${option.label}`);
   }
 
+  /** Trả về locator của Nhóm vật tư đang được chọn. */
   selectedGroup(label: string): Locator {
     return this.createMaterialDialog
       .locator('.ant-select-selection-item')
       .filter({ hasText: label });
   }
 
+  /** Mở danh sách Đơn vị tính chính. */
   async openMainUnitDropdown(): Promise<void> {
     await this.click(this.mainUnitCombobox, 'Mở dropdown Đơn vị tính chính');
   }
 
+  /** Tìm kiếm Đơn vị tính chính theo mã hoặc tên. */
   async searchMainUnit(query: string): Promise<void> {
     await this.type(this.mainUnitCombobox, query, 'Tìm kiếm Đơn vị tính chính');
   }
 
+  /** Trả về locator của một lựa chọn Đơn vị tính chính. */
   mainUnitOption(label: string): Locator {
     return this.page
       .locator('.ant-select-dropdown:visible')
       .getByText(label, { exact: true });
   }
 
+  /** Chọn Đơn vị tính chính theo dữ liệu danh mục thực tế. */
   async selectMainUnit(option: CatalogueOption): Promise<void> {
     await this.click(this.mainUnitOption(option.label), `Chọn Đơn vị tính ${option.label}`);
   }
 
+  /** Trả về locator của Đơn vị tính chính đang được chọn. */
   selectedMainUnit(label: string): Locator {
     return this.createMaterialDialog.getByText(label, { exact: true }).last();
   }
 
+  /** Mở tab Hạch toán ngầm định trên form Vật tư. */
   async openDefaultAccountingTab(): Promise<void> {
     await this.click(this.defaultAccountingTab, 'Chuyển sang Tab Hạch toán ngầm định');
   }
 
+  /** Trả về locator của tab trên form theo tên hiển thị. */
   formTab(name: string): Locator {
     return this.createMaterialDialog.getByRole('tab', { name, exact: true });
   }
 
+  /** Mở một tab trên form theo tên được truyền vào. */
   async openFormTab(name: string): Promise<void> {
     await this.click(this.formTab(name), `Chuyển sang Tab ${name}`);
   }
 
+  /** Trả về vùng form-item của trường theo label. */
   formField(label: string): Locator {
     return this.createMaterialDialog
       .locator('.ant-form-item')
       .filter({ hasText: label });
   }
 
+  /** Trả về control có role tương ứng trong trường theo label. */
   formFieldControl(
     label: string,
     role: Parameters<Locator['getByRole']>[0],
@@ -358,10 +388,12 @@ export class VatTuPage extends BasePage {
     return this.formField(label).getByRole(role).first();
   }
 
+  /** Trả về giá trị đang được chọn của một trường trên form. */
   selectedFormValue(label: string): Locator {
     return this.formField(label).locator('.ant-select-selection-item').first();
   }
 
+  /** Trả về lựa chọn hợp lệ đầu tiên trong dropdown đang mở. */
   firstEnabledDropdownOption(): Locator {
     return this.page
       .locator('.ant-select-dropdown:visible')
@@ -369,6 +401,7 @@ export class VatTuPage extends BasePage {
       .first();
   }
 
+  /** Chọn giá trị hợp lệ đầu tiên của trường và trả về nội dung đã chọn. */
   async selectFirstFormOption(label: string): Promise<string> {
     await this.click(
       this.formFieldControl(label, 'combobox'),
@@ -381,12 +414,14 @@ export class VatTuPage extends BasePage {
     return value;
   }
 
+  /** Giữ giá trị hiện tại hoặc chọn giá trị hợp lệ đầu tiên nếu trường đang trống. */
   async ensureFirstFormOption(label: string): Promise<string> {
     const selected = this.selectedFormValue(label);
     if (await selected.count()) return (await selected.innerText()).trim();
     return this.selectFirstFormOption(label);
   }
 
+  /** Nhập giá trị vào trường text hoặc number được xác định bằng label. */
   async fillFormField(label: string, value: string): Promise<void> {
     const field = this.formField(label);
     const textbox = field.getByRole('textbox').first();
@@ -397,6 +432,7 @@ export class VatTuPage extends BasePage {
     await this.type(field.getByRole('spinbutton').first(), value, label);
   }
 
+  /** Bật hoặc tắt checkbox theo trạng thái mong muốn. */
   async setCheckbox(name: string, checked: boolean): Promise<void> {
     const checkbox = this.createMaterialDialog.getByRole('checkbox', {
       name,
@@ -407,6 +443,7 @@ export class VatTuPage extends BasePage {
     }
   }
 
+  /** Tải ảnh Vật tư lên và chờ API upload hoàn tất. */
   async uploadMaterialImage(filePath: string): Promise<void> {
     const uploadCompleted = this.page.waitForResponse(
       (response) =>
@@ -420,6 +457,7 @@ export class VatTuPage extends BasePage {
     await uploadCompleted;
   }
 
+  /** Nhập đầy đủ dữ liệu cho loại Vật tư có quản lý kho và trả về các giá trị đã chọn từ UI. */
   async fillFullGoodsMaterial(
     input: FullGoodsMaterialInput,
   ): Promise<FullGoodsMaterialSelection> {
@@ -473,11 +511,13 @@ export class VatTuPage extends BasePage {
     };
   }
 
+  /** Nhập hai thông tin định danh bắt buộc là Mã và Tên vật tư. */
   async fillMaterialIdentity(code: string, name: string): Promise<void> {
     await this.type(this.materialCodeInput(), code, 'Mã vật tư');
     await this.type(this.materialNameInput(), name, 'Tên vật tư');
   }
 
+  /** Nhập đầy đủ dữ liệu cho loại Dịch vụ và trả về các giá trị đã chọn từ UI. */
   async fillFullServiceMaterial(
     input: FullServiceMaterialInput,
   ): Promise<FullServiceMaterialSelection> {
@@ -516,6 +556,7 @@ export class VatTuPage extends BasePage {
     return { accounts, vatRate, exciseTax, resourceTax, alternativeUnit };
   }
 
+  /** Chọn Đơn vị tính khác hợp lệ đầu tiên, không trùng Đơn vị tính chính. */
   async fillFirstAlternativeUnit(mainUnit: string): Promise<string> {
     await this.openFormTab('Đơn vị tính khác');
     await this.addConversionRow();
@@ -535,6 +576,7 @@ export class VatTuPage extends BasePage {
     return value;
   }
 
+  /** Trả về locator đại diện cho ảnh Vật tư đã upload thành công. */
   materialImagePreview(): Locator {
     return this.createMaterialDialog.getByRole('button', {
       name: 'Xóa',
@@ -542,10 +584,12 @@ export class VatTuPage extends BasePage {
     });
   }
 
+  /** Trả về khu vực Hình ảnh hàng hóa trên form. */
   materialImageSection(): Locator {
     return this.createMaterialDialog.getByText('Hình ảnh hàng hóa', { exact: true });
   }
 
+  /** Trả về label của trường bắt buộc theo tên trường. */
   requiredFormField(label: string): Locator {
     const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return this.createMaterialDialog.getByText(
@@ -553,6 +597,7 @@ export class VatTuPage extends BasePage {
     );
   }
 
+  /** Trả về control trong form Thêm mới theo role và accessible name. */
   dialogControl(
     role: Parameters<Locator['getByRole']>[0],
     name: string,
@@ -560,6 +605,7 @@ export class VatTuPage extends BasePage {
     return this.createMaterialDialog.getByRole(role, { name, exact: true });
   }
 
+  /** Trả về combobox chọn Đơn vị thời hạn bảo hành. */
   warrantyUnitCombobox(): Locator {
     return this.createMaterialDialog
       .getByText('Ngày', { exact: true })
@@ -567,21 +613,25 @@ export class VatTuPage extends BasePage {
       .getByRole('combobox');
   }
 
+  /** Trả về một lựa chọn Đơn vị thời hạn bảo hành theo tên. */
   warrantyUnitOption(name: string): Locator {
     return this.page.locator('.ant-select-dropdown:visible')
       .locator('.ant-select-item-option-content')
       .filter({ hasText: new RegExp(`^${name}$`) });
   }
 
+  /** Trả về toàn bộ lựa chọn Đơn vị thời hạn bảo hành. */
   warrantyUnitOptions(): Locator {
     return this.page.locator('.ant-select-dropdown:visible')
       .locator('.ant-select-item-option:not(.ant-select-item-option-disabled)');
   }
 
+  /** Mở danh sách Đơn vị thời hạn bảo hành. */
   async openWarrantyUnitDropdown(): Promise<void> {
     await this.click(this.warrantyUnitCombobox(), 'Mở Đơn vị thời hạn bảo hành');
   }
 
+  /** Chọn Đơn vị thời hạn bảo hành theo tên. */
   async selectWarrantyUnit(name: string): Promise<void> {
     if (!(await this.page.locator('.ant-select-dropdown:visible').count())) {
       await this.openWarrantyUnitDropdown();
@@ -589,14 +639,17 @@ export class VatTuPage extends BasePage {
     await this.click(this.warrantyUnitOption(name), `Chọn Đơn vị bảo hành ${name}`);
   }
 
+  /** Trả về Đơn vị thời hạn bảo hành đang được chọn. */
   selectedWarrantyUnit(name: string): Locator {
     return this.createMaterialDialog.getByTitle(name, { exact: true }).last();
   }
 
+  /** Trả về combobox Loại hàng hóa đặc trưng. */
   specialGoodsTypeCombobox(): Locator {
     return this.formFieldControl('Loại hàng hóa đặc trưng', 'combobox');
   }
 
+  /** Mở danh sách Loại hàng hóa đặc trưng. */
   async openSpecialGoodsTypeDropdown(): Promise<void> {
     await this.click(
       this.specialGoodsTypeCombobox(),
@@ -604,6 +657,7 @@ export class VatTuPage extends BasePage {
     );
   }
 
+  /** Trả về một lựa chọn Loại hàng hóa đặc trưng theo tên. */
   specialGoodsTypeOption(name: string): Locator {
     const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return this.page
@@ -612,6 +666,7 @@ export class VatTuPage extends BasePage {
       .filter({ hasText: new RegExp(`^${escapedName}$`) });
   }
 
+  /** Chọn Loại hàng hóa đặc trưng theo tên. */
   async selectSpecialGoodsType(name: string): Promise<void> {
     await this.click(
       this.specialGoodsTypeOption(name),
@@ -619,20 +674,24 @@ export class VatTuPage extends BasePage {
     );
   }
 
+  /** Trả về Loại hàng hóa đặc trưng đang được chọn. */
   selectedSpecialGoodsType(name: string): Locator {
     return this.formField('Loại hàng hóa đặc trưng').getByTitle(name, {
       exact: true,
     });
   }
 
+  /** Trả về Loại vật tư đang hiển thị trên form. */
   materialTypeValue(type: MaterialType): Locator {
     return this.createMaterialDialog.getByText(type, { exact: true }).first();
   }
 
+  /** Trả về công tắc Trạng thái của Vật tư. */
   statusSwitch(): Locator {
     return this.createMaterialDialog.getByRole('switch');
   }
 
+  /** Đặt trạng thái Vật tư thành Hoạt động hoặc Ngừng hoạt động theo đầu vào. */
   async setMaterialStatus(active: boolean): Promise<void> {
     const statusSwitch = this.statusSwitch();
     if ((await statusSwitch.isChecked()) !== active) {
@@ -643,14 +702,17 @@ export class VatTuPage extends BasePage {
     }
   }
 
+  /** Trả về trường nhập Mã vật tư. */
   materialCodeInput(): Locator {
     return this.formFieldControl('Mã vật tư', 'textbox');
   }
 
+  /** Trả về trường nhập Tên vật tư. */
   materialNameInput(): Locator {
     return this.formFieldControl('Tên vật tư', 'textbox');
   }
 
+  /** Nhập các trường bắt buộc dùng chung gồm Mã, Tên và Đơn vị tính chính. */
   async fillRequiredMaterialFields(
     code: string,
     name: string,
@@ -662,6 +724,7 @@ export class VatTuPage extends BasePage {
     await this.selectMainUnit(unit);
   }
 
+  /** Nhập trường bắt buộc của Vật tư quản lý kho và trả về Phương pháp tính giá đã chọn. */
   async fillRequiredInventoryMaterialFields(
     code: string,
     name: string,
@@ -672,6 +735,7 @@ export class VatTuPage extends BasePage {
     return this.ensureFirstFormOption('Phương pháp tính giá');
   }
 
+  /** Trả về nút Lưu trên form Thêm mới Vật tư. */
   saveButton(): Locator {
     return this.createMaterialDialog.getByRole('button', {
       name: 'Lưu',
@@ -679,10 +743,12 @@ export class VatTuPage extends BasePage {
     });
   }
 
+  /** Nhấn Lưu để tạo Vật tư và đóng form hiện tại. */
   async saveMaterial(): Promise<void> {
     await this.click(this.saveButton(), 'Lưu vật tư');
   }
 
+  /** Trả về nút Lưu và Thêm mới trên form Vật tư. */
   saveAndAddButton(): Locator {
     return this.createMaterialDialog.getByRole('button', {
       name: 'Lưu và Thêm mới',
@@ -690,23 +756,28 @@ export class VatTuPage extends BasePage {
     });
   }
 
+  /** Nhấn Lưu và Thêm mới để tạo Vật tư nhưng giữ form mở. */
   async saveAndAddMaterial(): Promise<void> {
     await this.click(this.saveAndAddButton(), 'Lưu vật tư và mở form thêm mới');
   }
 
+  /** Trả về thông báo thành công đang hiển thị. */
   successNotification(): Locator {
     return this.page.getByRole('alert');
   }
 
+  /** Chờ thông báo thành công và trả về nội dung thông báo thực tế. */
   async waitForSuccessNotification(): Promise<string> {
     await this.successNotification().waitFor({ state: 'visible' });
     return (await this.successNotification().innerText()).trim();
   }
 
+  /** Trả về combobox Phương pháp tính giá. */
   pricingMethodCombobox(): Locator {
     return this.formFieldControl('Phương pháp tính giá', 'combobox');
   }
 
+  /** Trả về một lựa chọn Phương pháp tính giá theo tên. */
   pricingMethodOption(name: string): Locator {
     return this.page
       .locator('.ant-select-dropdown:visible')
@@ -714,12 +785,14 @@ export class VatTuPage extends BasePage {
       .filter({ hasText: new RegExp(`^${name}$`) });
   }
 
+  /** Trả về Phương pháp tính giá đang được chọn. */
   selectedPricingMethod(name: string): Locator {
     return this.formField('Phương pháp tính giá').getByTitle(name, {
       exact: true,
     });
   }
 
+  /** Chọn Phương pháp tính giá theo tên. */
   async selectPricingMethod(name: string): Promise<void> {
     await this.openFormTab('Thông tin kho');
     await this.click(this.pricingMethodCombobox(), 'Mở Phương pháp tính giá');
@@ -729,93 +802,114 @@ export class VatTuPage extends BasePage {
     );
   }
 
+  /** Trả về combobox Kho mặc định. */
   warehouseCombobox(): Locator {
     return this.formFieldControl('Kho mặc định', 'combobox');
   }
 
+  /** Trả về dropdown Kho đang hiển thị. */
   warehouseDropdown(): Locator {
     return this.page.locator('.ant-select-dropdown:visible');
   }
 
+  /** Trả về các tiêu đề cột trong combogrid Kho. */
   warehouseColumnHeaders(): Locator {
     return this.warehouseDropdown().locator('[role="columnheader"], th');
   }
 
+  /** Trả về một lựa chọn Kho theo nhãn hiển thị. */
   warehouseOption(label: string): Locator {
     return this.warehouseDropdown().getByText(label, { exact: true });
   }
 
+  /** Trả về dòng dữ liệu của một Kho trong combogrid. */
   warehouseOptionRow(label: string): Locator {
     return this.warehouseDropdown().locator('.ant-select-item-option').filter({ hasText: label });
   }
 
+  /** Mở combogrid Kho mặc định. */
   async openWarehouseDropdown(): Promise<void> {
     await this.openFormTab('Thông tin kho');
     await this.click(this.warehouseCombobox(), 'Mở combogrid Kho mặc định');
     await this.warehouseDropdown().waitFor({ state: 'visible' });
   }
 
+  /** Tìm kiếm Kho theo mã hoặc tên. */
   async searchWarehouse(query: string): Promise<void> {
     await this.type(this.warehouseCombobox(), query, 'Tìm kiếm Kho mặc định');
   }
 
+  /** Tìm và chọn Kho theo dữ liệu danh mục thực tế. */
   async selectWarehouse(option: CatalogueOption): Promise<void> {
     await this.searchWarehouse(option.code);
     await this.click(this.warehouseOption(option.label), `Chọn kho ${option.label}`);
   }
 
+  /** Trả về Kho đang được chọn. */
   selectedWarehouse(label: string): Locator {
     return this.formField('Kho mặc định').getByTitle(label, { exact: true });
   }
 
+  /** Mở dropdown của trường Thuế được xác định bằng label. */
   async openTaxDropdown(label: string): Promise<void> {
     await this.openFormTab('Thông tin thuế');
     await this.click(this.formFieldControl(label, 'combobox'), `Mở ${label}`);
     await this.page.locator('.ant-select-dropdown:visible').waitFor({ state: 'visible' });
   }
 
+  /** Trả về một lựa chọn Thuế theo nhãn hiển thị. */
   taxOption(label: string): Locator {
     return this.page.locator('.ant-select-dropdown:visible').getByText(label, { exact: true });
   }
 
+  /** Tìm kiếm giá trị trong dropdown Thuế theo label trường. */
   async searchTax(label: string, query: string): Promise<void> {
     await this.type(this.formFieldControl(label, 'combobox'), query, `Tìm kiếm ${label}`);
   }
 
+  /** Tìm và chọn giá trị Thuế theo dữ liệu danh mục thực tế. */
   async selectTax(label: string, option: CatalogueOption): Promise<void> {
     await this.searchTax(label, option.code);
     await this.click(this.taxOption(option.label), `Chọn ${label} ${option.label}`);
   }
 
+  /** Trả về giá trị Thuế đang được chọn. */
   selectedTax(label: string, value: string): Locator {
     return this.formField(label).getByTitle(value, { exact: true });
   }
 
+  /** Mở dropdown Đơn vị tính tại dòng quy đổi đầu tiên. */
   async openFirstConversionUnitDropdown(): Promise<void> {
     await this.click(this.conversionRowControls('combobox').first(), 'Mở Đơn vị tính quy đổi');
   }
 
+  /** Tìm kiếm Đơn vị tính trong dòng quy đổi đầu tiên. */
   async searchFirstConversionUnit(query: string): Promise<void> {
     await this.type(this.conversionRowControls('combobox').first(), query, 'Tìm kiếm Đơn vị tính quy đổi');
   }
 
+  /** Chọn Đơn vị tính cho dòng quy đổi đầu tiên. */
   async selectFirstConversionUnit(option: CatalogueOption): Promise<void> {
     await this.searchFirstConversionUnit(option.code);
     await this.click(this.page.locator('.ant-select-dropdown:visible').getByText(option.label, { exact: true }), `Chọn Đơn vị quy đổi ${option.label}`);
   }
 
+  /** Trả về Đơn vị tính đang chọn tại dòng quy đổi đầu tiên. */
   selectedFirstConversionUnit(label: string): Locator {
     return this.conversionGrid().getByTitle(label, { exact: true });
   }
 
+  /** Trả về thông báo validation của trường theo label và nội dung lỗi. */
   validationMessage(fieldLabel: string, message: string): Locator {
     return this.formField(fieldLabel).getByText(message, { exact: true });
   }
 
+  /** Rời trường đang nhập để kích hoạt validation hoặc chuẩn hóa dữ liệu. */
   async commitCurrentFormField(): Promise<void> {
     await this.page.keyboard.press('Tab');
   }
 
+  /** Đóng và loại bỏ dữ liệu trên form Thêm mới nếu form đang mở. */
   async discardMaterialFormIfOpen(): Promise<void> {
     if (!(await this.createMaterialDialog.isVisible())) return;
     await this.cancelCreatingMaterial();
@@ -824,10 +918,12 @@ export class VatTuPage extends BasePage {
     }
   }
 
+  /** Trả về ô tìm kiếm trên danh sách Vật tư. */
   materialSearchInput(): Locator {
     return this.page.getByRole('textbox', { name: 'Tìm kiếm...', exact: true });
   }
 
+  /** Tìm kiếm Vật tư theo mã hoặc từ khóa và chờ danh sách cập nhật. */
   async searchMaterial(query: string): Promise<void> {
     const searchInput = this.materialSearchInput();
     if (query.length > 0 && await searchInput.inputValue() === query) {
@@ -845,6 +941,7 @@ export class VatTuPage extends BasePage {
     await searchResponse;
   }
 
+  /** Xác định response có phải kết quả tìm kiếm Vật tư của request hiện tại hay không. */
   private isMaterialSearchResponse(response: Response, query: string): boolean {
     const url = new URL(response.url());
     const search = url.searchParams.get('search') ?? '';
@@ -853,12 +950,14 @@ export class VatTuPage extends BasePage {
       && search === query;
   }
 
+  /** Trả về dòng Vật tư được xác định bằng mã unique. */
   materialRow(code: string): Locator {
     return this.page.getByRole('row').filter({
       has: this.page.getByRole('button', { name: code, exact: true }),
     });
   }
 
+  /** Cleanup đúng Vật tư theo mã; trả về true khi bản ghi đã được xóa. */
   async deleteMaterialIfPresent(code: string): Promise<boolean> {
     if (!code.startsWith('AUTO_')) {
       throw new Error(`Từ chối cleanup vật tư không thuộc automation: ${code}`);
@@ -895,6 +994,7 @@ export class VatTuPage extends BasePage {
     return true;
   }
 
+  /** Mở chi tiết Vật tư theo mã và chờ form chi tiết hiển thị. */
   async openMaterialDetails(code: string): Promise<void> {
     await this.click(
       this.materialRow(code).getByRole('button', {
@@ -905,16 +1005,19 @@ export class VatTuPage extends BasePage {
     );
   }
 
+  /** Trả về vùng chi tiết của Vật tư theo mã. */
   materialDetails(code: string): Locator {
     return this.page.getByRole('dialog').filter({ hasText: code });
   }
 
+  /** Trả về vùng hiển thị một trường trong chi tiết Vật tư. */
   materialDetailField(code: string, label: string): Locator {
     return this.materialDetails(code)
       .locator('.ant-form-item')
       .filter({ hasText: label });
   }
 
+  /** Trả về control của một trường trong chi tiết Vật tư. */
   materialDetailControl(
     code: string,
     label: string,
@@ -923,6 +1026,7 @@ export class VatTuPage extends BasePage {
     return this.materialDetailField(code, label).getByRole(role).first();
   }
 
+  /** Trả về giá trị được chọn của một trường trong chi tiết Vật tư. */
   materialDetailSelectedValue(
     code: string,
     label: string,
@@ -933,20 +1037,24 @@ export class VatTuPage extends BasePage {
     });
   }
 
+  /** Trả về nội dung cần tìm trong chi tiết Vật tư. */
   materialDetailText(code: string, value: string): Locator {
     return this.materialDetails(code).getByText(value, { exact: true });
   }
 
+  /** Trả về công tắc Trạng thái trong chi tiết Vật tư. */
   materialDetailStatusSwitch(code: string): Locator {
     return this.materialDetails(code).getByRole('switch');
   }
 
+  /** Trả về ảnh đã lưu trong chi tiết Vật tư. */
   materialDetailImage(code: string): Locator {
     return this.materialDetails(code)
       .locator('.ant-upload-list-item-thumbnail img, .ant-image-img')
       .first();
   }
 
+  /** Trả về tab trong chi tiết Vật tư theo tên. */
   materialDetailTab(code: string, tabName: string): Locator {
     return this.materialDetails(code).getByRole('tab', {
       name: tabName,
@@ -954,6 +1062,7 @@ export class VatTuPage extends BasePage {
     });
   }
 
+  /** Mở một tab trong chi tiết Vật tư theo tên. */
   async openMaterialDetailTab(code: string, tabName: string): Promise<void> {
     await this.click(
       this.materialDetailTab(code, tabName),
@@ -961,6 +1070,7 @@ export class VatTuPage extends BasePage {
     );
   }
 
+  /** Trả về bảng Đơn vị quy đổi trên form. */
   conversionGrid(): Locator {
     return this.createMaterialDialog.getByRole('tabpanel', {
       name: 'Đơn vị quy đổi',
@@ -968,6 +1078,7 @@ export class VatTuPage extends BasePage {
     }).getByRole('table');
   }
 
+  /** Trả về nút thêm dòng Đơn vị quy đổi. */
   addConversionRowButton(): Locator {
     return this.createMaterialDialog.getByRole('button', {
       name: 'Thêm dòng',
@@ -975,22 +1086,27 @@ export class VatTuPage extends BasePage {
     });
   }
 
+  /** Thêm một dòng mới vào bảng Đơn vị quy đổi. */
   async addConversionRow(): Promise<void> {
     await this.click(this.addConversionRowButton(), 'Thêm dòng Đơn vị quy đổi');
   }
 
+  /** Trả về tiêu đề cột của bảng Đơn vị quy đổi. */
   conversionColumnHeader(name: string): Locator {
     return this.conversionGrid().getByRole('columnheader', { name, exact: true });
   }
 
+  /** Trả về các control theo role tại dòng quy đổi đầu tiên. */
   conversionRowControls(role: Parameters<Locator['getByRole']>[0]): Locator {
     return this.conversionGrid().getByRole(role);
   }
 
+  /** Trả về các thông báo validation trong bảng Đơn vị quy đổi. */
   conversionValidationMessages(): Locator {
     return this.conversionGrid().locator('.ant-form-item-explain-error');
   }
 
+  /** Nhập dòng quy đổi đầu tiên và trả về Đơn vị quy đổi cùng Phép tính đã chọn. */
   async fillFirstConversionRow(ratio: string, mainUnit: string): Promise<{
     readonly unit: string;
     readonly operation: string;
@@ -1020,16 +1136,19 @@ export class VatTuPage extends BasePage {
     return { unit, operation };
   }
 
+  /** Trả về một lựa chọn Tài khoản kế toán theo nhãn. */
   accountingAccountOption(label: string): Locator {
     return this.accountingAccountDropdown.getByText(label, { exact: true });
   }
 
+  /** Trả về dòng dữ liệu của Tài khoản trong combogrid. */
   accountingAccountOptionRow(label: string): Locator {
     return this.accountingAccountDropdown
       .locator('.ant-select-item-option')
       .filter({ hasText: label });
   }
 
+  /** Mở combogrid Tài khoản của trường được xác định bằng label. */
   async openAccountingAccountDropdown(fieldLabel: string): Promise<void> {
     await this.click(
       this.accountCombobox(fieldLabel),
@@ -1038,6 +1157,7 @@ export class VatTuPage extends BasePage {
     await this.accountingAccountDropdown.waitFor({ state: 'visible' });
   }
 
+  /** Tìm kiếm Tài khoản theo số hoặc tên trong trường được chỉ định. */
   async searchAccountingAccount(fieldLabel: string, query: string): Promise<void> {
     await this.type(
       this.accountCombobox(fieldLabel),
@@ -1046,6 +1166,7 @@ export class VatTuPage extends BasePage {
     );
   }
 
+  /** Tìm và chọn Tài khoản kế toán theo dữ liệu thực tế. */
   async selectAccountingAccount(
     fieldLabel: string,
     option: AccountOption,
@@ -1057,27 +1178,33 @@ export class VatTuPage extends BasePage {
     );
   }
 
+  /** Trả về Tài khoản kế toán đang được chọn của một trường. */
   selectedAccountingAccount(fieldLabel: string, label: string): Locator {
     return this.accountFormItem(fieldLabel).getByTitle(label, { exact: true });
   }
 
+  /** Đóng dropdown đang mở bằng phím Escape. */
   async closeDropdown(): Promise<void> {
     await this.page.keyboard.press('Escape');
   }
 
+  /** Trả về locator của account form item trong màn hình Vật tư. */
   private accountFormItem(fieldLabel: string): Locator {
     return this.formField(fieldLabel);
   }
 
+  /** Trả về locator của account combobox trong màn hình Vật tư. */
   private accountCombobox(fieldLabel: string): Locator {
     return this.accountFormItem(fieldLabel).getByRole('combobox');
   }
 
+  /** Xác định response có thuộc API danh mục cần thu thập hay không. */
   private isCatalogueResponse(response: Response, pathname: string): boolean {
     const url = new URL(response.url());
     return response.status() === 200 && url.pathname === pathname;
   }
 
+  /** Chuyển response Nhóm vật tư thành danh sách lựa chọn dùng chung cho testcase. */
   private async parseGroups(response: Response): Promise<readonly CatalogueOption[]> {
     const payload = (await response.json()) as ListResponse<GroupResponseItem>;
     return (payload.data ?? []).map((item) => ({
@@ -1088,6 +1215,7 @@ export class VatTuPage extends BasePage {
     }));
   }
 
+  /** Chuyển response Tài khoản thành danh sách lựa chọn và giữ thông tin cho phép hạch toán. */
   private async parseAccounts(response: Response): Promise<readonly AccountOption[]> {
     const payload = (await response.json()) as readonly AccountResponseItem[];
     return payload.map((item) => ({
@@ -1099,6 +1227,7 @@ export class VatTuPage extends BasePage {
     }));
   }
 
+  /** Tải và gộp toàn bộ các trang Đơn vị tính thành một danh sách lựa chọn. */
   private async loadAllUnits(sourceResponse: Response): Promise<readonly CatalogueOption[]> {
     const authorization = sourceResponse.request().headers()['authorization'];
     if (!authorization) {
@@ -1133,6 +1262,7 @@ export class VatTuPage extends BasePage {
     }));
   }
 
+  /** Tải và gộp toàn bộ các trang Thuế tài nguyên thành một danh sách lựa chọn. */
   private async loadAllResourceTaxes(sourceResponse: Response): Promise<readonly CatalogueOption[]> {
     const authorization = sourceResponse.request().headers()['authorization'];
     if (!authorization) throw new Error('Không lấy được quyền đọc danh mục Thuế tài nguyên từ request UI.');

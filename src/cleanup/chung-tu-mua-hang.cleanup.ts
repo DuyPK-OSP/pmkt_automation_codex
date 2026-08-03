@@ -6,6 +6,7 @@ import { TienMatChiTienDanhSachPage } from '@pages/tien-mat/tien-mat-chi-tien-da
 import { TienGuiChiTienDanhSachPage } from '@pages/tien-gui/tien-gui-chi-tien-danh-sach.page';
 import type { Logger } from '@utils/logger';
 
+/** Kết quả cleanup Chứng từ mua hàng và các chứng từ liên phân hệ bị xóa cascade. */
 interface PurchaseCleanupResult {
   readonly code: string;
   readonly purchaseDocument: Readonly<{ status: 'deleted'; method: 'UI' }>;
@@ -14,18 +15,22 @@ interface PurchaseCleanupResult {
   readonly bankPayment?: Readonly<{ code: string; kind: 'Ủy nhiệm chi' | 'Séc tiền mặt' | 'Séc chuyển khoản'; status: 'deleted'; method: 'UI cascade from purchase document' }>;
 }
 
+/** Thông tin chứng từ thanh toán được sinh kèm Chứng từ mua hàng để xác minh cleanup cascade. */
 type GeneratedPaymentDocument =
   | Readonly<{ type: 'cash-payment'; number: string }>
   | Readonly<{ type: 'bank-payment'; number: string; kind: 'Ủy nhiệm chi' | 'Séc tiền mặt' | 'Séc chuyển khoản' }>;
 
+/** Theo dõi Chứng từ mua hàng do test tạo và cleanup cả chứng từ liên phân hệ sau testcase. */
 export class PurchaseDocumentCleanupTracker {
   private readonly createdDocuments = new Map<string, GeneratedPaymentDocument | undefined>();
 
+  /** Khởi tạo tracker cleanup với Playwright Page và logger dùng cho các Page liên phân hệ. */
   constructor(
     private readonly page: Page,
     private readonly logger: Logger,
   ) { }
 
+  /** Đăng ký Số chứng từ mua hàng và chứng từ thanh toán liên quan để cleanup sau testcase. */
   track(documentNumber: string, generatedPayment?: GeneratedPaymentDocument): void {
     if (!documentNumber.startsWith('AUTO_')) {
       throw new Error(`Từ chối cleanup chứng từ mua hàng không thuộc automation: ${documentNumber}`);
@@ -33,6 +38,7 @@ export class PurchaseDocumentCleanupTracker {
     this.createdDocuments.set(documentNumber, generatedPayment);
   }
 
+  /** Thực thi teardown, ghi nhận kết quả từng bản ghi và attach JSON cleanup vào test result. */
   async cleanup(testInfo: TestInfo): Promise<void> {
     const results: PurchaseCleanupResult[] = [];
     const purchasePage = new ChungTuMuaHangDanhSachPage(this.page, this.logger);

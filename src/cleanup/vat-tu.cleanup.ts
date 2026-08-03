@@ -1,6 +1,7 @@
 import type { Page, Response, TestInfo } from '@playwright/test';
 import type { VatTuPage } from '@pages/danh-muc/vat-tu.page';
 
+/** Kết quả cleanup của từng Mã vật tư được tracker ghi vào evidence. */
 interface CleanupResult {
   readonly code: string;
   readonly status: 'deleted' | 'skipped' | 'failed';
@@ -10,11 +11,13 @@ interface CleanupResult {
 const AUTOMATION_CODE_PREFIX = 'AUTO_';
 const MATERIAL_PATH = '/api/master-data/vat-tu';
 
+/** Theo dõi Vật tư do automation tạo qua response API và cleanup các bản ghi đó sau testcase. */
 export class MaterialCleanupTracker {
   private readonly createdMaterialCodes = new Set<string>();
   private readonly pendingCaptures = new Set<Promise<void>>();
   private readonly responseListener: (response: Response) => void;
 
+  /** Khởi tạo tracker, đăng ký listener response để tự nhận diện Vật tư AUTO_ được tạo thành công. */
   constructor(
     private readonly page: Page,
     private readonly vatTuPage: VatTuPage,
@@ -28,6 +31,7 @@ export class MaterialCleanupTracker {
     this.page.on('response', this.responseListener);
   }
 
+  /** Thực thi teardown, ghi nhận kết quả từng bản ghi và attach JSON cleanup vào test result. */
   async cleanup(testInfo: TestInfo): Promise<void> {
     this.page.off('response', this.responseListener);
     await Promise.allSettled(this.pendingCaptures);
@@ -58,6 +62,7 @@ export class MaterialCleanupTracker {
     }
   }
 
+  /** Ghi nhận Mã vật tư AUTO_ từ POST API tạo mới thành công; không làm fail test nếu payload không đọc được. */
   private async captureCreatedMaterial(response: Response): Promise<void> {
     const request = response.request();
     const url = new URL(response.url());

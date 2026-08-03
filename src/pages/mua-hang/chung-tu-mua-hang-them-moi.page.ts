@@ -30,6 +30,7 @@ export class ChungTuMuaHangThemMoiPage extends BasePage {
   readonly currency: Locator;
   readonly discountType: Locator;
 
+  /** Khởi tạo Page Object và các locator dùng chung của màn hình. */
   constructor(page: Page, logger: Logger) {
     super(page, logger);
     this.dialog = page.getByRole('dialog').filter({ hasText: 'Thêm chứng từ mua hàng' });
@@ -42,6 +43,7 @@ export class ChungTuMuaHangThemMoiPage extends BasePage {
     this.discountType = this.dialog.locator('#loaiChietKhau').locator('..');
   }
 
+  /** Mở màn hình Chứng từ mua hàng và chờ dữ liệu sẵn sàng thao tác. */
   async open(): Promise<void> {
     await this.navigate('/purchase/chung-tu-mua-hang');
     await this.page.getByRole('table').waitFor({ state: 'visible' });
@@ -51,6 +53,7 @@ export class ChungTuMuaHangThemMoiPage extends BasePage {
     await this.dialog.waitFor({ state: 'visible' });
   }
 
+  /** Mở dropdown và trả về toàn bộ Trạng thái hóa đơn đang khả dụng. */
   async invoiceStatusOptions(): Promise<string[]> {
     const input = this.dialog.locator('#trangThaiHoaDon');
     await input.click();
@@ -61,6 +64,7 @@ export class ChungTuMuaHangThemMoiPage extends BasePage {
     return labels;
   }
 
+  /** Chọn Trạng thái hóa đơn theo nhãn hiển thị. */
   async selectInvoiceStatus(label: string): Promise<void> {
     const input = this.dialog.locator('#trangThaiHoaDon');
     await input.click();
@@ -74,6 +78,7 @@ export class ChungTuMuaHangThemMoiPage extends BasePage {
     await input.press('Enter');
   }
 
+  /** Bật Thanh toán ngay, chọn hình thức thanh toán và chờ tab chứng từ chi tương ứng. */
   async selectImmediatePayment(type: 'Tiền mặt' | 'Ủy nhiệm chi' | 'Séc tiền mặt' | 'Séc chuyển khoản'): Promise<void> {
     await this.dialog.locator('#thanhToanNgay').check();
     const input = this.dialog.locator('#hinhThucThanhToan');
@@ -96,6 +101,7 @@ export class ChungTuMuaHangThemMoiPage extends BasePage {
     await this.dialog.getByRole('tab', { name: type === 'Tiền mặt' ? 'Phiếu chi' : type, exact: true }).waitFor();
   }
 
+  /** Điền thông tin chứng từ thanh toán ngay và trả về tab cùng các giá trị thực tế đã chọn. */
   async fillImmediatePayment(paymentTabName: string, documentNumber: string): Promise<Readonly<{ tab: string; values: string[] }>> {
     const paymentTab = this.dialog.getByRole('tab', { name: paymentTabName, exact: true });
     const tab = (await paymentTab.innerText()).trim();
@@ -135,26 +141,32 @@ export class ChungTuMuaHangThemMoiPage extends BasePage {
     return { tab, values };
   }
 
+  /** Tìm và chọn Nhà cung cấp theo mã. */
   async chooseSupplier(code: string): Promise<void> {
     await this.chooseSearchable('Chọn nhà cung cấp', code);
   }
 
+  /** Trả về Nhân viên mua hàng được hệ thống tự động điền. */
   async employeeValue(): Promise<string> {
     return this.headerFieldValue('Nhân viên mua hàng');
   }
 
+  /** Trả về Điều khoản thanh toán được hệ thống tự động điền. */
   async paymentTermValue(): Promise<string> {
     return this.headerFieldValue('Điều khoản thanh toán');
   }
 
+  /** Nhập Số chứng từ mua hàng. */
   async enterDocumentNumber(documentNumber: string): Promise<void> {
     await this.dialog.locator('#soChungTu').fill(documentNumber);
   }
 
+  /** Chọn Vật tư hợp lệ đầu tiên và trả về tên Vật tư thực tế. */
   async chooseFirstItem(): Promise<string> {
     return this.chooseMatchingSearchable('Mã hàng', 'VT');
   }
 
+  /** Nhập chi tiết số lượng, đơn giá, lô, hạn dùng; trả về Kho và Đơn vị đã chọn. */
   async enterDetail(quantity: string, unitPrice: string, lot: string, expiry: string): Promise<Readonly<{ warehouse: string; department: string }>> {
     const row = this.detailRow();
     const comboboxes = row.getByRole('combobox');
@@ -168,6 +180,7 @@ export class ChungTuMuaHangThemMoiPage extends BasePage {
     return { warehouse, department };
   }
 
+  /** Thu thập toàn bộ giá trị được hệ thống tự động điền trên chứng từ mua hàng. */
   async autoFilledValues(): Promise<PurchaseDocumentAutoFilledValues> {
     const rowComboboxes = this.detailRow().getByRole('combobox');
     return {
@@ -189,32 +202,38 @@ export class ChungTuMuaHangThemMoiPage extends BasePage {
     };
   }
 
+  /** Nhấn Lưu để tạo Chứng từ mua hàng. */
   async save(): Promise<void> {
     await this.saveButton.click();
   }
 
+  /** Trả về dòng chi tiết hàng hóa đầu tiên của chứng từ. */
   private detailRow(): Locator {
     return this.dialog.locator('tr:has(#chiTiet_0_soLuong)');
   }
 
+  /** Tìm và chọn một giá trị combobox theo placeholder và từ khóa. */
   private async chooseSearchable(placeholder: string, query: string): Promise<void> {
     const placeholderElement = this.dialog.getByText(placeholder, { exact: true }).first();
     const input = placeholderElement.locator('..').getByRole('combobox');
     await this.chooseCombobox(input, query);
   }
 
+  /** Nhập từ khóa và chọn kết quả đầu tiên trong combobox. */
   private async chooseCombobox(input: Locator, query: string): Promise<void> {
     await input.fill(query);
     await input.press('ArrowDown');
     await input.press('Enter');
   }
 
+  /** Tìm, chọn và trả về giá trị thực tế của combobox theo placeholder. */
   private async chooseMatchingSearchable(placeholder: string, query: string): Promise<string> {
     const placeholderElement = this.dialog.getByText(placeholder, { exact: true }).first();
     const input = placeholderElement.locator('..').getByRole('combobox');
     return this.chooseMatchingCombobox(input, query);
   }
 
+  /** Chọn một giá trị combobox và trả về nội dung thực tế sau khi chọn. */
   private async chooseMatchingCombobox(input: Locator, query: string): Promise<string> {
     const id = await input.getAttribute('id');
     await this.chooseCombobox(input, query);
@@ -222,6 +241,7 @@ export class ChungTuMuaHangThemMoiPage extends BasePage {
     return (await this.dialog.locator(`#${id}`).locator('..').innerText()).trim();
   }
 
+  /** Trả về giá trị đang hiển thị của một trường combobox tại phần đầu chứng từ. */
   private async headerFieldValue(label: string): Promise<string> {
     const field = this.dialog.getByText(label, { exact: true }).locator('..').locator('..');
     const input = field.getByRole('combobox');
@@ -230,6 +250,7 @@ export class ChungTuMuaHangThemMoiPage extends BasePage {
     return (await this.dialog.locator(`#${id}`).locator('..').innerText()).trim();
   }
 
+  /** Trả về giá trị input nếu trường tồn tại; trả về chuỗi rỗng nếu không có trường. */
   private async optionalInputValue(selector: string): Promise<string> {
     const input = this.dialog.locator(selector);
     return await input.count() > 0 ? input.first().inputValue() : '';

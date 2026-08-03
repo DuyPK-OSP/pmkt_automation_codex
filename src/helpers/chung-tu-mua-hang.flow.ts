@@ -4,14 +4,17 @@ import type { ChungTuMuaHangThemMoiPage, PurchaseDocumentAutoFilledValues } from
 import type { ChungTuMuaHangDanhSachPage } from '@pages/mua-hang/chung-tu-mua-hang-danh-sach.page';
 import type { PurchaseDocumentCleanupTracker } from '@cleanup/chung-tu-mua-hang.cleanup';
 
+/** Các hình thức Thanh toán ngay được hỗ trợ trong luồng Chứng từ mua hàng. */
 export type ImmediatePaymentType = 'Tiền mặt' | 'Ủy nhiệm chi' | 'Séc tiền mặt' | 'Séc chuyển khoản';
 
+/** Cấu hình đầu vào xác định testcase, hình thức thanh toán và tab chứng từ chi tương ứng. */
 export interface ImmediatePaymentScenario {
   readonly id: 241 | 242 | 243 | 244;
   readonly type: ImmediatePaymentType;
   readonly paymentTab: string;
 }
 
+/** Kết quả luồng thanh toán ngay, gồm dữ liệu test và toàn bộ giá trị UI thực tế đã thu thập. */
 export interface ImmediatePaymentExecutionResult extends PurchaseDocumentData {
   readonly actual: Readonly<{
     immediatePaymentChecked: boolean;
@@ -31,12 +34,14 @@ export interface ImmediatePaymentExecutionResult extends PurchaseDocumentData {
   }>;
 }
 
+/** Các Page Object và cleanup tracker cần để điều phối luồng mua hàng thanh toán ngay. */
 interface ImmediatePaymentContext {
   readonly purchaseCreatePage: ChungTuMuaHangThemMoiPage;
   readonly purchaseListPage: ChungTuMuaHangDanhSachPage;
   readonly purchaseDocumentCleanup: PurchaseDocumentCleanupTracker;
 }
 
+/** Thực hiện trọn luồng tạo Chứng từ mua hàng thanh toán ngay và trả dữ liệu thực tế cho spec assertion. */
 export async function executeImmediatePaymentCase(
   context: ImmediatePaymentContext,
   scenario: Readonly<ImmediatePaymentScenario>,

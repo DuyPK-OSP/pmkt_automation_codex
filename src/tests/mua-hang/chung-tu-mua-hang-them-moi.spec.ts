@@ -4,6 +4,7 @@ import { purchaseDocumentData } from '@test-data/chung-tu-mua-hang.data';
 import { executeImmediatePaymentCase } from '@helpers/chung-tu-mua-hang.flow';
 import type { ImmediatePaymentExecutionResult, ImmediatePaymentScenario } from '@helpers/chung-tu-mua-hang.flow';
 
+/** Đối chiếu dữ liệu UI và chứng từ liên quan của kịch bản mua hàng thanh toán ngay. */
 function assertImmediatePaymentResult(
   result: Readonly<ImmediatePaymentExecutionResult>,
   scenario: Readonly<ImmediatePaymentScenario>,
@@ -43,8 +44,10 @@ test.describe('PMKT-U-00502 - Thêm mới chứng từ mua hàng', () => {
     inventoryReceiptListPage,
     purchaseDocumentCleanup,
   }) => {
+    // Chuẩn bị dữ liệu: Sinh dữ liệu Chứng từ mua hàng unique và xác định kịch bản thanh toán của testcase.
     const data = purchaseDocumentData(240);
 
+    // Xác nhận ban đầu: Form mặc định là Mua hàng nhập kho, Trong nước, chưa Thanh toán ngay và có lựa chọn Chưa có hóa đơn.
     await expect(purchaseCreatePage.businessType).toContainText('Mua hàng nhập kho');
     await expect(purchaseCreatePage.purchaseMethod).toContainText('Trong nước');
     await expect(purchaseCreatePage.immediatePayment).not.toBeChecked();
@@ -52,6 +55,7 @@ test.describe('PMKT-U-00502 - Thêm mới chứng từ mua hàng', () => {
       purchaseCreatePage.invoiceStatusOptions(),
       'UI phải có lựa chọn “Chưa có hóa đơn” theo xác nhận nghiệp vụ',
     ).resolves.toContain('Chưa có hóa đơn');
+    // Hành động: Mở form Thêm mới > Chọn Chưa nhận hóa đơn > Nhập thông tin chứng từ và hàng hóa > Nhấn Lưu.
     await purchaseCreatePage.selectInvoiceStatus('Chưa có hóa đơn');
 
     await purchaseCreatePage.chooseSupplier(data.supplierCode);
@@ -83,7 +87,9 @@ test.describe('PMKT-U-00502 - Thêm mới chứng từ mua hàng', () => {
     await expect(purchaseCreatePage.discountType).toContainText('Không chiết khấu');
 
     await purchaseCreatePage.save();
+    // Xác nhận: Chứng từ lưu thành công, dữ liệu chi tiết chỉ đọc và sinh Phiếu nhập kho Chưa ghi sổ với lý do Nhập mua.
     await expect(purchaseListPage.successToast).toBeVisible();
+    // Đăng ký Số chứng từ để fixture cleanup sau khi testcase kết thúc; dữ liệu chưa bị xóa tại đây.
     purchaseDocumentCleanup.track(data.documentNumber);
     await expect(purchaseCreatePage.dialog).toBeHidden();
 
@@ -109,11 +115,14 @@ test.describe('PMKT-U-00502 - Thêm mới chứng từ mua hàng', () => {
     cashPaymentListPage,
     purchaseDocumentCleanup,
   }) => {
+    // Chuẩn bị dữ liệu: Sinh dữ liệu Chứng từ mua hàng unique và xác định kịch bản thanh toán của testcase.
     const scenario = { id: 241, type: 'Tiền mặt', paymentTab: 'Phiếu chi' } as const;
+    // Hành động: Mở form Thêm mới > Nhập chứng từ mua hàng > Chọn Thanh toán ngay và hình thức tương ứng > Nhấn Lưu.
     const data = await executeImmediatePaymentCase(
       { purchaseCreatePage, purchaseListPage, purchaseDocumentCleanup },
       scenario,
     );
+    // Xác nhận: Chứng từ mua hàng, Phiếu nhập kho và Phiếu chi được sinh đúng, ở trạng thái Chưa ghi sổ.
     assertImmediatePaymentResult(data, scenario);
     if (!data.paymentDocumentNumber) throw new Error('Thiếu số chứng từ Phiếu chi cho TC241');
 
@@ -136,11 +145,14 @@ test.describe('PMKT-U-00502 - Thêm mới chứng từ mua hàng', () => {
     paymentOrderListPage,
     purchaseDocumentCleanup,
   }) => {
+    // Chuẩn bị dữ liệu: Sinh dữ liệu Chứng từ mua hàng unique và xác định kịch bản thanh toán của testcase.
     const scenario = { id: 242, type: 'Ủy nhiệm chi', paymentTab: 'Ủy nhiệm chi' } as const;
+    // Hành động: Mở form Thêm mới > Nhập chứng từ mua hàng > Chọn Thanh toán ngay và hình thức tương ứng > Nhấn Lưu.
     const data = await executeImmediatePaymentCase(
       { purchaseCreatePage, purchaseListPage, purchaseDocumentCleanup },
       scenario,
     );
+    // Xác nhận: Chứng từ mua hàng, Phiếu nhập kho và chứng từ Tiền gửi tương ứng được sinh đúng, ở trạng thái Chưa ghi sổ.
     assertImmediatePaymentResult(data, scenario);
     if (!data.paymentDocumentNumber) throw new Error('Thiếu số chứng từ Ủy nhiệm chi cho TC242');
 
@@ -163,11 +175,14 @@ test.describe('PMKT-U-00502 - Thêm mới chứng từ mua hàng', () => {
     paymentOrderListPage,
     purchaseDocumentCleanup,
   }) => {
+    // Chuẩn bị dữ liệu: Sinh dữ liệu Chứng từ mua hàng unique và xác định kịch bản thanh toán của testcase.
     const scenario = { id: 243, type: 'Séc tiền mặt', paymentTab: 'Séc tiền mặt' } as const;
+    // Hành động: Mở form Thêm mới > Nhập chứng từ mua hàng > Chọn Thanh toán ngay và hình thức tương ứng > Nhấn Lưu.
     const data = await executeImmediatePaymentCase(
       { purchaseCreatePage, purchaseListPage, purchaseDocumentCleanup },
       scenario,
     );
+    // Xác nhận: Chứng từ mua hàng, Phiếu nhập kho và chứng từ Tiền gửi tương ứng được sinh đúng, ở trạng thái Chưa ghi sổ.
     assertImmediatePaymentResult(data, scenario);
     if (!data.paymentDocumentNumber) throw new Error('Thiếu số chứng từ Séc tiền mặt cho TC243');
 
@@ -190,11 +205,14 @@ test.describe('PMKT-U-00502 - Thêm mới chứng từ mua hàng', () => {
     paymentOrderListPage,
     purchaseDocumentCleanup,
   }) => {
+    // Chuẩn bị dữ liệu: Sinh dữ liệu Chứng từ mua hàng unique và xác định kịch bản thanh toán của testcase.
     const scenario = { id: 244, type: 'Séc chuyển khoản', paymentTab: 'Séc chuyển khoản' } as const;
+    // Hành động: Mở form Thêm mới > Nhập chứng từ mua hàng > Chọn Thanh toán ngay và hình thức tương ứng > Nhấn Lưu.
     const data = await executeImmediatePaymentCase(
       { purchaseCreatePage, purchaseListPage, purchaseDocumentCleanup },
       scenario,
     );
+    // Xác nhận: Chứng từ mua hàng, Phiếu nhập kho và chứng từ Tiền gửi tương ứng được sinh đúng, ở trạng thái Chưa ghi sổ.
     assertImmediatePaymentResult(data, scenario);
     if (!data.paymentDocumentNumber) throw new Error('Thiếu số chứng từ Séc chuyển khoản cho TC244');
 

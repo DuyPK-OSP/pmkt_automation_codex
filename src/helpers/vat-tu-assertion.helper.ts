@@ -9,6 +9,7 @@ import type {
 } from '@pages/danh-muc/vat-tu.page';
 import { accountingAccountCoverage } from '@utils/vat-tu-test.util';
 
+/** Kiểm tra cấu trúc, tìm kiếm và khả năng chọn tài khoản hoạt động/ngừng hoạt động trong combogrid. */
 export async function verifyAccountingAccountCombobox(
   vatTuPage: VatTuPage,
   fieldLabel: string,
@@ -86,6 +87,7 @@ export async function verifyAccountingAccountCombobox(
   ).toBeVisible();
 }
 
+/** Kiểm tra combogrid chỉ cho phép chọn tài khoản thỏa điều kiện hạch toán của Loại vật tư. */
 export async function verifyAllowedAccountingAccountCombobox(
   vatTuPage: VatTuPage,
   fieldLabel: string,
@@ -115,6 +117,7 @@ export async function verifyAllowedAccountingAccountCombobox(
   }
 }
 
+/** Mở chi tiết và đối chiếu toàn bộ dữ liệu của Vật tư có quản lý kho sau khi lưu. */
 export async function verifyFullGoodsMaterialDetails(
   vatTuPage: VatTuPage,
   input: FullGoodsMaterialInput,
@@ -170,6 +173,7 @@ export async function verifyFullGoodsMaterialDetails(
   await expect(vatTuPage.materialDetailText(input.code, selection.conversion.operation)).toBeVisible();
 }
 
+/** Mở chi tiết và đối chiếu toàn bộ dữ liệu của Dịch vụ sau khi lưu. */
 export async function verifyFullServiceMaterialDetails(
   vatTuPage: VatTuPage,
   input: FullServiceMaterialInput,
@@ -209,6 +213,7 @@ export async function verifyFullServiceMaterialDetails(
   await expect(vatTuPage.materialDetailText(input.code, selection.alternativeUnit)).toBeVisible();
 }
 
+/** Đối chiếu các thông tin cơ bản của Vật tư gồm Mã, Tên và Trạng thái. */
 export async function verifyBasicMaterialDetails(
   vatTuPage: VatTuPage,
   code: string,

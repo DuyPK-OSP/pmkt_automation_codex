@@ -17,6 +17,7 @@ import { NganhNghePage } from '@pages/danh-muc/nganh-nghe.page';
 import { IndustryCleanupTracker } from '@cleanup/nganh-nghe.cleanup';
 import { expect, runWithEvidenceContext } from '@utils/evidence-expect';
 
+/** Danh sách Page Object, database context, logger và cleanup tracker dùng chung cho test. */
 interface FrameworkFixtures {
   readonly evidenceContext: void;
   readonly db: DatabaseContext;
@@ -36,13 +37,16 @@ interface FrameworkFixtures {
   readonly industryCleanup: IndustryCleanupTracker;
 }
 
+/** Mở rộng Playwright test bằng các fixture của framework và lifecycle setup/teardown tương ứng. */
 export const test = base.extend<FrameworkFixtures>({
+  // Fixture auto bao toàn bộ testcase để expect.soft() chụp evidence ngay tại thời điểm mismatch.
   evidenceContext: [async ({ page }, use, testInfo) => {
     await runWithEvidenceContext(page, testInfo, use);
   }, { auto: true }],
   db: async ({ }, use) => {
     const database = new DatabaseContext();
     await use(database);
+    // Teardown chỉ đóng pool sau khi testcase đã hoàn tất mọi truy vấn DB.
     await database.close();
   },
   logger: async ({ }, use) => { await use(new Logger()); },
@@ -59,16 +63,19 @@ export const test = base.extend<FrameworkFixtures>({
   industryCleanup: [async ({ industryPage }, use, testInfo) => {
     const tracker = new IndustryCleanupTracker(industryPage);
     await use(tracker);
+    // Cleanup chạy sau testcase, kể cả khi assertion trước đó thất bại.
     await tracker.cleanup(testInfo);
   }, { auto: true }],
   materialCleanup: [async ({ page, vatTuPage }, use, testInfo) => {
     const tracker = new MaterialCleanupTracker(page, vatTuPage);
     await use(tracker);
+    // Tracker xóa các Mã vật tư AUTO_ đã bắt được từ response tạo mới thành công.
     await tracker.cleanup(testInfo);
   }, { auto: true }],
   purchaseDocumentCleanup: [async ({ page, logger }, use, testInfo) => {
     const tracker = new PurchaseDocumentCleanupTracker(page, logger);
     await use(tracker);
+    // Xóa Chứng từ mua hàng rồi xác minh các chứng từ Kho/Tiền bị xóa cascade.
     await tracker.cleanup(testInfo);
   }, { auto: true }],
 });

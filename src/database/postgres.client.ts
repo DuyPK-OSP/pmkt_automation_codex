@@ -1,9 +1,11 @@
 import { Pool, type QueryResultRow } from 'pg';
 import { requireDatabaseConfig } from '@utils/env.config';
 
+/** Quản lý pool PostgreSQL và thực thi parameterized query theo cấu hình môi trường. */
 export class PostgresClient {
   private readonly pool: Pool;
 
+  /** Tạo pool PostgreSQL từ cấu hình môi trường và áp dụng timeout truy vấn/kết nối. */
   constructor() {
     const config = requireDatabaseConfig();
     this.pool = new Pool({
@@ -20,6 +22,7 @@ export class PostgresClient {
     });
   }
 
+  /** Thực thi parameterized query và trả về các row; không nội suy tham số trực tiếp vào SQL. */
   async query<T extends QueryResultRow>(
     sql: string,
     params: readonly unknown[] = [],
@@ -28,10 +31,12 @@ export class PostgresClient {
     return result.rows;
   }
 
+  /** Đóng pool kết nối database sau khi fixture hoặc test context kết thúc. */
   async close(): Promise<void> {
     await this.pool.end();
   }
 
+  /** Kiểm tra khả năng kết nối database bằng truy vấn read-only SELECT TRUE. */
   async healthCheck(): Promise<boolean> {
     const rows = await this.query<{ readonly connected: boolean }>(
       'SELECT TRUE AS connected',

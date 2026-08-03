@@ -1,6 +1,7 @@
 import type { QueryResultRow } from 'pg';
 import { PostgresClient } from '@database/postgres.client';
 
+/** Bản ghi Ngành nghề ánh xạ từ bảng mst_nganh_nghe, gồm khóa tenant và trạng thái xóa mềm. */
 export interface NganhNgheRecord extends QueryResultRow {
   readonly id: string;
   readonly tenantId: string;
@@ -16,9 +17,12 @@ export interface NganhNgheRecord extends QueryResultRow {
   readonly phienBan: number;
 }
 
+/** Cung cấp truy vấn read-only để tìm Ngành nghề theo mã và tenant. */
 export class NganhNgheRepository {
+  /** Khởi tạo repository bằng PostgreSQL client dùng chung. */
   constructor(private readonly client: PostgresClient) {}
 
+  /** Tìm bản ghi Ngành nghề mới nhất bằng cặp tenant_id và Mã ngành nghề. */
   async findByCode(tenantId: string, code: string): Promise<NganhNgheRecord | null> {
     const rows = await this.client.query<NganhNgheRecord>(
       `
@@ -47,6 +51,7 @@ export class NganhNgheRepository {
     return rows[0] ?? null;
   }
 
+  /** Tìm bản ghi Ngành nghề mới nhất theo mã unique để xác định tenant của dữ liệu vừa tạo. */
   async findLatestByUniqueCode(code: string): Promise<NganhNgheRecord | null> {
     const rows = await this.client.query<NganhNgheRecord>(
       `
