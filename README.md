@@ -4,10 +4,9 @@
 
 Framework QA Automation cho PMKT, sử dụng **Playwright Test** và **TypeScript**. Repository hỗ trợ kiểm thử UI, đối chiếu PostgreSQL, teardown dữ liệu và sinh báo cáo kèm evidence.
 
-> **Bắt đầu nhanh:** 
-
-Trong Codex, nhập prompt và truyền tcs manual vào:
+> **Bắt đầu nhanh - khi đã cài đặt môi trường và Codex:** 
 ```powershell
+# Trong Codex, nhập prompt và truyền tcs manual vào
 $generate-automation-from-testcases 
 manual testcase: case <từ>-<đến> <đường-dẫn-file-testcase>
 
