@@ -13,6 +13,8 @@ import { PhieuNhapKhoDanhSachPage } from '@pages/kho/phieu-nhap-kho-danh-sach.pa
 import { TienMatChiTienDanhSachPage } from '@pages/tien-mat/tien-mat-chi-tien-danh-sach.page';
 import { TienGuiChiTienDanhSachPage } from '@pages/tien-gui/tien-gui-chi-tien-danh-sach.page';
 import { DatabaseContext } from '@database/database.context';
+import { NganhNghePage } from '@pages/danh-muc/nganh-nghe.page';
+import { IndustryCleanupTracker } from '@cleanup/nganh-nghe.cleanup';
 import { expect, runWithEvidenceContext } from '@utils/evidence-expect';
 
 interface FrameworkFixtures {
@@ -30,6 +32,8 @@ interface FrameworkFixtures {
   readonly inventoryReceiptListPage: PhieuNhapKhoDanhSachPage;
   readonly cashPaymentListPage: TienMatChiTienDanhSachPage;
   readonly paymentOrderListPage: TienGuiChiTienDanhSachPage;
+  readonly industryPage: NganhNghePage;
+  readonly industryCleanup: IndustryCleanupTracker;
 }
 
 export const test = base.extend<FrameworkFixtures>({
@@ -51,6 +55,12 @@ export const test = base.extend<FrameworkFixtures>({
   inventoryReceiptListPage: async ({ page, logger }, use) => { await use(new PhieuNhapKhoDanhSachPage(page, logger)); },
   cashPaymentListPage: async ({ page, logger }, use) => { await use(new TienMatChiTienDanhSachPage(page, logger)); },
   paymentOrderListPage: async ({ page, logger }, use) => { await use(new TienGuiChiTienDanhSachPage(page, logger)); },
+  industryPage: async ({ page, logger }, use) => { await use(new NganhNghePage(page, logger)); },
+  industryCleanup: [async ({ industryPage }, use, testInfo) => {
+    const tracker = new IndustryCleanupTracker(industryPage);
+    await use(tracker);
+    await tracker.cleanup(testInfo);
+  }, { auto: true }],
   materialCleanup: [async ({ page, vatTuPage }, use, testInfo) => {
     const tracker = new MaterialCleanupTracker(page, vatTuPage);
     await use(tracker);

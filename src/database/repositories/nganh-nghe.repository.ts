@@ -46,4 +46,31 @@ export class NganhNgheRepository {
 
     return rows[0] ?? null;
   }
+
+  async findLatestByUniqueCode(code: string): Promise<NganhNgheRecord | null> {
+    const rows = await this.client.query<NganhNgheRecord>(
+      `
+        SELECT
+          id,
+          tenant_id AS "tenantId",
+          ma,
+          ten,
+          mo_ta AS "moTa",
+          trang_thai AS "trangThai",
+          da_xoa AS "daXoa",
+          ngay_tao AS "ngayTao",
+          ngay_cap_nhat AS "ngayCapNhat",
+          nguoi_tao AS "nguoiTao",
+          nguoi_cap_nhat AS "nguoiCapNhat",
+          phien_ban AS "phienBan"
+        FROM public.mst_nganh_nghe
+        WHERE ma = $1
+        ORDER BY ngay_tao DESC
+        LIMIT 1
+      `,
+      [code],
+    );
+    return rows[0] ?? null;
+  }
+
 }

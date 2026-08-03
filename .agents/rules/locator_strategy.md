@@ -47,6 +47,11 @@ Trước khi đưa locator vào code, phải kiểm tra:
 
 - Giữ một bộ spec, helper/flow và Page Object với interface nghiệp vụ dùng chung.
 - Tách locator mapping khỏi hành vi Page Object thành các profile có cùng contract.
+- Mỗi màn hình hoặc component có Page Object phải tổ chức thành cặp file cùng tên và cùng thư mục: `<ten-man>.page.ts` chứa hành vi nghiệp vụ, `<ten-man>.locators.ts` chứa locator mapping.
+- Quy tắc cặp file vẫn áp dụng khi màn hình hiện tại chỉ có ít locator, nhằm giữ cấu trúc nhất quán và tránh phải refactor import khi mở rộng màn chi tiết sau này.
+- Page Object chỉ được import file locator riêng cùng cặp; không import trực tiếp locator hoặc factory dùng chung từ phân hệ khác.
+- File `<ten-man>.locators.ts` được phép tái sử dụng interface/factory locator chung ở lớp bên dưới để tránh trùng code, nhưng phải giữ điểm mở rộng riêng cho màn hình đó.
+- Khi bổ sung locator mới, ưu tiên cập nhật file `.locators.ts`; không khai báo locator trực tiếp trong `.page.ts` hoặc spec.
 - Không tạo Page Object, helper hoặc spec thứ hai nếu khác biệt chỉ nằm ở locator.
 - Profile phải được chọn từ cấu hình môi trường, ví dụ `LOCATOR_PROFILE`; không rẽ nhánh theo URL trực tiếp trong spec.
 - Locator không được khai báo inline trong spec để xử lý khác biệt môi trường.
