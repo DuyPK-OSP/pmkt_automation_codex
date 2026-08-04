@@ -227,10 +227,10 @@ export class NganhNghePage extends BasePage {
     }
     const row = this.industryRow(code);
     await expect(row, `Bản ghi ${code} phải xuất hiện để cleanup`).toBeVisible();
-    await row.getByRole('button').last().click();
-    const confirmation = this.page.getByRole('dialog').filter({ hasText: /xóa/i }).last();
+    await this.locators.deleteButton(code).click();
+    const confirmation = this.locators.deleteConfirmationDialog;
     await expect(confirmation, `Popup xác nhận xóa ${code} phải hiển thị`).toBeVisible();
-    await confirmation.getByRole('button', { name: /xác nhận|xóa/i }).last().click();
+    await this.locators.confirmDeleteButton.click();
     await expect(row).toBeHidden();
     return true;
   }

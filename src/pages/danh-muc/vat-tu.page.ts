@@ -1,6 +1,7 @@
 import type { Locator, Page, Response } from '@playwright/test';
 import { BasePage } from '@pages/common/base.page';
 import type { Logger } from '@utils/logger';
+import { VatTuLocators } from './vat-tu.locators';
 
 export const MATERIAL_TYPES = [
   'Hàng hóa',
@@ -109,6 +110,7 @@ interface ListResponse<T> {
 }
 
 export class VatTuPage extends BasePage {
+  readonly locators: VatTuLocators;
   readonly addButton: Locator;
   readonly materialTypeDialog: Locator;
   readonly createMaterialDialog: Locator;
@@ -123,40 +125,24 @@ export class VatTuPage extends BasePage {
   /** Khởi tạo Page Object và các locator dùng chung của màn hình Danh mục Vật tư. */
   constructor(page: Page, logger: Logger) {
     super(page, logger);
-    this.addButton = page.getByRole('button', { name: 'Thêm mới', exact: true });
-    this.materialTypeDialog = page.getByRole('dialog', {
-      name: /Chọn tính chất hàng hóa dịch vụ/,
-    });
-    this.createMaterialDialog = page.getByRole('dialog', { name: /Thêm mới vật tư/ });
-    this.changeMaterialTypeButton = this.createMaterialDialog.getByRole('button', {
-      name: 'Thay đổi tính chất',
-      exact: true,
-    });
-    this.closeConfirmationDialog = page
-      .getByRole('dialog')
-      .filter({ hasText: 'Xác nhận đóng' });
-    this.groupCombobox = this.createMaterialDialog.getByRole('combobox', {
-      name: 'Nhóm vật tư',
-      exact: true,
-    });
-    this.mainUnitCombobox = this.createMaterialDialog.getByRole('combobox', {
-      name: /^Đơn vị tính chính/,
-    });
-    this.defaultAccountingTab = this.createMaterialDialog.getByRole('tab', {
-      name: 'Hạch toán ngầm định',
-      exact: true,
-    });
-    this.accountingAccountDropdown = this.page.locator('.ant-select-dropdown:visible');
-    this.accountingAccountColumnHeaders = this.accountingAccountDropdown.locator(
-      '[role="columnheader"], th',
-    );
+    this.locators = new VatTuLocators(page);
+    this.addButton = this.locators.addButton;
+    this.materialTypeDialog = this.locators.materialTypeDialog;
+    this.createMaterialDialog = this.locators.createMaterialDialog;
+    this.changeMaterialTypeButton = this.locators.changeMaterialTypeButton;
+    this.closeConfirmationDialog = this.locators.closeConfirmationDialog;
+    this.groupCombobox = this.locators.groupCombobox;
+    this.mainUnitCombobox = this.locators.mainUnitCombobox;
+    this.defaultAccountingTab = this.locators.defaultAccountingTab;
+    this.accountingAccountDropdown = this.locators.visibleDropdown;
+    this.accountingAccountColumnHeaders = this.locators.accountingAccountColumnHeaders;
   }
 
   /** Mở màn hình Danh mục Vật tư và chờ danh sách sẵn sàng thao tác. */
   async openFromDanhMuc(): Promise<void> {
     await this.navigate('/danh-muc');
     await this.click(
-      this.page.getByRole('button', { name: 'Vật tư', exact: true }),
+      this.locators.catalogueButton,
       'Truy cập menu Vật tư',
     );
     await this.page.waitForURL((url) => url.pathname === '/danh-muc/vat-tu');
@@ -174,7 +160,7 @@ export class VatTuPage extends BasePage {
     );
 
     await this.click(
-      this.page.getByRole('button', { name: 'Vật tư', exact: true }),
+      this.locators.catalogueButton,
       'Truy cập menu Vật tư',
     );
     const [groupResponse, unitResponse] = await Promise.all([
@@ -198,7 +184,7 @@ export class VatTuPage extends BasePage {
     );
 
     await this.click(
-      this.page.getByRole('button', { name: 'Vật tư', exact: true }),
+      this.locators.catalogueButton,
       'Truy cập menu Vật tư',
     );
     const accountResponse = await accountResponsePromise;
@@ -215,7 +201,7 @@ export class VatTuPage extends BasePage {
       this.isCatalogueResponse(response, '/api/master-data/kho'),
     );
     await this.click(
-      this.page.getByRole('button', { name: 'Vật tư', exact: true }),
+      this.locators.catalogueButton,
       'Truy cập menu Vật tư',
     );
     const response = await responsePromise;
@@ -236,7 +222,7 @@ export class VatTuPage extends BasePage {
     const responsePromise = this.page.waitForResponse((response) =>
       this.isCatalogueResponse(response, '/api/master-data/thue-tai-nguyen'),
     );
-    await this.click(this.page.getByRole('button', { name: 'Vật tư', exact: true }), 'Truy cập menu Vật tư');
+    await this.click(this.locators.catalogueButton, 'Truy cập menu Vật tư');
     const response = await responsePromise;
     await this.page.waitForURL((url) => url.pathname === '/danh-muc/vat-tu');
     await this.addButton.waitFor({ state: 'visible' });
@@ -251,7 +237,7 @@ export class VatTuPage extends BasePage {
 
   /** Trả về locator của một Loại vật tư theo tên hiển thị. */
   materialTypeTitle(type: MaterialType): Locator {
-    return this.materialTypeDialog.getByText(type, { exact: true });
+    return this.locators.materialTypeTitle(type);
   }
 
   /** Chọn Loại vật tư và chờ form Thêm mới tương ứng hiển thị. */
@@ -268,10 +254,7 @@ export class VatTuPage extends BasePage {
 
   /** Trả về locator của nút Hủy trên form Thêm mới Vật tư. */
   cancelButton(): Locator {
-    return this.createMaterialDialog.getByRole('button', {
-      name: 'Hủy',
-      exact: true,
-    });
+    return this.locators.cancelButton();
   }
 
   /** Nhấn Hủy để yêu cầu đóng form Thêm mới Vật tư. */
@@ -281,15 +264,13 @@ export class VatTuPage extends BasePage {
 
   /** Trả về nội dung cảnh báo khi đóng form có dữ liệu chưa lưu. */
   closeConfirmationMessage(): Locator {
-    return this.closeConfirmationDialog.getByText(
-      /Dữ liệu đã có thay đổi|Bạn có chắc chắn muốn hủy/,
-    );
+    return this.locators.closeConfirmationMessage();
   }
 
   /** Hủy thao tác đóng để tiếp tục chỉnh sửa Vật tư. */
   async dismissCloseConfirmation(): Promise<void> {
     await this.click(
-      this.closeConfirmationDialog.getByRole('button', { name: 'Hủy', exact: true }),
+      this.locators.dismissCloseConfirmationButton(),
       'Hủy thao tác đóng form',
     );
   }
@@ -297,7 +278,7 @@ export class VatTuPage extends BasePage {
   /** Xác nhận bỏ dữ liệu chưa lưu và đóng form Thêm mới. */
   async confirmClose(): Promise<void> {
     await this.click(
-      this.closeConfirmationDialog.getByRole('button', { name: 'Xác nhận', exact: true }),
+      this.locators.confirmCloseButton(),
       'Xác nhận đóng form',
     );
   }
@@ -315,7 +296,7 @@ export class VatTuPage extends BasePage {
 
   /** Trả về locator của một lựa chọn Nhóm vật tư theo nhãn hiển thị. */
   groupOption(label: string): Locator {
-    return this.page.getByRole('treeitem', { name: label, exact: true });
+    return this.locators.groupOption(label);
   }
 
   /** Tìm và chọn Nhóm vật tư theo dữ liệu danh mục thực tế. */
@@ -326,9 +307,7 @@ export class VatTuPage extends BasePage {
 
   /** Trả về locator của Nhóm vật tư đang được chọn. */
   selectedGroup(label: string): Locator {
-    return this.createMaterialDialog
-      .locator('.ant-select-selection-item')
-      .filter({ hasText: label });
+    return this.locators.selectedGroup(label);
   }
 
   /** Mở danh sách Đơn vị tính chính. */
@@ -343,9 +322,7 @@ export class VatTuPage extends BasePage {
 
   /** Trả về locator của một lựa chọn Đơn vị tính chính. */
   mainUnitOption(label: string): Locator {
-    return this.page
-      .locator('.ant-select-dropdown:visible')
-      .getByText(label, { exact: true });
+    return this.locators.dropdownOption(label);
   }
 
   /** Chọn Đơn vị tính chính theo dữ liệu danh mục thực tế. */
@@ -355,7 +332,7 @@ export class VatTuPage extends BasePage {
 
   /** Trả về locator của Đơn vị tính chính đang được chọn. */
   selectedMainUnit(label: string): Locator {
-    return this.createMaterialDialog.getByText(label, { exact: true }).last();
+    return this.locators.selectedMainUnit(label);
   }
 
   /** Mở tab Hạch toán ngầm định trên form Vật tư. */
@@ -365,7 +342,7 @@ export class VatTuPage extends BasePage {
 
   /** Trả về locator của tab trên form theo tên hiển thị. */
   formTab(name: string): Locator {
-    return this.createMaterialDialog.getByRole('tab', { name, exact: true });
+    return this.locators.formTab(name);
   }
 
   /** Mở một tab trên form theo tên được truyền vào. */
@@ -375,9 +352,7 @@ export class VatTuPage extends BasePage {
 
   /** Trả về vùng form-item của trường theo label. */
   formField(label: string): Locator {
-    return this.createMaterialDialog
-      .locator('.ant-form-item')
-      .filter({ hasText: label });
+    return this.locators.formField(label);
   }
 
   /** Trả về control có role tương ứng trong trường theo label. */
@@ -385,20 +360,17 @@ export class VatTuPage extends BasePage {
     label: string,
     role: Parameters<Locator['getByRole']>[0],
   ): Locator {
-    return this.formField(label).getByRole(role).first();
+    return this.locators.formFieldControl(label, role);
   }
 
   /** Trả về giá trị đang được chọn của một trường trên form. */
   selectedFormValue(label: string): Locator {
-    return this.formField(label).locator('.ant-select-selection-item').first();
+    return this.locators.selectedFormValue(label);
   }
 
   /** Trả về lựa chọn hợp lệ đầu tiên trong dropdown đang mở. */
   firstEnabledDropdownOption(): Locator {
-    return this.page
-      .locator('.ant-select-dropdown:visible')
-      .locator('.ant-select-item-option:not(.ant-select-item-option-disabled)')
-      .first();
+    return this.locators.firstEnabledDropdownOption();
   }
 
   /** Chọn giá trị hợp lệ đầu tiên của trường và trả về nội dung đã chọn. */
@@ -423,21 +395,17 @@ export class VatTuPage extends BasePage {
 
   /** Nhập giá trị vào trường text hoặc number được xác định bằng label. */
   async fillFormField(label: string, value: string): Promise<void> {
-    const field = this.formField(label);
-    const textbox = field.getByRole('textbox').first();
+    const textbox = this.formFieldControl(label, 'textbox');
     if (await textbox.count()) {
       await this.type(textbox, value, label);
       return;
     }
-    await this.type(field.getByRole('spinbutton').first(), value, label);
+    await this.type(this.formFieldControl(label, 'spinbutton'), value, label);
   }
 
   /** Bật hoặc tắt checkbox theo trạng thái mong muốn. */
   async setCheckbox(name: string, checked: boolean): Promise<void> {
-    const checkbox = this.createMaterialDialog.getByRole('checkbox', {
-      name,
-      exact: true,
-    });
+    const checkbox = this.locators.checkbox(name);
     if ((await checkbox.isChecked()) !== checked) {
       await this.click(checkbox, `${checked ? 'Bật' : 'Tắt'} ${name}`);
     }
@@ -451,9 +419,7 @@ export class VatTuPage extends BasePage {
         new URL(response.url()).pathname === '/api/master-data/vat-tu/anh' &&
         response.ok(),
     );
-    await this.createMaterialDialog
-      .locator('input[type="file"]')
-      .setInputFiles(filePath);
+    await this.locators.uploadInput().setInputFiles(filePath);
     await uploadCompleted;
   }
 
@@ -560,16 +526,9 @@ export class VatTuPage extends BasePage {
   async fillFirstAlternativeUnit(mainUnit: string): Promise<string> {
     await this.openFormTab('Đơn vị tính khác');
     await this.addConversionRow();
-    const combobox = this.createMaterialDialog
-      .getByRole('tabpanel', { name: 'Đơn vị tính khác', exact: true })
-      .getByRole('combobox')
-      .first();
+    const combobox = this.locators.alternativeUnitCombobox();
     await this.click(combobox, 'Mở Đơn vị tính khác');
-    const option = this.page
-      .locator('.ant-select-dropdown:visible')
-      .locator('.ant-select-item-option:not(.ant-select-item-option-disabled)')
-      .filter({ hasNotText: mainUnit })
-      .first();
+    const option = this.locators.alternativeUnitOption(mainUnit);
     const value = (await option.innerText()).trim();
     await this.click(option, 'Chọn Đơn vị tính khác hợp lệ đầu tiên');
     await option.waitFor({ state: 'hidden' });
@@ -578,23 +537,17 @@ export class VatTuPage extends BasePage {
 
   /** Trả về locator đại diện cho ảnh Vật tư đã upload thành công. */
   materialImagePreview(): Locator {
-    return this.createMaterialDialog.getByRole('button', {
-      name: 'Xóa',
-      exact: true,
-    });
+    return this.locators.materialImagePreview();
   }
 
   /** Trả về khu vực Hình ảnh hàng hóa trên form. */
   materialImageSection(): Locator {
-    return this.createMaterialDialog.getByText('Hình ảnh hàng hóa', { exact: true });
+    return this.locators.materialImageSection();
   }
 
   /** Trả về label của trường bắt buộc theo tên trường. */
   requiredFormField(label: string): Locator {
-    const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return this.createMaterialDialog.getByText(
-      new RegExp(`^${escapedLabel}\\s*\\*$`),
-    );
+    return this.locators.requiredFormField(label);
   }
 
   /** Trả về control trong form Thêm mới theo role và accessible name. */
@@ -602,28 +555,22 @@ export class VatTuPage extends BasePage {
     role: Parameters<Locator['getByRole']>[0],
     name: string,
   ): Locator {
-    return this.createMaterialDialog.getByRole(role, { name, exact: true });
+    return this.locators.dialogControl(role, name);
   }
 
   /** Trả về combobox chọn Đơn vị thời hạn bảo hành. */
   warrantyUnitCombobox(): Locator {
-    return this.createMaterialDialog
-      .getByText('Ngày', { exact: true })
-      .locator('..')
-      .getByRole('combobox');
+    return this.locators.warrantyUnitCombobox();
   }
 
   /** Trả về một lựa chọn Đơn vị thời hạn bảo hành theo tên. */
   warrantyUnitOption(name: string): Locator {
-    return this.page.locator('.ant-select-dropdown:visible')
-      .locator('.ant-select-item-option-content')
-      .filter({ hasText: new RegExp(`^${name}$`) });
+    return this.locators.namedDropdownOption(name);
   }
 
   /** Trả về toàn bộ lựa chọn Đơn vị thời hạn bảo hành. */
   warrantyUnitOptions(): Locator {
-    return this.page.locator('.ant-select-dropdown:visible')
-      .locator('.ant-select-item-option:not(.ant-select-item-option-disabled)');
+    return this.locators.enabledDropdownOptions();
   }
 
   /** Mở danh sách Đơn vị thời hạn bảo hành. */
@@ -633,7 +580,7 @@ export class VatTuPage extends BasePage {
 
   /** Chọn Đơn vị thời hạn bảo hành theo tên. */
   async selectWarrantyUnit(name: string): Promise<void> {
-    if (!(await this.page.locator('.ant-select-dropdown:visible').count())) {
+    if (!(await this.locators.visibleDropdown.count())) {
       await this.openWarrantyUnitDropdown();
     }
     await this.click(this.warrantyUnitOption(name), `Chọn Đơn vị bảo hành ${name}`);
@@ -641,7 +588,7 @@ export class VatTuPage extends BasePage {
 
   /** Trả về Đơn vị thời hạn bảo hành đang được chọn. */
   selectedWarrantyUnit(name: string): Locator {
-    return this.createMaterialDialog.getByTitle(name, { exact: true }).last();
+    return this.locators.selectedDialogValue(name);
   }
 
   /** Trả về combobox Loại hàng hóa đặc trưng. */
@@ -659,11 +606,7 @@ export class VatTuPage extends BasePage {
 
   /** Trả về một lựa chọn Loại hàng hóa đặc trưng theo tên. */
   specialGoodsTypeOption(name: string): Locator {
-    const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return this.page
-      .locator('.ant-select-dropdown:visible')
-      .locator('.ant-select-item-option-content')
-      .filter({ hasText: new RegExp(`^${escapedName}$`) });
+    return this.locators.namedDropdownOption(name);
   }
 
   /** Chọn Loại hàng hóa đặc trưng theo tên. */
@@ -676,19 +619,17 @@ export class VatTuPage extends BasePage {
 
   /** Trả về Loại hàng hóa đặc trưng đang được chọn. */
   selectedSpecialGoodsType(name: string): Locator {
-    return this.formField('Loại hàng hóa đặc trưng').getByTitle(name, {
-      exact: true,
-    });
+    return this.locators.selectedFieldValue('Loại hàng hóa đặc trưng', name);
   }
 
   /** Trả về Loại vật tư đang hiển thị trên form. */
   materialTypeValue(type: MaterialType): Locator {
-    return this.createMaterialDialog.getByText(type, { exact: true }).first();
+    return this.locators.materialTypeValue(type);
   }
 
   /** Trả về công tắc Trạng thái của Vật tư. */
   statusSwitch(): Locator {
-    return this.createMaterialDialog.getByRole('switch');
+    return this.locators.statusSwitch();
   }
 
   /** Đặt trạng thái Vật tư thành Hoạt động hoặc Ngừng hoạt động theo đầu vào. */
@@ -737,10 +678,7 @@ export class VatTuPage extends BasePage {
 
   /** Trả về nút Lưu trên form Thêm mới Vật tư. */
   saveButton(): Locator {
-    return this.createMaterialDialog.getByRole('button', {
-      name: 'Lưu',
-      exact: true,
-    });
+    return this.locators.saveButton();
   }
 
   /** Nhấn Lưu để tạo Vật tư và đóng form hiện tại. */
@@ -750,10 +688,7 @@ export class VatTuPage extends BasePage {
 
   /** Trả về nút Lưu và Thêm mới trên form Vật tư. */
   saveAndAddButton(): Locator {
-    return this.createMaterialDialog.getByRole('button', {
-      name: 'Lưu và Thêm mới',
-      exact: true,
-    });
+    return this.locators.saveAndAddButton();
   }
 
   /** Nhấn Lưu và Thêm mới để tạo Vật tư nhưng giữ form mở. */
@@ -763,7 +698,7 @@ export class VatTuPage extends BasePage {
 
   /** Trả về thông báo thành công đang hiển thị. */
   successNotification(): Locator {
-    return this.page.getByRole('alert');
+    return this.locators.successNotification();
   }
 
   /** Chờ thông báo thành công và trả về nội dung thông báo thực tế. */
@@ -779,17 +714,12 @@ export class VatTuPage extends BasePage {
 
   /** Trả về một lựa chọn Phương pháp tính giá theo tên. */
   pricingMethodOption(name: string): Locator {
-    return this.page
-      .locator('.ant-select-dropdown:visible')
-      .locator('.ant-select-item-option-content')
-      .filter({ hasText: new RegExp(`^${name}$`) });
+    return this.locators.namedDropdownOption(name);
   }
 
   /** Trả về Phương pháp tính giá đang được chọn. */
   selectedPricingMethod(name: string): Locator {
-    return this.formField('Phương pháp tính giá').getByTitle(name, {
-      exact: true,
-    });
+    return this.locators.selectedFieldValue('Phương pháp tính giá', name);
   }
 
   /** Chọn Phương pháp tính giá theo tên. */
@@ -809,22 +739,22 @@ export class VatTuPage extends BasePage {
 
   /** Trả về dropdown Kho đang hiển thị. */
   warehouseDropdown(): Locator {
-    return this.page.locator('.ant-select-dropdown:visible');
+    return this.locators.visibleDropdown;
   }
 
   /** Trả về các tiêu đề cột trong combogrid Kho. */
   warehouseColumnHeaders(): Locator {
-    return this.warehouseDropdown().locator('[role="columnheader"], th');
+    return this.locators.warehouseColumnHeaders();
   }
 
   /** Trả về một lựa chọn Kho theo nhãn hiển thị. */
   warehouseOption(label: string): Locator {
-    return this.warehouseDropdown().getByText(label, { exact: true });
+    return this.locators.dropdownOption(label);
   }
 
   /** Trả về dòng dữ liệu của một Kho trong combogrid. */
   warehouseOptionRow(label: string): Locator {
-    return this.warehouseDropdown().locator('.ant-select-item-option').filter({ hasText: label });
+    return this.locators.warehouseOptionRow(label);
   }
 
   /** Mở combogrid Kho mặc định. */
@@ -847,19 +777,19 @@ export class VatTuPage extends BasePage {
 
   /** Trả về Kho đang được chọn. */
   selectedWarehouse(label: string): Locator {
-    return this.formField('Kho mặc định').getByTitle(label, { exact: true });
+    return this.locators.selectedFieldValue('Kho mặc định', label);
   }
 
   /** Mở dropdown của trường Thuế được xác định bằng label. */
   async openTaxDropdown(label: string): Promise<void> {
     await this.openFormTab('Thông tin thuế');
     await this.click(this.formFieldControl(label, 'combobox'), `Mở ${label}`);
-    await this.page.locator('.ant-select-dropdown:visible').waitFor({ state: 'visible' });
+    await this.locators.visibleDropdown.waitFor({ state: 'visible' });
   }
 
   /** Trả về một lựa chọn Thuế theo nhãn hiển thị. */
   taxOption(label: string): Locator {
-    return this.page.locator('.ant-select-dropdown:visible').getByText(label, { exact: true });
+    return this.locators.dropdownOption(label);
   }
 
   /** Tìm kiếm giá trị trong dropdown Thuế theo label trường. */
@@ -875,7 +805,7 @@ export class VatTuPage extends BasePage {
 
   /** Trả về giá trị Thuế đang được chọn. */
   selectedTax(label: string, value: string): Locator {
-    return this.formField(label).getByTitle(value, { exact: true });
+    return this.locators.selectedFieldValue(label, value);
   }
 
   /** Mở dropdown Đơn vị tính tại dòng quy đổi đầu tiên. */
@@ -891,17 +821,17 @@ export class VatTuPage extends BasePage {
   /** Chọn Đơn vị tính cho dòng quy đổi đầu tiên. */
   async selectFirstConversionUnit(option: CatalogueOption): Promise<void> {
     await this.searchFirstConversionUnit(option.code);
-    await this.click(this.page.locator('.ant-select-dropdown:visible').getByText(option.label, { exact: true }), `Chọn Đơn vị quy đổi ${option.label}`);
+    await this.click(this.locators.dropdownOption(option.label), `Chọn Đơn vị quy đổi ${option.label}`);
   }
 
   /** Trả về Đơn vị tính đang chọn tại dòng quy đổi đầu tiên. */
   selectedFirstConversionUnit(label: string): Locator {
-    return this.conversionGrid().getByTitle(label, { exact: true });
+    return this.locators.selectedConversionUnit(label);
   }
 
   /** Trả về thông báo validation của trường theo label và nội dung lỗi. */
   validationMessage(fieldLabel: string, message: string): Locator {
-    return this.formField(fieldLabel).getByText(message, { exact: true });
+    return this.locators.validationMessage(fieldLabel, message);
   }
 
   /** Rời trường đang nhập để kích hoạt validation hoặc chuẩn hóa dữ liệu. */
@@ -920,7 +850,7 @@ export class VatTuPage extends BasePage {
 
   /** Trả về ô tìm kiếm trên danh sách Vật tư. */
   materialSearchInput(): Locator {
-    return this.page.getByRole('textbox', { name: 'Tìm kiếm...', exact: true });
+    return this.locators.materialSearchInput();
   }
 
   /** Tìm kiếm Vật tư theo mã hoặc từ khóa và chờ danh sách cập nhật. */
@@ -952,9 +882,7 @@ export class VatTuPage extends BasePage {
 
   /** Trả về dòng Vật tư được xác định bằng mã unique. */
   materialRow(code: string): Locator {
-    return this.page.getByRole('row').filter({
-      has: this.page.getByRole('button', { name: code, exact: true }),
-    });
+    return this.locators.materialRow(code);
   }
 
   /** Cleanup đúng Vật tư theo mã; trả về true khi bản ghi đã được xóa. */
@@ -971,19 +899,16 @@ export class VatTuPage extends BasePage {
     }
     await this.materialSearchInput().waitFor({ state: 'visible' });
     await this.searchMaterial(code);
-    const row = this.materialRow(code);
-    if (!(await row.isVisible())) return false;
+    if (!(await this.materialRow(code).isVisible())) return false;
 
     await this.click(
-      row.getByRole('button', { name: 'Xóa', exact: true }),
+      this.locators.deleteMaterialButton(code),
       `Mở xác nhận xóa vật tư ${code}`,
     );
-    const confirmation = this.page.getByRole('dialog').filter({
-      hasText: `Bạn có chắc chắn muốn xóa vật tư`,
-    });
+    const confirmation = this.locators.deleteConfirmation();
     await confirmation.waitFor({ state: 'visible' });
     await this.click(
-      confirmation.getByRole('button', { name: 'Xóa', exact: true }),
+      this.locators.confirmDeleteButton(),
       `Xác nhận xóa vật tư ${code}`,
     );
     await confirmation.waitFor({ state: 'hidden' });
@@ -997,24 +922,19 @@ export class VatTuPage extends BasePage {
   /** Mở chi tiết Vật tư theo mã và chờ form chi tiết hiển thị. */
   async openMaterialDetails(code: string): Promise<void> {
     await this.click(
-      this.materialRow(code).getByRole('button', {
-        name: 'Xem chi tiết',
-        exact: true,
-      }),
+      this.locators.materialDetailsButton(code),
       `Mở chi tiết vật tư ${code}`,
     );
   }
 
   /** Trả về vùng chi tiết của Vật tư theo mã. */
   materialDetails(code: string): Locator {
-    return this.page.getByRole('dialog').filter({ hasText: code });
+    return this.locators.materialDetails(code);
   }
 
   /** Trả về vùng hiển thị một trường trong chi tiết Vật tư. */
   materialDetailField(code: string, label: string): Locator {
-    return this.materialDetails(code)
-      .locator('.ant-form-item')
-      .filter({ hasText: label });
+    return this.locators.materialDetailField(code, label);
   }
 
   /** Trả về control của một trường trong chi tiết Vật tư. */
@@ -1023,7 +943,7 @@ export class VatTuPage extends BasePage {
     label: string,
     role: Parameters<Locator['getByRole']>[0],
   ): Locator {
-    return this.materialDetailField(code, label).getByRole(role).first();
+    return this.locators.materialDetailControl(code, label, role);
   }
 
   /** Trả về giá trị được chọn của một trường trong chi tiết Vật tư. */
@@ -1032,34 +952,27 @@ export class VatTuPage extends BasePage {
     label: string,
     value: string,
   ): Locator {
-    return this.materialDetailField(code, label).getByTitle(value, {
-      exact: true,
-    });
+    return this.locators.materialDetailSelectedValue(code, label, value);
   }
 
   /** Trả về nội dung cần tìm trong chi tiết Vật tư. */
   materialDetailText(code: string, value: string): Locator {
-    return this.materialDetails(code).getByText(value, { exact: true });
+    return this.locators.materialDetailText(code, value);
   }
 
   /** Trả về công tắc Trạng thái trong chi tiết Vật tư. */
   materialDetailStatusSwitch(code: string): Locator {
-    return this.materialDetails(code).getByRole('switch');
+    return this.locators.materialDetailStatusSwitch(code);
   }
 
   /** Trả về ảnh đã lưu trong chi tiết Vật tư. */
   materialDetailImage(code: string): Locator {
-    return this.materialDetails(code)
-      .locator('.ant-upload-list-item-thumbnail img, .ant-image-img')
-      .first();
+    return this.locators.materialDetailImage(code);
   }
 
   /** Trả về tab trong chi tiết Vật tư theo tên. */
   materialDetailTab(code: string, tabName: string): Locator {
-    return this.materialDetails(code).getByRole('tab', {
-      name: tabName,
-      exact: true,
-    });
+    return this.locators.materialDetailTab(code, tabName);
   }
 
   /** Mở một tab trong chi tiết Vật tư theo tên. */
@@ -1072,18 +985,12 @@ export class VatTuPage extends BasePage {
 
   /** Trả về bảng Đơn vị quy đổi trên form. */
   conversionGrid(): Locator {
-    return this.createMaterialDialog.getByRole('tabpanel', {
-      name: 'Đơn vị quy đổi',
-      exact: true,
-    }).getByRole('table');
+    return this.locators.conversionGrid();
   }
 
   /** Trả về nút thêm dòng Đơn vị quy đổi. */
   addConversionRowButton(): Locator {
-    return this.createMaterialDialog.getByRole('button', {
-      name: 'Thêm dòng',
-      exact: true,
-    });
+    return this.locators.addConversionRowButton();
   }
 
   /** Thêm một dòng mới vào bảng Đơn vị quy đổi. */
@@ -1093,17 +1000,17 @@ export class VatTuPage extends BasePage {
 
   /** Trả về tiêu đề cột của bảng Đơn vị quy đổi. */
   conversionColumnHeader(name: string): Locator {
-    return this.conversionGrid().getByRole('columnheader', { name, exact: true });
+    return this.locators.conversionColumnHeader(name);
   }
 
   /** Trả về các control theo role tại dòng quy đổi đầu tiên. */
   conversionRowControls(role: Parameters<Locator['getByRole']>[0]): Locator {
-    return this.conversionGrid().getByRole(role);
+    return this.locators.conversionRowControls(role);
   }
 
   /** Trả về các thông báo validation trong bảng Đơn vị quy đổi. */
   conversionValidationMessages(): Locator {
-    return this.conversionGrid().locator('.ant-form-item-explain-error');
+    return this.locators.conversionValidationMessages();
   }
 
   /** Nhập dòng quy đổi đầu tiên và trả về Đơn vị quy đổi cùng Phép tính đã chọn. */
@@ -1113,11 +1020,7 @@ export class VatTuPage extends BasePage {
   }> {
     const comboboxes = this.conversionRowControls('combobox');
     await this.click(comboboxes.nth(0), 'Mở Đơn vị quy đổi');
-    const unitOption = this.page
-      .locator('.ant-select-dropdown:visible')
-      .locator('.ant-select-item-option:not(.ant-select-item-option-disabled)')
-      .filter({ hasNotText: mainUnit })
-      .first();
+    const unitOption = this.locators.conversionUnitOption(mainUnit);
     const unit = (await unitOption.innerText()).trim();
     await this.click(unitOption, 'Chọn Đơn vị quy đổi hợp lệ đầu tiên');
     await unitOption.waitFor({ state: 'hidden' });
@@ -1138,14 +1041,12 @@ export class VatTuPage extends BasePage {
 
   /** Trả về một lựa chọn Tài khoản kế toán theo nhãn. */
   accountingAccountOption(label: string): Locator {
-    return this.accountingAccountDropdown.getByText(label, { exact: true });
+    return this.locators.dropdownOption(label);
   }
 
   /** Trả về dòng dữ liệu của Tài khoản trong combogrid. */
   accountingAccountOptionRow(label: string): Locator {
-    return this.accountingAccountDropdown
-      .locator('.ant-select-item-option')
-      .filter({ hasText: label });
+    return this.locators.accountingAccountOptionRow(label);
   }
 
   /** Mở combogrid Tài khoản của trường được xác định bằng label. */
@@ -1180,7 +1081,7 @@ export class VatTuPage extends BasePage {
 
   /** Trả về Tài khoản kế toán đang được chọn của một trường. */
   selectedAccountingAccount(fieldLabel: string, label: string): Locator {
-    return this.accountFormItem(fieldLabel).getByTitle(label, { exact: true });
+    return this.locators.selectedFieldValue(fieldLabel, label);
   }
 
   /** Đóng dropdown đang mở bằng phím Escape. */
@@ -1195,7 +1096,7 @@ export class VatTuPage extends BasePage {
 
   /** Trả về locator của account combobox trong màn hình Vật tư. */
   private accountCombobox(fieldLabel: string): Locator {
-    return this.accountFormItem(fieldLabel).getByRole('combobox');
+    return this.locators.accountCombobox(fieldLabel);
   }
 
   /** Xác định response có thuộc API danh mục cần thu thập hay không. */

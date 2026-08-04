@@ -1,8 +1,13 @@
 import type { Locator, Page } from '@playwright/test';
 import { BasePage } from '@pages/common/base.page';
 import type { Logger } from '@utils/logger';
+import {
+  createChungTuMuaHangLocatorMap,
+  type ChungTuMuaHangLocatorMap,
+} from './chung-tu-mua-hang.locators';
 
 export class ChungTuMuaHangPage extends BasePage {
+  readonly locators: ChungTuMuaHangLocatorMap;
   readonly purchaseBreadcrumb: Locator;
   readonly globalSearchInput: Locator;
   readonly table: Locator;
@@ -18,22 +23,18 @@ export class ChungTuMuaHangPage extends BasePage {
   /** Khởi tạo Page Object và các locator dùng chung của màn hình. */
   constructor(page: Page, logger: Logger) {
     super(page, logger);
-    this.purchaseBreadcrumb = page.getByRole('navigation', { name: 'breadcrumb' }).getByText('Chứng từ mua hàng');
-    this.globalSearchInput = page.getByRole('textbox', { name: 'Tìm kiếm...' });
-    this.table = page.getByRole('table').filter({
-      has: page.getByRole('columnheader', { name: 'STT', exact: true }),
-    });
-    this.headerRow = this.table.getByRole('row').first();
-    this.headerColumns = this.headerRow.getByRole('columnheader');
-    this.headerCheckbox = this.headerRow.getByRole('checkbox');
-    this.dataRows = this.table.getByRole('rowgroup').nth(1).getByRole('row').filter({ has: page.getByRole('checkbox') });
-    this.firstDocumentButton = this.dataRows.first().getByRole('button').first();
-    this.nextPageButton = page.getByRole('button', { name: 'right' });
-    this.pageSizeDisplay = page.getByText('20 / trang', { exact: true });
-    this.emptyStateMessage = page.getByText(
-      'Không tìm thấy chứng từ nào phù hợp với điều kiện tìm kiếm',
-      { exact: true },
-    );
+    this.locators = createChungTuMuaHangLocatorMap(page);
+    this.purchaseBreadcrumb = this.locators.purchaseBreadcrumb;
+    this.globalSearchInput = this.locators.globalSearchInput;
+    this.table = this.locators.table;
+    this.headerRow = this.locators.headerRow;
+    this.headerColumns = this.locators.headerColumns;
+    this.headerCheckbox = this.locators.headerCheckbox;
+    this.dataRows = this.locators.dataRows;
+    this.firstDocumentButton = this.locators.firstDocumentButton;
+    this.nextPageButton = this.locators.nextPageButton;
+    this.pageSizeDisplay = this.locators.pageSizeDisplay;
+    this.emptyStateMessage = this.locators.emptyStateMessage;
   }
 
   /** Mở màn hình Chứng từ mua hàng và chờ dữ liệu sẵn sàng thao tác. */
@@ -80,11 +81,9 @@ export class ChungTuMuaHangPage extends BasePage {
   /** Tìm chứng từ theo số và trả về nội dung cột Số hóa đơn của chứng từ đó. */
   async invoiceNumberForDocument(documentNumber: string): Promise<string> {
     await this.search(documentNumber);
-    const documentRow = this.dataRows.filter({
-      has: this.page.getByRole('button', { name: documentNumber, exact: true }),
-    });
+    const documentRow = this.locators.documentRow(documentNumber);
     await documentRow.waitFor({ state: 'visible' });
-    return (await documentRow.getByRole('cell').nth(4).textContent())?.trim() ?? '';
+    return (await this.locators.invoiceNumberCell(documentNumber).textContent())?.trim() ?? '';
   }
 
   /** Trả về màu chữ và kiểu con trỏ của link Số chứng từ đầu tiên. */
@@ -118,7 +117,7 @@ export class ChungTuMuaHangPage extends BasePage {
 
   /** Kiểm tra nội dung chính xác có đang hiển thị trên màn hình hay không. */
   async hasText(text: string): Promise<boolean> {
-    return this.page.getByText(text, { exact: true }).isVisible();
+    return this.locators.exactText(text).isVisible();
   }
 
   /** Chờ bảng hiển thị dữ liệu hoặc trạng thái không có kết quả. */

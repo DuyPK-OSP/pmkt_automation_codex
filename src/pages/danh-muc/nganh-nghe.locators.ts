@@ -26,6 +26,9 @@ export interface NganhNgheLocatorMap {
   readonly duplicateCodeError: Locator;
   readonly successAlert: Locator;
   readonly row: (code: string) => Locator;
+  readonly deleteButton: (code: string) => Locator;
+  readonly deleteConfirmationDialog: Locator;
+  readonly confirmDeleteButton: Locator;
 }
 
 export function createNganhNgheLocatorMap(page: Page): NganhNgheLocatorMap {
@@ -33,6 +36,7 @@ export function createNganhNgheLocatorMap(page: Page): NganhNgheLocatorMap {
   const cancelConfirmationDialog = page.getByRole('dialog').filter({
     hasText: 'Bạn có chắc chắn muốn hủy thao tác thêm mới không?',
   }).last();
+  const deleteConfirmationDialog = page.getByRole('dialog').filter({ hasText: /xóa/i }).last();
   return {
     industryEntry: page.getByText('Ngành nghề', { exact: true }),
     addButton: page.getByText('Thêm mới', { exact: true }),
@@ -62,5 +66,11 @@ export function createNganhNgheLocatorMap(page: Page): NganhNgheLocatorMap {
     row: (code) => page.getByRole('table').first().getByRole('row').filter({
       has: page.getByRole('button', { name: code, exact: true }),
     }),
+    deleteButton: (code) => page.getByRole('table').first().getByRole('row').filter({
+      has: page.getByRole('button', { name: code, exact: true }),
+    }).getByRole('button').last(),
+    deleteConfirmationDialog,
+    confirmDeleteButton: deleteConfirmationDialog
+      .getByRole('button', { name: /xác nhận|xóa/i }).last(),
   };
 }
