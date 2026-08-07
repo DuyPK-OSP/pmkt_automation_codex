@@ -6,6 +6,12 @@ import {
   verifyFullGoodsMaterialDetails,
   verifyFullServiceMaterialDetails,
 } from '@helpers/vat-tu-assertion.helper';
+import {
+  openVatTuWithAccounts,
+  openVatTuWithCatalogues,
+  openVatTuWithResourceTaxes,
+  openVatTuWithWarehouses,
+} from '@helpers/vat-tu-expected-data.helper';
 import { MATERIAL_TYPES } from '@pages/danh-muc/vat-tu.page';
 import { expectedMaterialTypeCards } from '@test-data/vat-tu.data';
 import { requireCredentials } from '@utils/env.config';
@@ -48,9 +54,9 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-02 - multiple select Nhóm vật tư', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Lấy dữ liệu danh mục hợp lệ từ UI/API để không hardcode lựa chọn.
+    // Chuẩn bị dữ liệu: Lấy dữ liệu danh mục hợp lệ từ UI/DB để không hardcode lựa chọn.
     // Hành động: Truy cập Danh mục Vật tư > Mở form và thực hiện kiểm tra multiple select Nhóm vật tư.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const pair = statusPair(catalogues.groups);
     test.skip(
       pair === undefined,
@@ -108,9 +114,9 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-03 - select Đơn vị tính chính', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Lấy dữ liệu danh mục hợp lệ từ UI/API để không hardcode lựa chọn.
+    // Chuẩn bị dữ liệu: Lấy dữ liệu danh mục hợp lệ từ UI/DB để không hardcode lựa chọn.
     // Hành động: Truy cập Danh mục Vật tư > Mở form và thực hiện kiểm tra select Đơn vị tính chính.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const pair = statusPair(catalogues.units);
     test.skip(
       pair === undefined,
@@ -360,7 +366,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-32 - tạo Hàng hóa với đầy đủ thông tin, trạng thái Hoạt động', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     const code = data.uniqueCode('TC32');
     const name = `Vật tư hàng hóa TC32 ${code}`;
@@ -369,7 +375,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
     const saleName = `Hàng bán ${code}`;
     const imagePath = 'test-data/tc32-material.png';
     // Hành động: Truy cập Danh mục Vật tư > Chọn loại phù hợp > Nhập đầy đủ dữ liệu > Nhấn Lưu.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const group = catalogues.groups[0];
     const mainUnit = catalogues.units[0];
     test.skip(!group || !mainUnit, 'Thiếu Nhóm vật tư hoặc Đơn vị tính hợp lệ trong danh mục');
@@ -401,13 +407,13 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-33 - tạo Hàng hóa với tối thiểu trường bắt buộc', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const traceId = Date.now().toString();
     const code = `AUTO_TC33_${traceId}`;
     const name = `Auto TCS33 ${traceId}`;
     const pricingMethod = 'Nhập trước xuất trước';
     // Hành động: Truy cập Danh mục Vật tư > Chọn loại phù hợp > Chỉ nhập trường bắt buộc > Nhấn Lưu.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const mainUnit = catalogues.units.find(
       (unit) => unit.name === 'Cái' && unit.status === 'HoatDong',
     );
@@ -490,13 +496,13 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-34 - tạo Hàng hóa với trạng thái Ngừng hoạt động', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     const code = data.uniqueCode('TC34');
     const name = `Vật tư TC34 ${code}`;
     const pricingMethod = 'Nhập trước xuất trước';
     // Hành động: Truy cập Danh mục Vật tư > Chọn loại phù hợp > Nhập dữ liệu > Chọn Ngừng hoạt động > Nhấn Lưu.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const mainUnit = catalogues.units.find(
       (unit) => unit.name === 'Cái' && unit.status === 'HoatDong',
     );
@@ -546,13 +552,13 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-35 - tạo Hàng hóa bằng Lưu và Thêm mới', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     const code = data.uniqueCode('TC35');
     const name = `Vật tư TC35 ${code}`;
     const pricingMethod = 'Nhập trước xuất trước';
     // Hành động: Truy cập Danh mục Vật tư > Chọn loại phù hợp > Nhập dữ liệu > Nhấn Lưu và Thêm mới.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const mainUnit = catalogues.units.find(
       (unit) => unit.name === 'Cái' && unit.status === 'HoatDong',
     );
@@ -709,11 +715,11 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-48 - tạo Dịch vụ với đầy đủ thông tin, trạng thái Hoạt động', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     const code = data.uniqueCode('TC48');
     // Hành động: Truy cập Danh mục Vật tư > Chọn loại phù hợp > Nhập đầy đủ dữ liệu > Nhấn Lưu.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const group = catalogues.groups[0];
     const mainUnit = catalogues.units[0];
     test.skip(!group || !mainUnit, 'Thiếu Nhóm vật tư hoặc Đơn vị tính hợp lệ trong danh mục');
@@ -899,9 +905,9 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-58 - combogrid Kho mặc định của Nguyên vật liệu', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Lấy dữ liệu danh mục hợp lệ từ UI/API để không hardcode lựa chọn.
+    // Chuẩn bị dữ liệu: Lấy dữ liệu danh mục hợp lệ từ UI/DB để không hardcode lựa chọn.
     // Hành động: Truy cập Danh mục Vật tư > Mở form và thực hiện kiểm tra combogrid Kho mặc định của Nguyên vật liệu.
-    const warehouses = await vatTuPage.openFromDanhMucAndCollectWarehouses();
+    const warehouses = await openVatTuWithWarehouses(vatTuPage);
     const pair = statusPair(warehouses);
     test.skip(!pair, 'Thiếu precondition: danh mục Kho chưa có đồng thời kho hoạt động và ngừng hoạt động');
     if (!pair) return;
@@ -945,9 +951,9 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-60 - combogrid Thuế tài nguyên của Nguyên vật liệu', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Lấy dữ liệu danh mục hợp lệ từ UI/API để không hardcode lựa chọn.
+    // Chuẩn bị dữ liệu: Lấy dữ liệu danh mục hợp lệ từ UI/DB để không hardcode lựa chọn.
     // Hành động: Truy cập Danh mục Vật tư > Mở form và thực hiện kiểm tra combogrid Thuế tài nguyên của Nguyên vật liệu.
-    const taxes = await vatTuPage.openFromDanhMucAndCollectResourceTaxes();
+    const taxes = await openVatTuWithResourceTaxes(vatTuPage);
     const pair = statusPair(taxes);
     test.skip(!pair, 'Thiếu precondition: danh mục Thuế tài nguyên chưa có đồng thời dữ liệu hoạt động và ngừng hoạt động');
     if (!pair) return;
@@ -988,9 +994,9 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-62 - dropdown Đơn vị quy đổi của Nguyên vật liệu', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Lấy dữ liệu danh mục hợp lệ từ UI/API để không hardcode lựa chọn.
+    // Chuẩn bị dữ liệu: Lấy dữ liệu danh mục hợp lệ từ UI/DB để không hardcode lựa chọn.
     // Hành động: Mở form Thêm mới > Nhập dữ liệu > dropdown Đơn vị quy đổi của Nguyên vật liệu.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const pair = statusPair(catalogues.units);
     test.skip(!pair, 'Thiếu precondition: danh mục Đơn vị tính chưa có đồng thời dữ liệu hoạt động và ngừng hoạt động');
     if (!pair) return;
@@ -1014,10 +1020,10 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-63 - tự động fill tài khoản ngầm định của Nguyên vật liệu', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     // Hành động: Truy cập Danh mục Vật tư > Mở form và thực hiện kiểm tra tự động fill tài khoản ngầm định của Nguyên vật liệu.
-    const accounts = await vatTuPage.openFromDanhMucAndCollectAccounts();
+    const accounts = await openVatTuWithAccounts(vatTuPage);
     const disallowed = accounts.find((account) => !account.allowed);
     await vatTuPage.openMaterialTypePopup();
     await vatTuPage.selectMaterialType('Nguyên vật liệu');
@@ -1038,10 +1044,10 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-64 - validate và tự động điều chỉnh Thời hạn bảo hành', async ({ vatTuPage, page }, testInfo) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     // Hành động: Truy cập Danh mục Vật tư > Mở form và thực hiện kiểm tra validate và tự động điều chỉnh Thời hạn bảo hành.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const mainUnit = catalogues.units.find((unit) => unit.status === 'HoatDong');
     test.skip(!mainUnit, 'Thiếu Đơn vị tính chính đang hoạt động');
     if (!mainUnit) return;
@@ -1096,10 +1102,10 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-65 - chặn Tồn tối thiểu âm và tự động gán bằng 0', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     // Hành động: Truy cập Danh mục Vật tư > Mở form và thực hiện kiểm tra chặn Tồn tối thiểu âm và tự động gán bằng 0.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const mainUnit = catalogues.units.find((unit) => unit.status === 'HoatDong');
     test.skip(!mainUnit, 'Thiếu Đơn vị tính chính đang hoạt động');
     if (!mainUnit) return;
@@ -1127,10 +1133,10 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-66 - chặn Tồn tối đa âm và tự động gán bằng 0', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     // Hành động: Truy cập Danh mục Vật tư > Mở form và thực hiện kiểm tra chặn Tồn tối đa âm và tự động gán bằng 0.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const mainUnit = catalogues.units.find((unit) => unit.status === 'HoatDong');
     test.skip(!mainUnit, 'Thiếu Đơn vị tính chính đang hoạt động');
     if (!mainUnit) return;
@@ -1159,10 +1165,10 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-67 - không cho lưu khi Tồn tối đa nhỏ hơn Tồn tối thiểu', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     // Hành động: Truy cập Danh mục Vật tư > Mở form và thực hiện kiểm tra không cho lưu khi Tồn tối đa nhỏ hơn Tồn tối thiểu.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const mainUnit = catalogues.units.find((unit) => unit.status === 'HoatDong');
     test.skip(!mainUnit, 'Thiếu Đơn vị tính chính đang hoạt động');
     if (!mainUnit) return;
@@ -1221,9 +1227,9 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-69 - kiểm soát max length các trường của Nguyên vật liệu', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     // Hành động: Truy cập Danh mục Vật tư > Mở form và thực hiện kiểm tra kiểm soát max length các trường của Nguyên vật liệu.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const mainUnit = catalogues.units.find((unit) => unit.status === 'HoatDong');
     test.skip(!mainUnit, 'Thiếu Đơn vị tính chính đang hoạt động');
     if (!mainUnit) return;
@@ -1271,10 +1277,10 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-70 - tự động trim khoảng trắng đầu cuối khi lưu', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     // Hành động: Truy cập Danh mục Vật tư > Mở form và thực hiện kiểm tra tự động trim khoảng trắng đầu cuối khi lưu.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const mainUnit = catalogues.units.find((unit) => unit.status === 'HoatDong');
     test.skip(!mainUnit, 'Thiếu Đơn vị tính chính đang hoạt động');
     if (!mainUnit) return;
@@ -1304,10 +1310,10 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-71 - tạo Nguyên vật liệu với đầy đủ thông tin', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     // Hành động: Truy cập Danh mục Vật tư > Chọn loại phù hợp > Nhập đầy đủ dữ liệu > Nhấn Lưu.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const group = catalogues.groups.find((item) => item.status === 'HoatDong');
     const mainUnit = catalogues.units.find((item) => item.status === 'HoatDong');
     test.skip(!group || !mainUnit || catalogues.units.length < 2, 'Thiếu danh mục Nhóm vật tư hoặc Đơn vị tính phù hợp');
@@ -1379,10 +1385,10 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-72 - tạo Nguyên vật liệu với tối thiểu trường bắt buộc', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     // Hành động: Truy cập Danh mục Vật tư > Chọn loại phù hợp > Chỉ nhập trường bắt buộc > Nhấn Lưu.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const mainUnit = catalogues.units.find((item) => item.status === 'HoatDong');
     test.skip(!mainUnit, 'Thiếu Đơn vị tính chính đang hoạt động');
     if (!mainUnit) return;
@@ -1403,10 +1409,10 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-73 - tạo Nguyên vật liệu với trạng thái Ngừng hoạt động', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     // Hành động: Truy cập Danh mục Vật tư > Chọn loại phù hợp > Nhập dữ liệu > Chọn Ngừng hoạt động > Nhấn Lưu.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const mainUnit = catalogues.units.find((item) => item.status === 'HoatDong');
     test.skip(!mainUnit, 'Thiếu Đơn vị tính chính đang hoạt động');
     if (!mainUnit) return;
@@ -1426,10 +1432,10 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-74 - tạo Nguyên vật liệu bằng Lưu và Thêm mới', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     // Hành động: Truy cập Danh mục Vật tư > Chọn loại phù hợp > Nhập dữ liệu > Nhấn Lưu và Thêm mới.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const mainUnit = catalogues.units.find((item) => item.status === 'HoatDong');
     test.skip(!mainUnit, 'Thiếu Đơn vị tính chính đang hoạt động');
     if (!mainUnit) return;
@@ -1491,10 +1497,10 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-96 - tạo CCDC với đầy đủ thông tin', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     // Hành động: Truy cập Danh mục Vật tư > Chọn loại phù hợp > Nhập đầy đủ dữ liệu > Nhấn Lưu.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const group = catalogues.groups.find((item) => item.status === 'HoatDong');
     const mainUnit = catalogues.units.find((item) => item.status === 'HoatDong');
     test.skip(!group || !mainUnit || catalogues.units.length < 2, 'Thiếu Nhóm vật tư hoặc Đơn vị tính phù hợp');
@@ -1539,10 +1545,10 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-97 - tạo CCDC với tối thiểu trường bắt buộc', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     // Hành động: Truy cập Danh mục Vật tư > Chọn loại phù hợp > Chỉ nhập trường bắt buộc > Nhấn Lưu.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const mainUnit = catalogues.units.find((item) => item.status === 'HoatDong');
     test.skip(!mainUnit, 'Thiếu Đơn vị tính chính đang hoạt động');
     if (!mainUnit) return;
@@ -1563,10 +1569,10 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-98 - tạo CCDC với trạng thái Ngừng hoạt động', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     // Hành động: Truy cập Danh mục Vật tư > Chọn loại phù hợp > Nhập dữ liệu > Chọn Ngừng hoạt động > Nhấn Lưu.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const mainUnit = catalogues.units.find((item) => item.status === 'HoatDong');
     test.skip(!mainUnit, 'Thiếu Đơn vị tính chính đang hoạt động');
     if (!mainUnit) return;
@@ -1586,10 +1592,10 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-99 - tạo CCDC bằng Lưu và Thêm mới', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     // Hành động: Truy cập Danh mục Vật tư > Chọn loại phù hợp > Nhập dữ liệu > Nhấn Lưu và Thêm mới.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const mainUnit = catalogues.units.find((item) => item.status === 'HoatDong');
     test.skip(!mainUnit, 'Thiếu Đơn vị tính chính đang hoạt động');
     if (!mainUnit) return;
@@ -1647,10 +1653,10 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-102 - upload và lưu ảnh cho CCDC', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     // Hành động: Truy cập Danh mục Vật tư > Chọn loại phù hợp > Nhập dữ liệu > Upload ảnh > Lưu.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const mainUnit = catalogues.units.find((item) => item.status === 'HoatDong');
     test.skip(!mainUnit, 'Thiếu Đơn vị tính chính đang hoạt động');
     if (!mainUnit) return;
@@ -1668,10 +1674,10 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-120 - tạo Thành phẩm với đầy đủ thông tin', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     // Hành động: Truy cập Danh mục Vật tư > Chọn loại phù hợp > Nhập đầy đủ dữ liệu > Nhấn Lưu.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const group = catalogues.groups.find((item) => item.status === 'HoatDong');
     const mainUnit = catalogues.units.find((item) => item.status === 'HoatDong');
     test.skip(!group || !mainUnit || catalogues.units.length < 2, 'Thiếu Nhóm vật tư hoặc Đơn vị tính phù hợp');
@@ -1716,10 +1722,10 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-121 - tạo Thành phẩm với tối thiểu trường bắt buộc', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     // Hành động: Truy cập Danh mục Vật tư > Chọn loại phù hợp > Chỉ nhập trường bắt buộc > Nhấn Lưu.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const mainUnit = catalogues.units.find((item) => item.status === 'HoatDong');
     test.skip(!mainUnit, 'Thiếu Đơn vị tính chính đang hoạt động');
     if (!mainUnit) return;
@@ -1740,10 +1746,10 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-122 - tạo Thành phẩm với trạng thái Ngừng hoạt động', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     // Hành động: Truy cập Danh mục Vật tư > Chọn loại phù hợp > Nhập dữ liệu > Chọn Ngừng hoạt động > Nhấn Lưu.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const mainUnit = catalogues.units.find((item) => item.status === 'HoatDong');
     test.skip(!mainUnit, 'Thiếu Đơn vị tính chính đang hoạt động');
     if (!mainUnit) return;
@@ -1763,10 +1769,10 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-123 - tạo Thành phẩm bằng Lưu và Thêm mới', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     // Hành động: Truy cập Danh mục Vật tư > Chọn loại phù hợp > Nhập dữ liệu > Nhấn Lưu và Thêm mới.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const mainUnit = catalogues.units.find((item) => item.status === 'HoatDong');
     test.skip(!mainUnit, 'Thiếu Đơn vị tính chính đang hoạt động');
     if (!mainUnit) return;
@@ -1825,10 +1831,10 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-126 - upload và lưu ảnh cho Thành phẩm', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     // Hành động: Truy cập Danh mục Vật tư > Chọn loại phù hợp > Nhập dữ liệu > Upload ảnh > Lưu.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const mainUnit = catalogues.units.find((item) => item.status === 'HoatDong');
     test.skip(!mainUnit, 'Thiếu Đơn vị tính chính đang hoạt động');
     if (!mainUnit) return;
@@ -1846,10 +1852,10 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-144 - tạo Bán thành phẩm với đầy đủ thông tin', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     // Hành động: Truy cập Danh mục Vật tư > Chọn loại phù hợp > Nhập đầy đủ dữ liệu > Nhấn Lưu.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const group = catalogues.groups.find((item) => item.status === 'HoatDong');
     const mainUnit = catalogues.units.find((item) => item.status === 'HoatDong');
     test.skip(!group || !mainUnit || catalogues.units.length < 2, 'Thiếu Nhóm vật tư hoặc Đơn vị tính phù hợp');
@@ -1894,10 +1900,10 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-145 - tạo Bán thành phẩm với tối thiểu trường bắt buộc', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     // Hành động: Truy cập Danh mục Vật tư > Chọn loại phù hợp > Chỉ nhập trường bắt buộc > Nhấn Lưu.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const mainUnit = catalogues.units.find((item) => item.status === 'HoatDong');
     test.skip(!mainUnit, 'Thiếu Đơn vị tính chính đang hoạt động');
     if (!mainUnit) return;
@@ -1918,10 +1924,10 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-146 - tạo Bán thành phẩm với trạng thái Ngừng hoạt động', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     // Hành động: Truy cập Danh mục Vật tư > Chọn loại phù hợp > Nhập dữ liệu > Chọn Ngừng hoạt động > Nhấn Lưu.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const mainUnit = catalogues.units.find((item) => item.status === 'HoatDong');
     test.skip(!mainUnit, 'Thiếu Đơn vị tính chính đang hoạt động');
     if (!mainUnit) return;
@@ -1941,10 +1947,10 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-147 - tạo Bán thành phẩm bằng Lưu và Thêm mới', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     // Hành động: Truy cập Danh mục Vật tư > Chọn loại phù hợp > Nhập dữ liệu > Nhấn Lưu và Thêm mới.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const mainUnit = catalogues.units.find((item) => item.status === 'HoatDong');
     test.skip(!mainUnit, 'Thiếu Đơn vị tính chính đang hoạt động');
     if (!mainUnit) return;
@@ -2003,10 +2009,10 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
   });
 
   test('CL-UAT-U-00106-150 - upload và lưu ảnh cho Bán thành phẩm', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/API.
+    // Chuẩn bị dữ liệu: Sinh Mã vật tư unique và lấy dữ liệu danh mục hợp lệ từ UI/DB.
     const data = new TestDataGenerator();
     // Hành động: Truy cập Danh mục Vật tư > Chọn loại phù hợp > Nhập dữ liệu > Upload ảnh > Lưu.
-    const catalogues = await vatTuPage.openFromDanhMucAndCollectCatalogues();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const mainUnit = catalogues.units.find((item) => item.status === 'HoatDong');
     test.skip(!mainUnit, 'Thiếu Đơn vị tính chính đang hoạt động');
     if (!mainUnit) return;

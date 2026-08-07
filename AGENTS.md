@@ -29,6 +29,18 @@
   - Với loại dữ liệu khác, ràng buộc nghiệp vụ chưa rõ hoặc nhiều lựa chọn có thể làm thay đổi ý nghĩa testcase: phải hỏi người dùng trước khi triển khai.
 - Kiểm chứng automation được sinh bằng lệnh test, lint hoặc compile hẹp nhất phù hợp với phạm vi thay đổi.
 
+## Quy tắc bắt buộc về nguồn expected dữ liệu
+
+- Tất cả expected liên quan đến dữ liệu nghiệp vụ phải được lấy từ hoặc đối chiếu trực tiếp với database đúng tenant; quy tắc này áp dụng cho mọi loại dữ liệu, không chỉ dropdown hoặc combogrid.
+- Không sử dụng API response làm nguồn expected cho assertion dữ liệu. API chỉ được dùng cho mục đích kỹ thuật như đồng bộ trạng thái hoặc chờ request hoàn tất khi cần, nhưng dữ liệu trả về từ API không được dùng làm căn cứ xác nhận đúng/sai.
+- Sau thao tác tạo, sửa hoặc xóa qua UI, phải truy vấn DB bằng khóa unique do testcase quản lý và xác nhận toàn bộ trường, trạng thái, quan hệ hoặc ảnh hưởng dữ liệu mà Expected Result yêu cầu.
+- Dữ liệu danh mục, giá trị mặc định, trạng thái, quan hệ, điều kiện lọc và các ràng buộc nghiệp vụ phải lấy từ DB thay vì hardcode hoặc suy ra từ API.
+- Mỗi bảng DB phải có một repository riêng. Không gộp query của nhiều bảng nghiệp vụ không cùng ownership vào một repository tổng hợp.
+- SQL chỉ được đặt trong repository; Page Object chỉ thao tác/đọc UI; helper điều phối và ánh xạ dữ liệu; assertion nghiệp vụ đặt trong file spec.
+- Query verify phải read-only và parameterized, xác định đúng `tenant_id`, không hardcode thông tin kết nối, tenant hoặc credentials và không ghi dữ liệu nhạy cảm vào log/report.
+- Với dropdown/combogrid ảo hóa hoặc lazy-load, phải tìm/lọc trước bằng khóa nghiệp vụ ổn định và unique (ưu tiên mã) để option được render vào DOM rồi mới assert hoặc click; không được kết luận dữ liệu DB thiếu trên UI chỉ từ danh sách đang hiển thị ban đầu.
+- Chỉ ghi nhận lỗi dữ liệu UI sau khi DB xác nhận bản ghi thuộc đúng tenant và thao tác tìm chính xác theo mã/tên trên UI vẫn không trả về option. Screenshot chỉ chụp viewport ban đầu của danh sách ảo hóa không đủ làm evidence cho lỗi thiếu dữ liệu.
+
 ## Prompt chuẩn kiểm tra dữ liệu DB
 
 - Sau khi tạo mới thành công qua UI, người dùng có thể nhập:

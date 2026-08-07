@@ -10,8 +10,8 @@ export class LoginPage extends BasePage {
   /** Khởi tạo Page Object và các locator của màn hình Đăng nhập. */
   constructor(page: Page, logger: Logger) {
     super(page, logger);
-    this.usernameInput = page.locator('input[name="username"]');
-    this.passwordInput = page.locator('input[type="password"]');
+    this.usernameInput = page.locator('#username');
+    this.passwordInput = page.locator('#password');
     this.loginButton = page.getByRole('button', { name: /đăng nhập|login/i });
   }
 

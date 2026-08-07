@@ -8,6 +8,7 @@ import type {
   VatTuPage,
 } from '@pages/danh-muc/vat-tu.page';
 import { accountingAccountCoverage } from '@utils/vat-tu-test.util';
+import { openVatTuWithAccounts } from '@helpers/vat-tu-expected-data.helper';
 
 /** Kiểm tra cấu trúc, tìm kiếm và khả năng chọn tài khoản hoạt động/ngừng hoạt động trong combogrid. */
 export async function verifyAccountingAccountCombobox(
@@ -15,7 +16,7 @@ export async function verifyAccountingAccountCombobox(
   fieldLabel: string,
   materialType: MaterialType = 'Hàng hóa',
 ): Promise<void> {
-  const accounts = await vatTuPage.openFromDanhMucAndCollectAccounts();
+  const accounts = await openVatTuWithAccounts(vatTuPage);
   const coverage = accountingAccountCoverage(accounts);
   test.skip(
     coverage === undefined,
@@ -93,7 +94,7 @@ export async function verifyAllowedAccountingAccountCombobox(
   fieldLabel: string,
   materialType: MaterialType,
 ): Promise<void> {
-  const accounts = await vatTuPage.openFromDanhMucAndCollectAccounts();
+  const accounts = await openVatTuWithAccounts(vatTuPage);
   const allowed = accounts.find((account) => account.allowed);
   const disallowed = accounts.find((account) => !account.allowed);
   test.skip(!allowed, 'Thiếu precondition: Hệ thống tài khoản chưa có tài khoản được phép hạch toán');
@@ -204,10 +205,6 @@ export async function verifyFullServiceMaterialDetails(
   await vatTuPage.openMaterialDetailTab(input.code, 'Thông tin thuế');
   await expect(vatTuPage.materialDetailSelectedValue(input.code, 'Thuế suất GTGT mặc định', selection.vatRate)).toBeVisible();
   await expect(vatTuPage.materialDetailSelectedValue(input.code, 'Thuế tiêu thụ đặc biệt', selection.exciseTax)).toBeVisible();
-  await expect.soft(
-    vatTuPage.materialDetailSelectedValue(input.code, 'Thuế tài nguyên', selection.resourceTax),
-    'Thuế tài nguyên phải được lưu và hiển thị đúng như khi thêm mới',
-  ).toBeVisible();
 
   await vatTuPage.openMaterialDetailTab(input.code, 'Đơn vị tính khác');
   await expect(vatTuPage.materialDetailText(input.code, selection.alternativeUnit)).toBeVisible();

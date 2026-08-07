@@ -16,6 +16,8 @@ export function accountingAccountCoverage(options: readonly AccountOption[]):
   const activeAllowed = options.find(
     (option) => option.allowed && option.status === 'HoatDong',
   );
-  const inactive = options.find((option) => option.status === 'NgungHoatDong');
+  const inactive = options.find(
+    (option) => option.allowed && option.status === 'NgungHoatDong',
+  );
   return activeAllowed && inactive ? { activeAllowed, inactive } : undefined;
 }

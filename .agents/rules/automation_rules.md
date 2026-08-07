@@ -122,6 +122,17 @@ industryCleanup.register(data.code);
 
 ## 6. Assertions (Kiểm Tra Kết Quả)
 
+### 6.0. Nguồn expected cho dữ liệu nghiệp vụ
+
+- Mọi expected liên quan đến dữ liệu nghiệp vụ phải lấy từ hoặc đối chiếu trực tiếp với database đúng tenant. Phạm vi bao gồm dữ liệu form, danh mục, dropdown, combogrid, giá trị mặc định, trạng thái, quan hệ, điều kiện lọc và dữ liệu sau thao tác tạo/sửa/xóa.
+- Nghiêm cấm dùng API response làm nguồn expected cho assertion dữ liệu. API chỉ được dùng để đồng bộ hoặc chờ hoàn tất thao tác kỹ thuật; payload API không quyết định kết quả PASS/FAIL của dữ liệu.
+- Sau thao tác ghi dữ liệu qua UI, testcase phải truy vấn bằng khóa unique do chính testcase tạo và xác nhận các trường, trạng thái, quan hệ hoặc ảnh hưởng dữ liệu được manual testcase yêu cầu.
+- Mỗi bảng DB phải có repository riêng; không tạo repository tổng hợp chứa query của nhiều bảng nghiệp vụ khác ownership.
+- SQL chỉ nằm trong repository. Page Object không truy vấn DB; helper chỉ điều phối/ánh xạ; assertion nghiệp vụ nằm trong spec.
+- Query dùng để verify phải read-only, parameterized và xác định đúng `tenant_id`; không hardcode tenant, credential hoặc thông tin kết nối.
+- Với dropdown/combogrid dùng virtual scroll hoặc lazy-load, phải search/filter bằng khóa nghiệp vụ ổn định và unique (ưu tiên mã) để bản ghi được render vào DOM trước khi assert hoặc chọn. Không coi tập option đang render ban đầu là toàn bộ dữ liệu UI.
+- Chỉ phân loại là lỗi dữ liệu UI khi DB xác nhận bản ghi thuộc đúng tenant nhưng UI vẫn không trả về option sau khi tìm chính xác theo mã/tên. Ảnh chụp danh sách ban đầu chưa qua tìm kiếm không phải evidence đầy đủ cho lỗi thiếu dữ liệu.
+
 - Mỗi test case **BẮT BUỘC** có ít nhất 1 assertion ở cuối.
 - Nên có assertion xen kẽ ở các bước quan trọng.
 - Assert phải mô tả rõ expected behavior:

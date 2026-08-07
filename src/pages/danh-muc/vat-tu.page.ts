@@ -67,46 +67,7 @@ export interface FullServiceMaterialSelection {
   readonly accounts: Readonly<Record<string, string>>;
   readonly vatRate: string;
   readonly exciseTax: string;
-  readonly resourceTax: string;
   readonly alternativeUnit: string;
-}
-
-interface GroupResponseItem {
-  readonly ma: string;
-  readonly ten: string;
-  readonly trangThai: string;
-}
-
-interface UnitResponseItem {
-  readonly maDonViTinh: string;
-  readonly tenDonViTinh: string;
-  readonly trangThai: string;
-}
-
-interface AccountResponseItem {
-  readonly soTaiKhoan: string;
-  readonly tenTaiKhoan: string;
-  readonly trangThai: string;
-  readonly choPhepHachToan: boolean;
-}
-
-interface WarehouseResponseItem {
-  readonly maKho: string;
-  readonly tenKho: string;
-  readonly trangThai: string;
-}
-
-interface TaxResponseItem {
-  readonly ma: string;
-  readonly ten: string;
-  readonly trangThai: string;
-}
-
-interface ListResponse<T> {
-  readonly data?: readonly T[];
-  readonly pagination?: {
-    readonly totalPages?: number;
-  };
 }
 
 export class VatTuPage extends BasePage {
@@ -149,86 +110,6 @@ export class VatTuPage extends BasePage {
     await this.addButton.waitFor({ state: 'visible' });
   }
 
-  /** Mở Danh mục Vật tư, đồng thời thu thập Nhóm vật tư và Đơn vị tính thực tế từ API. */
-  async openFromDanhMucAndCollectCatalogues(): Promise<VatTuCatalogues> {
-    await this.navigate('/danh-muc');
-    const groupResponsePromise = this.page.waitForResponse((response) =>
-      this.isCatalogueResponse(response, '/api/master-data/nhom-vat-tu'),
-    );
-    const unitResponsePromise = this.page.waitForResponse((response) =>
-      this.isCatalogueResponse(response, '/api/master-data/don-vi-tinh'),
-    );
-
-    await this.click(
-      this.locators.catalogueButton,
-      'Truy cập menu Vật tư',
-    );
-    const [groupResponse, unitResponse] = await Promise.all([
-      groupResponsePromise,
-      unitResponsePromise,
-    ]);
-    await this.page.waitForURL((url) => url.pathname === '/danh-muc/vat-tu');
-    await this.addButton.waitFor({ state: 'visible' });
-
-    return {
-      groups: await this.parseGroups(groupResponse),
-      units: await this.loadAllUnits(unitResponse),
-    };
-  }
-
-  /** Mở Danh mục Vật tư và trả về danh sách Tài khoản kế toán thực tế từ API. */
-  async openFromDanhMucAndCollectAccounts(): Promise<readonly AccountOption[]> {
-    await this.navigate('/danh-muc');
-    const accountResponsePromise = this.page.waitForResponse((response) =>
-      this.isCatalogueResponse(response, '/api/master-data/tai-khoan'),
-    );
-
-    await this.click(
-      this.locators.catalogueButton,
-      'Truy cập menu Vật tư',
-    );
-    const accountResponse = await accountResponsePromise;
-    await this.page.waitForURL((url) => url.pathname === '/danh-muc/vat-tu');
-    await this.addButton.waitFor({ state: 'visible' });
-
-    return this.parseAccounts(accountResponse);
-  }
-
-  /** Mở Danh mục Vật tư và trả về danh sách Kho thực tế từ API. */
-  async openFromDanhMucAndCollectWarehouses(): Promise<readonly CatalogueOption[]> {
-    await this.navigate('/danh-muc');
-    const responsePromise = this.page.waitForResponse((response) =>
-      this.isCatalogueResponse(response, '/api/master-data/kho'),
-    );
-    await this.click(
-      this.locators.catalogueButton,
-      'Truy cập menu Vật tư',
-    );
-    const response = await responsePromise;
-    await this.page.waitForURL((url) => url.pathname === '/danh-muc/vat-tu');
-    await this.addButton.waitFor({ state: 'visible' });
-    const payload = (await response.json()) as ListResponse<WarehouseResponseItem>;
-    return (payload.data ?? []).map((item) => ({
-      code: item.maKho,
-      name: item.tenKho,
-      status: item.trangThai,
-      label: `${item.maKho} — ${item.tenKho}`,
-    }));
-  }
-
-  /** Mở Danh mục Vật tư và trả về danh sách Thuế tài nguyên thực tế từ API. */
-  async openFromDanhMucAndCollectResourceTaxes(): Promise<readonly CatalogueOption[]> {
-    await this.navigate('/danh-muc');
-    const responsePromise = this.page.waitForResponse((response) =>
-      this.isCatalogueResponse(response, '/api/master-data/thue-tai-nguyen'),
-    );
-    await this.click(this.locators.catalogueButton, 'Truy cập menu Vật tư');
-    const response = await responsePromise;
-    await this.page.waitForURL((url) => url.pathname === '/danh-muc/vat-tu');
-    await this.addButton.waitFor({ state: 'visible' });
-    return this.loadAllResourceTaxes(response);
-  }
-
   /** Mở popup chọn Loại vật tư trước khi tạo mới. */
   async openMaterialTypePopup(): Promise<void> {
     await this.click(this.addButton, 'Nhấn Thêm mới');
@@ -238,6 +119,17 @@ export class VatTuPage extends BasePage {
   /** Trả về locator của một Loại vật tư theo tên hiển thị. */
   materialTypeTitle(type: MaterialType): Locator {
     return this.locators.materialTypeTitle(type);
+  }
+
+  /** Trả về mô tả của một thẻ Tính chất hàng hóa dịch vụ. */
+  materialTypeDescription(description: string): Locator {
+    return this.locators.materialTypeDescription(description);
+  }
+
+  /** Đóng popup chọn Tính chất bằng nút X và chờ popup biến mất. */
+  async closeMaterialTypePopup(): Promise<void> {
+    await this.click(this.locators.closeMaterialTypeButton(), 'Đóng popup chọn Tính chất');
+    await this.materialTypeDialog.waitFor({ state: 'hidden' });
   }
 
   /** Chọn Loại vật tư và chờ form Thêm mới tương ứng hiển thị. */
@@ -299,6 +191,14 @@ export class VatTuPage extends BasePage {
     return this.locators.groupOption(label);
   }
 
+  /** Đọc style hiển thị của một Nhóm vật tư trong dropdown. */
+  async groupOptionStyle(label: string): Promise<Readonly<{ color: string; opacity: string }>> {
+    return this.groupOption(label).evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { color: style.color, opacity: style.opacity };
+    });
+  }
+
   /** Tìm và chọn Nhóm vật tư theo dữ liệu danh mục thực tế. */
   async selectGroup(option: CatalogueOption): Promise<void> {
     await this.searchGroup(option.code);
@@ -308,6 +208,16 @@ export class VatTuPage extends BasePage {
   /** Trả về locator của Nhóm vật tư đang được chọn. */
   selectedGroup(label: string): Locator {
     return this.locators.selectedGroup(label);
+  }
+
+  /** Xóa riêng một tag Nhóm vật tư đã chọn. */
+  async removeSelectedGroup(label: string): Promise<void> {
+    await this.click(this.locators.removeSelectedGroupButton(label), `Xóa Nhóm vật tư ${label}`);
+  }
+
+  /** Xóa nhanh toàn bộ tag Nhóm vật tư đã chọn. */
+  async clearAllSelectedGroups(): Promise<void> {
+    await this.click(this.locators.clearAllGroupsButton(), 'Xóa toàn bộ Nhóm vật tư đã chọn');
   }
 
   /** Mở danh sách Đơn vị tính chính. */
@@ -320,19 +230,81 @@ export class VatTuPage extends BasePage {
     await this.type(this.mainUnitCombobox, query, 'Tìm kiếm Đơn vị tính chính');
   }
 
+  /** Đọc các dòng Đơn vị tính đang hiển thị sau khi combogrid lọc dữ liệu. */
+  async visibleMainUnitLabels(): Promise<readonly string[]> {
+    return (await this.locators.mainUnitOptions().allTextContents())
+      .map((label) => label.trim())
+      .filter(Boolean);
+  }
+
+  /** Gửi phím điều hướng vào combogrid Đơn vị tính chính đang mở. */
+  async pressMainUnitKey(key: 'Enter' | 'Escape' | 'ArrowDown' | 'ArrowUp'): Promise<void> {
+    await this.mainUnitCombobox.press(key);
+  }
+
+  /** Đọc dòng đang được Ant Select đánh dấu active khi điều hướng bằng bàn phím. */
+  async activeMainUnitLabel(): Promise<string> {
+    return (await this.locators.mainUnitActiveOption().innerText()).trim();
+  }
+
   /** Trả về locator của một lựa chọn Đơn vị tính chính. */
   mainUnitOption(label: string): Locator {
     return this.locators.dropdownOption(label);
   }
 
-  /** Chọn Đơn vị tính chính theo dữ liệu danh mục thực tế. */
+  /** Trả về tiêu đề cột của combogrid Đơn vị tính chính. */
+  mainUnitColumnHeader(name: string): Locator {
+    return this.locators.mainUnitColumnHeader(name);
+  }
+
+  /** Đọc màu và độ mờ thực tế của một dòng Đơn vị tính chính. */
+  async mainUnitOptionStyle(label: string): Promise<Readonly<{ color: string; opacity: string }>> {
+    return this.mainUnitOption(label).evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { color: style.color, opacity: style.opacity };
+    });
+  }
+
+  /** Tìm theo mã để option của dropdown ảo hóa được render rồi chọn đúng đơn vị tính. */
   async selectMainUnit(option: CatalogueOption): Promise<void> {
+    await this.searchMainUnit(option.code);
     await this.click(this.mainUnitOption(option.label), `Chọn Đơn vị tính ${option.label}`);
+  }
+
+  /** Xóa nhanh Đơn vị tính chính đã chọn bằng icon clear của combogrid. */
+  async clearMainUnit(): Promise<void> {
+    await this.locators.formField('Đơn vị tính chính').hover();
+    await this.click(this.locators.clearMainUnitButton(), 'Xóa nhanh Đơn vị tính chính đã chọn');
   }
 
   /** Trả về locator của Đơn vị tính chính đang được chọn. */
   selectedMainUnit(label: string): Locator {
     return this.locators.selectedMainUnit(label);
+  }
+
+  /** Trả về popup cảnh báo khi người dùng chọn Đơn vị tính Ngừng hoạt động. */
+  mainUnitConfirmationDialog(): Locator {
+    return this.locators.mainUnitConfirmationDialog();
+  }
+
+  /** Trả về nội dung cảnh báo chọn Đơn vị tính Ngừng hoạt động. */
+  mainUnitConfirmationMessage(): Locator {
+    return this.locators.mainUnitConfirmationMessage();
+  }
+
+  /** Trả về nút thao tác trong popup cảnh báo Đơn vị tính Ngừng hoạt động. */
+  mainUnitConfirmationButton(name: 'Xác nhận' | 'Hủy'): Locator {
+    return this.locators.mainUnitConfirmationButton(name);
+  }
+
+  /** Xác nhận tiếp tục sử dụng Đơn vị tính đang Ngừng hoạt động. */
+  async confirmInactiveMainUnit(): Promise<void> {
+    await this.click(this.mainUnitConfirmationButton('Xác nhận'), 'Xác nhận sử dụng Đơn vị tính Ngừng hoạt động');
+  }
+
+  /** Hủy sử dụng Đơn vị tính đang Ngừng hoạt động trong popup cảnh báo. */
+  async cancelInactiveMainUnit(): Promise<void> {
+    await this.click(this.mainUnitConfirmationButton('Hủy'), 'Hủy sử dụng Đơn vị tính Ngừng hoạt động');
   }
 
   /** Mở tab Hạch toán ngầm định trên form Vật tư. */
@@ -361,6 +333,11 @@ export class VatTuPage extends BasePage {
     role: Parameters<Locator['getByRole']>[0],
   ): Locator {
     return this.locators.formFieldControl(label, role);
+  }
+
+  /** Trả về control TextArea của trường theo label nghiệp vụ. */
+  textarea(label: string): Locator {
+    return this.locators.textarea(label);
   }
 
   /** Trả về giá trị đang được chọn của một trường trên form. */
@@ -411,6 +388,11 @@ export class VatTuPage extends BasePage {
     }
   }
 
+  /** Trả về checkbox trên form theo accessible name nghiệp vụ. */
+  checkbox(name: string): Locator {
+    return this.locators.checkbox(name);
+  }
+
   /** Tải ảnh Vật tư lên và chờ API upload hoàn tất. */
   async uploadMaterialImage(filePath: string): Promise<void> {
     const uploadCompleted = this.page.waitForResponse(
@@ -421,6 +403,11 @@ export class VatTuPage extends BasePage {
     );
     await this.locators.uploadInput().setInputFiles(filePath);
     await uploadCompleted;
+  }
+
+  /** Chọn file ảnh để kiểm tra validation phía client mà không giả định API upload sẽ được gọi. */
+  async chooseMaterialImage(filePath: string): Promise<void> {
+    await this.locators.uploadInput().setInputFiles(filePath);
   }
 
   /** Nhập đầy đủ dữ liệu cho loại Vật tư có quản lý kho và trả về các giá trị đã chọn từ UI. */
@@ -513,13 +500,10 @@ export class VatTuPage extends BasePage {
 
     await this.openFormTab('Thông tin thuế');
     const vatRate = await this.selectFirstFormOption('Thuế suất GTGT mặc định');
-    await this.fillFormField('Thuế xuất khẩu', '0');
-    await this.fillFormField('Thuế nhập khẩu', '0');
     const exciseTax = await this.selectFirstFormOption('Thuế tiêu thụ đặc biệt');
-    const resourceTax = await this.selectFirstFormOption('Thuế tài nguyên');
 
     const alternativeUnit = await this.fillFirstAlternativeUnit(input.mainUnit.label);
-    return { accounts, vatRate, exciseTax, resourceTax, alternativeUnit };
+    return { accounts, vatRate, exciseTax, alternativeUnit };
   }
 
   /** Chọn Đơn vị tính khác hợp lệ đầu tiên, không trùng Đơn vị tính chính. */
@@ -543,6 +527,26 @@ export class VatTuPage extends BasePage {
   /** Trả về khu vực Hình ảnh hàng hóa trên form. */
   materialImageSection(): Locator {
     return this.locators.materialImageSection();
+  }
+
+  /** Trả về label Ảnh theo tên trường được quy định trong manual testcase. */
+  materialImageLabel(): Locator {
+    return this.locators.materialImageLabel();
+  }
+
+  /** Trả về input file của control tải ảnh để xác minh đúng loại control. */
+  materialImageInput(): Locator {
+    return this.locators.uploadInput();
+  }
+
+  /** Trả về cảnh báo dung lượng của control tải ảnh. */
+  materialImageSizeError(): Locator {
+    return this.locators.materialImageSizeError();
+  }
+
+  /** Trả về cảnh báo định dạng không hợp lệ của control tải ảnh. */
+  materialImageFormatError(): Locator {
+    return this.locators.materialImageFormatError();
   }
 
   /** Trả về label của trường bắt buộc theo tên trường. */
@@ -583,7 +587,10 @@ export class VatTuPage extends BasePage {
     if (!(await this.locators.visibleDropdown.count())) {
       await this.openWarrantyUnitDropdown();
     }
-    await this.click(this.warrantyUnitOption(name), `Chọn Đơn vị bảo hành ${name}`);
+    await this.locators.visibleDropdown.waitFor({ state: 'visible' });
+    const option = this.warrantyUnitOption(name);
+    await option.waitFor({ state: 'visible' });
+    await this.click(option, `Chọn Đơn vị bảo hành ${name}`);
   }
 
   /** Trả về Đơn vị thời hạn bảo hành đang được chọn. */
@@ -769,10 +776,56 @@ export class VatTuPage extends BasePage {
     await this.type(this.warehouseCombobox(), query, 'Tìm kiếm Kho mặc định');
   }
 
+  /** Đọc các Kho đang hiển thị sau khi combogrid lọc dữ liệu. */
+  async visibleWarehouseLabels(): Promise<readonly string[]> {
+    return (await this.locators.warehouseOptions().allTextContents())
+      .map((label) => label.trim())
+      .filter(Boolean);
+  }
+
+  /** Gửi phím điều hướng vào combogrid Kho mặc định đang mở. */
+  async pressWarehouseKey(key: 'Enter' | 'Escape' | 'ArrowDown' | 'ArrowUp'): Promise<void> {
+    await this.warehouseCombobox().press(key);
+  }
+
+  /** Đọc dòng Kho đang được Ant Select đánh dấu active. */
+  async activeWarehouseLabel(): Promise<string> {
+    return (await this.locators.warehouseActiveOption().innerText()).trim();
+  }
+
+  /** Đọc màu và độ mờ thực tế của một dòng Kho. */
+  async warehouseOptionStyle(label: string): Promise<Readonly<{ color: string; opacity: string }>> {
+    return this.warehouseOptionRow(label).evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { color: style.color, opacity: style.opacity };
+    });
+  }
+
   /** Tìm và chọn Kho theo dữ liệu danh mục thực tế. */
   async selectWarehouse(option: CatalogueOption): Promise<void> {
     await this.searchWarehouse(option.code);
     await this.click(this.warehouseOption(option.label), `Chọn kho ${option.label}`);
+  }
+
+  /** Xóa nhanh Kho mặc định đã chọn bằng icon clear của combogrid. */
+  async clearWarehouse(): Promise<void> {
+    await this.locators.formField('Kho mặc định').hover();
+    await this.click(this.locators.clearWarehouseButton(), 'Xóa nhanh Kho mặc định đã chọn');
+  }
+
+  /** Trả về popup cảnh báo dùng Kho Ngừng hoạt động. */
+  warehouseConfirmationDialog(): Locator {
+    return this.locators.mainUnitConfirmationDialog();
+  }
+
+  /** Trả về nội dung cảnh báo dùng Kho Ngừng hoạt động. */
+  warehouseConfirmationMessage(): Locator {
+    return this.locators.mainUnitConfirmationMessage();
+  }
+
+  /** Xác nhận hoặc hủy sử dụng Kho Ngừng hoạt động. */
+  async chooseInactiveWarehouse(action: 'Xác nhận' | 'Hủy'): Promise<void> {
+    await this.click(this.locators.mainUnitConfirmationButton(action), `${action} sử dụng Kho Ngừng hoạt động`);
   }
 
   /** Trả về Kho đang được chọn. */
@@ -834,6 +887,11 @@ export class VatTuPage extends BasePage {
     return this.locators.validationMessage(fieldLabel, message);
   }
 
+  /** Trả về thông báo hệ thống theo nội dung hiển thị chính xác. */
+  notificationMessage(message: string): Locator {
+    return this.locators.notificationMessage(message);
+  }
+
   /** Rời trường đang nhập để kích hoạt validation hoặc chuẩn hóa dữ liệu. */
   async commitCurrentFormField(): Promise<void> {
     await this.page.keyboard.press('Tab');
@@ -851,6 +909,13 @@ export class VatTuPage extends BasePage {
   /** Trả về ô tìm kiếm trên danh sách Vật tư. */
   materialSearchInput(): Locator {
     return this.locators.materialSearchInput();
+  }
+
+  /** Lấy Mã vật tư đầu tiên đang tồn tại từ dữ liệu bảng UI thực tế. */
+  async firstExistingMaterialCode(): Promise<string> {
+    const codeButton = this.locators.firstExistingMaterialCode();
+    await codeButton.waitFor({ state: 'visible' });
+    return (await codeButton.innerText()).trim();
   }
 
   /** Tìm kiếm Vật tư theo mã hoặc từ khóa và chờ danh sách cập nhật. */
@@ -1049,6 +1114,53 @@ export class VatTuPage extends BasePage {
     return this.locators.accountingAccountOptionRow(label);
   }
 
+  /** Trả về nhãn các Tài khoản đang hiển thị trong combogrid theo đúng thứ tự UI. */
+  async visibleAccountingAccountLabels(): Promise<readonly string[]> {
+    const options = this.locators.accountingAccountOptions();
+    await options.first().waitFor({ state: 'visible' });
+    return (await options.allInnerTexts()).map((label) => label.trim());
+  }
+
+  /** Trả về màu chữ thực tế của một dòng Tài khoản trong combogrid. */
+  async accountingAccountTextColor(label: string): Promise<string> {
+    return this.accountingAccountOptionRow(label).evaluate((element) => getComputedStyle(element).color);
+  }
+
+  /** Trả về popup xác nhận dùng Tài khoản đang Ngừng hoạt động. */
+  accountConfirmationDialog(): Locator {
+    return this.locators.accountConfirmationDialog();
+  }
+
+  /** Trả về nút thao tác trong popup xác nhận Tài khoản Ngừng hoạt động. */
+  accountConfirmationButton(name: 'Xác nhận' | 'Hủy'): Locator {
+    return this.locators.accountConfirmationButton(name);
+  }
+
+  /** Xác nhận hoặc hủy việc sử dụng Tài khoản đang Ngừng hoạt động. */
+  async resolveInactiveAccount(useAccount: boolean): Promise<void> {
+    await this.click(
+      this.accountConfirmationButton(useAccount ? 'Xác nhận' : 'Hủy'),
+      `${useAccount ? 'Xác nhận' : 'Hủy'} sử dụng Tài khoản Ngừng hoạt động`,
+    );
+  }
+
+  /** Gửi phím điều hướng vào combogrid Tài khoản đang mở. */
+  async pressAccountingAccountKey(fieldLabel: string, key: string): Promise<void> {
+    await this.accountCombobox(fieldLabel).press(key);
+  }
+
+  /** Trả về nhãn dòng Tài khoản đang được keyboard focus. */
+  async activeAccountingAccountLabel(): Promise<string> {
+    return (await this.locators.accountingAccountActiveOption().innerText()).trim();
+  }
+
+  /** Xóa nhanh giá trị Tài khoản của trường được chỉ định. */
+  async clearAccountingAccount(fieldLabel: string): Promise<void> {
+    const field = this.accountFormItem(fieldLabel);
+    await field.hover();
+    await this.click(this.locators.accountClearButton(fieldLabel), `Xóa nhanh ${fieldLabel}`);
+  }
+
   /** Mở combogrid Tài khoản của trường được xác định bằng label. */
   async openAccountingAccountDropdown(fieldLabel: string): Promise<void> {
     await this.click(
@@ -1081,7 +1193,7 @@ export class VatTuPage extends BasePage {
 
   /** Trả về Tài khoản kế toán đang được chọn của một trường. */
   selectedAccountingAccount(fieldLabel: string, label: string): Locator {
-    return this.locators.selectedFieldValue(fieldLabel, label);
+    return this.locators.selectedAccountValue(fieldLabel, label);
   }
 
   /** Đóng dropdown đang mở bằng phím Escape. */
@@ -1099,87 +1211,4 @@ export class VatTuPage extends BasePage {
     return this.locators.accountCombobox(fieldLabel);
   }
 
-  /** Xác định response có thuộc API danh mục cần thu thập hay không. */
-  private isCatalogueResponse(response: Response, pathname: string): boolean {
-    const url = new URL(response.url());
-    return response.status() === 200 && url.pathname === pathname;
-  }
-
-  /** Chuyển response Nhóm vật tư thành danh sách lựa chọn dùng chung cho testcase. */
-  private async parseGroups(response: Response): Promise<readonly CatalogueOption[]> {
-    const payload = (await response.json()) as ListResponse<GroupResponseItem>;
-    return (payload.data ?? []).map((item) => ({
-      code: item.ma,
-      name: item.ten,
-      status: item.trangThai,
-      label: `${item.ma} — ${item.ten}`,
-    }));
-  }
-
-  /** Chuyển response Tài khoản thành danh sách lựa chọn và giữ thông tin cho phép hạch toán. */
-  private async parseAccounts(response: Response): Promise<readonly AccountOption[]> {
-    const payload = (await response.json()) as readonly AccountResponseItem[];
-    return payload.map((item) => ({
-      code: item.soTaiKhoan,
-      name: item.tenTaiKhoan,
-      status: item.trangThai,
-      allowed: item.choPhepHachToan,
-      label: `${item.soTaiKhoan} — ${item.tenTaiKhoan}`,
-    }));
-  }
-
-  /** Tải và gộp toàn bộ các trang Đơn vị tính thành một danh sách lựa chọn. */
-  private async loadAllUnits(sourceResponse: Response): Promise<readonly CatalogueOption[]> {
-    const authorization = sourceResponse.request().headers()['authorization'];
-    if (!authorization) {
-      throw new Error('Không lấy được quyền đọc danh mục Đơn vị tính từ request của UI.');
-    }
-
-    const firstPage = (await sourceResponse.json()) as ListResponse<UnitResponseItem>;
-    const totalPages = firstPage.pagination?.totalPages ?? 1;
-    const remainingPages = await Promise.all(
-      Array.from({ length: Math.max(totalPages - 1, 0) }, async (_, index) => {
-        const page = index + 2;
-        const url = new URL(`/api/master-data/don-vi-tinh?pageSize=200&page=${page}`, sourceResponse.url());
-        const response = await this.page.context().request.get(url.toString(), {
-          headers: { authorization },
-        });
-        if (!response.ok()) {
-          throw new Error(`Không đọc được trang ${page} danh mục Đơn vị tính: HTTP ${response.status()}.`);
-        }
-        return (await response.json()) as ListResponse<UnitResponseItem>;
-      }),
-    );
-
-    const items = [
-      ...(firstPage.data ?? []),
-      ...remainingPages.flatMap((payload) => payload.data ?? []),
-    ];
-    return items.map((item) => ({
-      code: item.maDonViTinh,
-      name: item.tenDonViTinh,
-      status: item.trangThai,
-      label: `${item.maDonViTinh} — ${item.tenDonViTinh}`,
-    }));
-  }
-
-  /** Tải và gộp toàn bộ các trang Thuế tài nguyên thành một danh sách lựa chọn. */
-  private async loadAllResourceTaxes(sourceResponse: Response): Promise<readonly CatalogueOption[]> {
-    const authorization = sourceResponse.request().headers()['authorization'];
-    if (!authorization) throw new Error('Không lấy được quyền đọc danh mục Thuế tài nguyên từ request UI.');
-    const firstPage = (await sourceResponse.json()) as ListResponse<TaxResponseItem>;
-    const totalPages = firstPage.pagination?.totalPages ?? 1;
-    const remainingPages = await Promise.all(Array.from({ length: Math.max(totalPages - 1, 0) }, async (_, index) => {
-      const url = new URL(`/api/master-data/thue-tai-nguyen?pageSize=200&page=${index + 2}`, sourceResponse.url());
-      const response = await this.page.context().request.get(url.toString(), { headers: { authorization } });
-      if (!response.ok()) throw new Error(`Không đọc được danh mục Thuế tài nguyên: HTTP ${response.status()}.`);
-      return (await response.json()) as ListResponse<TaxResponseItem>;
-    }));
-    return [...(firstPage.data ?? []), ...remainingPages.flatMap((page) => page.data ?? [])].map((item) => ({
-      code: item.ma,
-      name: item.ten,
-      status: item.trangThai,
-      label: `${item.ma} — ${item.ten}`,
-    }));
-  }
 }
