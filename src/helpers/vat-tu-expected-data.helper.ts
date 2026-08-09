@@ -38,6 +38,29 @@ export async function openVatTuWithCatalogues(vatTuPage: VatTuPage): Promise<Vat
   return catalogues;
 }
 
+/** Chọn precondition Đơn vị tính Hoạt động có trong DB và đang thực sự khả dụng trên UI. */
+export async function firstVisibleActiveMainUnit(
+  vatTuPage: VatTuPage,
+  units: readonly CatalogueOption[],
+): Promise<CatalogueOption | undefined> {
+  await vatTuPage.openMainUnitDropdown();
+  const activeUnits = units
+    .filter((unit) => unit.status === 'HoatDong')
+    .sort((left, right) => left.code.localeCompare(right.code, 'vi'))
+    .slice(0, 10);
+  for (const unit of activeUnits) {
+    await vatTuPage.searchMainUnit(unit.name);
+    try {
+      await vatTuPage.mainUnitOption(unit.label).waitFor({ state: 'visible', timeout: 2_000 });
+      return unit;
+    } catch {
+      // Combogrid server-side có thể không trả về một số bản ghi DB; thử bản ghi Hoạt động kế tiếp.
+    }
+  }
+  await vatTuPage.pressMainUnitKey('Escape');
+  return undefined;
+}
+
 /** Lấy Tài khoản kế toán từ DB rồi mở màn hình Danh mục Vật tư. */
 export async function openVatTuWithAccounts(vatTuPage: VatTuPage): Promise<readonly AccountOption[]> {
   const accounts = await readExpectedFromDatabase((db, username) =>

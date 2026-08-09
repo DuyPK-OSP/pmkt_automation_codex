@@ -46,6 +46,32 @@ export class VatTuRepository {
   /** Khởi tạo repository bằng PostgreSQL client dùng chung. */
   constructor(private readonly client: PostgresClient) {}
 
+  /** Lấy mã của một Vật tư đang tồn tại trong tenant mặc định để chuẩn bị testcase trùng mã. */
+  async findFirstExistingCodeForDefaultTenant(username: string): Promise<string | undefined> {
+    const rows = await this.client.query<{ readonly code: string }>(
+      `
+        WITH selected_tenant AS (
+          SELECT mapping.tenant_id
+          FROM public.iam_tai_khoan account
+          INNER JOIN public.iam_tai_khoan_tenant mapping
+            ON mapping.tai_khoan_id = account.id AND mapping.da_xoa = FALSE
+          WHERE (LOWER(account.ten_dang_nhap) = LOWER($1) OR LOWER(account.email) = LOWER($1))
+            AND account.da_xoa = FALSE
+          ORDER BY mapping.la_tenant_mac_dinh DESC, mapping.ngay_tao ASC
+          LIMIT 1
+        )
+        SELECT material.ma AS code
+        FROM public.mst_vat_tu material
+        INNER JOIN selected_tenant tenant ON tenant.tenant_id = material.tenant_id
+        WHERE material.da_xoa = FALSE
+        ORDER BY material.ngay_tao ASC, material.id ASC
+        LIMIT 1
+      `,
+      [username],
+    );
+    return rows[0]?.code;
+  }
+
   /** Tìm đúng một Vật tư chưa xóa theo mã unique trong tenant mặc định của tài khoản test. */
   async findByCodeForDefaultTenant(username: string, code: string): Promise<readonly VatTuRecord[]> {
     return this.client.query<VatTuRecord>(
