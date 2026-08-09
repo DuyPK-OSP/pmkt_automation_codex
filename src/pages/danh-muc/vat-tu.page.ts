@@ -45,6 +45,7 @@ export interface FullGoodsMaterialSelection {
   readonly specialGoodsType: string;
   readonly warrantyUnit: string;
   readonly expenseAccount: string;
+  readonly accounts: Readonly<Record<string, string | null>>;
   readonly warehouse: string;
   readonly pricingMethod: string;
   readonly vatRate: string;
@@ -68,6 +69,32 @@ export interface FullServiceMaterialSelection {
   readonly vatRate: string;
   readonly exciseTax: string;
   readonly alternativeUnit: string;
+}
+
+/** Giá trị mặc định đang hiển thị trên UI của các trường không nhập trong luồng tối thiểu. */
+export interface RequiredGoodsUiDefaults {
+  readonly purchaseName: string;
+  readonly saleName: string;
+  readonly description: string;
+  readonly groups: readonly string[];
+  readonly imageVisible: boolean;
+  readonly specialGoodsType: string | null;
+  readonly warrantyPeriod: string;
+  readonly warrantyUnit: string | null;
+  readonly reducedTax: boolean;
+  readonly accounts: Readonly<Record<string, string | null>>;
+  readonly warehouse: string | null;
+  readonly pricingMethod: string | null;
+  readonly minimumStock: string;
+  readonly maximumStock: string;
+  readonly trackLot: boolean;
+  readonly trackBarcode: boolean;
+  readonly defaultVatRate: string | null;
+  readonly importTax: string;
+  readonly exportTax: string;
+  readonly exciseTax: string | null;
+  readonly resourceTax: string | null;
+  readonly conversionRowCount: number;
 }
 
 export class VatTuPage extends BasePage {
@@ -232,6 +259,7 @@ export class VatTuPage extends BasePage {
 
   /** Đọc các dòng Đơn vị tính đang hiển thị sau khi combogrid lọc dữ liệu. */
   async visibleMainUnitLabels(): Promise<readonly string[]> {
+    await this.locators.mainUnitOptions().first().waitFor({ state: 'visible' });
     return (await this.locators.mainUnitOptions().allTextContents())
       .map((label) => label.trim())
       .filter(Boolean);
@@ -370,6 +398,119 @@ export class VatTuPage extends BasePage {
     return this.selectFirstFormOption(label);
   }
 
+  /** Đọc option hiện tại của một trường select/combogrid mà không thay đổi dữ liệu form. */
+  async currentFormOption(label: string): Promise<string | null> {
+    const actualValue = (value: string): string | null => {
+      const normalized = value.trim();
+      return normalized && !normalized.startsWith('Chọn') ? normalized : null;
+    };
+    const selected = this.selectedFormValue(label);
+    if (await selected.count()) {
+      const text = actualValue(await selected.innerText());
+      if (text) return text;
+    }
+
+    const combobox = this.formFieldControl(label, 'combobox');
+    if (await combobox.count()) {
+      const value = actualValue(await combobox.inputValue());
+      if (value) return value;
+    }
+
+    const field = this.formField(label);
+    const titledValues = (await field.locator('[title]').evaluateAll((elements) =>
+      elements.map((element) => element.getAttribute('title')?.trim() ?? '').filter(Boolean)))
+      .filter((value) => value !== label);
+    const titledValue = titledValues.map(actualValue).find((value) => value !== null);
+    if (titledValue) return titledValue;
+
+    const visibleLines = (await field.innerText()).split(/\r?\n/)
+      .map((value) => value.trim())
+      .filter((value) => value && value !== label);
+    const visibleValue = visibleLines.map(actualValue).find((value) => value !== null);
+    if (visibleValue) return visibleValue;
+    return null;
+  }
+
+  /** Đọc toàn bộ bảy tài khoản hạch toán đang tự động điền trên form. */
+  async readDefaultAccountingAccounts(): Promise<Readonly<Record<string, string | null>>> {
+    await this.openDefaultAccountingTab();
+    const accounts: Record<string, string | null> = {};
+    for (const label of [
+      'Tài khoản vật tư',
+      'Tài khoản giá vốn',
+      'Tài khoản doanh thu',
+      'Tài khoản hàng bán trả lại',
+      'Tài khoản chi phí',
+      'Tài khoản chiết khấu',
+      'Tài khoản giảm giá',
+    ]) {
+      accounts[label] = await this.currentFormOption(label);
+    }
+    return accounts;
+  }
+
+  /** Đọc toàn bộ giá trị mặc định hiển thị trên UI trước khi lưu Hàng hóa tối thiểu. */
+  async readRequiredGoodsUiDefaults(): Promise<RequiredGoodsUiDefaults> {
+    const readInput = async (label: string): Promise<string> => {
+      const textbox = this.formFieldControl(label, 'textbox');
+      if (await textbox.count()) return textbox.inputValue();
+      return this.formFieldControl(label, 'spinbutton').inputValue();
+    };
+    const purchaseName = await readInput('Tên vật tư khi mua');
+    const saleName = await readInput('Tên vật tư khi bán');
+    const description = await readInput('Mô tả');
+    const groups = (await this.locators.formField('Nhóm vật tư').locator('.ant-select-selection-item').allTextContents())
+      .map((value) => value.trim()).filter(Boolean);
+    const imageVisible = await this.materialImagePreview().isVisible();
+    const specialGoodsType = await this.currentFormOption('Loại hàng hóa đặc trưng');
+    const warrantyPeriod = await readInput('Thời hạn bảo hành');
+    const warrantyUnit = await this.currentFormOption('Thời hạn bảo hành');
+    const reducedTax = await this.checkbox('Giảm thuế theo quy định').isChecked();
+    const accounts = await this.readDefaultAccountingAccounts();
+
+    await this.openFormTab('Thông tin kho');
+    const warehouse = await this.currentFormOption('Kho mặc định');
+    const pricingMethod = await this.currentFormOption('Phương pháp tính giá');
+    const minimumStock = await readInput('Tồn tối thiểu');
+    const maximumStock = await readInput('Tồn tối đa');
+    const trackLot = await this.checkbox('Theo dõi lô').isChecked();
+    const trackBarcode = await this.checkbox('Theo dõi mã vạch').isChecked();
+
+    await this.openFormTab('Thông tin thuế');
+    const defaultVatRate = await this.currentFormOption('Thuế suất GTGT mặc định');
+    const importTax = await readInput('Thuế nhập khẩu');
+    const exportTax = await readInput('Thuế xuất khẩu');
+    const exciseTax = await this.currentFormOption('Thuế tiêu thụ đặc biệt');
+    const resourceTax = await this.currentFormOption('Thuế tài nguyên');
+
+    await this.openFormTab('Đơn vị quy đổi');
+    const conversionRowCount = await this.conversionRowControls('spinbutton').count();
+    return {
+      purchaseName,
+      saleName,
+      description,
+      groups,
+      imageVisible,
+      specialGoodsType,
+      warrantyPeriod,
+      warrantyUnit,
+      reducedTax,
+      accounts,
+      warehouse,
+      pricingMethod,
+      minimumStock,
+      maximumStock,
+      trackLot,
+      trackBarcode,
+      defaultVatRate,
+      importTax,
+      exportTax,
+      exciseTax,
+      resourceTax,
+      conversionRowCount,
+    };
+  }
+
   /** Nhập giá trị vào trường text hoặc number được xác định bằng label. */
   async fillFormField(label: string, value: string): Promise<void> {
     const textbox = this.formFieldControl(label, 'textbox');
@@ -423,14 +564,16 @@ export class VatTuPage extends BasePage {
       ? await this.selectFirstFormOption('Loại hàng hóa đặc trưng')
       : '';
     await this.fillFormField('Thời hạn bảo hành', '12');
+    await this.selectWarrantyUnit('Ngày');
     await this.fillFormField('Tên vật tư khi mua', input.purchaseName);
     await this.fillFormField('Tên vật tư khi bán', input.saleName);
     await this.fillFormField('Mô tả', input.description);
     await this.uploadMaterialImage(input.imagePath);
     await this.setMaterialStatus(true);
 
-    await this.openDefaultAccountingTab();
-    const expenseAccount = await this.selectFirstFormOption('Tài khoản chi phí');
+    const accounts = await this.readDefaultAccountingAccounts();
+    const expenseAccount = accounts['Tài khoản chi phí']
+      ?? await this.selectFirstFormOption('Tài khoản chi phí');
 
     await this.openFormTab('Thông tin kho');
     const warehouse = await this.ensureFirstFormOption('Kho mặc định');
@@ -455,6 +598,7 @@ export class VatTuPage extends BasePage {
       specialGoodsType,
       warrantyUnit: 'Ngày',
       expenseAccount,
+      accounts: { ...accounts, 'Tài khoản chi phí': expenseAccount },
       warehouse,
       pricingMethod,
       vatRate,

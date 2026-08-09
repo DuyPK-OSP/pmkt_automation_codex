@@ -32,6 +32,8 @@
 - **Flow/Helper** đặt trong thư mục `src/helpers` và dùng để điều phối các thao tác lặp lại qua nhiều Page Object.
 - Flow/Helper không chứa assertion nghiệp vụ. Flow/Helper phải trả dữ liệu thực tế đã thu thập về cho file spec kiểm tra.
 - **Spec/Test class** chịu trách nhiệm mô tả testcase, gọi flow/helper và thực hiện toàn bộ assertion nghiệp vụ theo Expected Result của manual testcase.
+- File spec chỉ chứa import, hook, `test.describe`/`test` và các bước test script cụ thể. Không khai báo function, data factory, parser, flow hoặc DB verifier dùng chung trong file spec; phải tách chúng sang `helpers`, `test-data`, `utils` hoặc lớp phù hợp rồi gọi từ testcase.
+- Assertion helper có mục đích kiểm chứng rõ ràng được phép đặt trong `src/helpers` để giữ spec thuần test script; helper không được che giấu ID, steps hoặc Expected Result riêng của từng manual testcase.
 - Không chuyển flow nghiệp vụ nhiều màn hình vào Page Object chỉ để làm ngắn file spec.
 
 ## 2. Sinh Dữ Liệu Test (Test Data)
@@ -127,6 +129,12 @@ industryCleanup.register(data.code);
 - Mọi expected liên quan đến dữ liệu nghiệp vụ phải lấy từ hoặc đối chiếu trực tiếp với database đúng tenant. Phạm vi bao gồm dữ liệu form, danh mục, dropdown, combogrid, giá trị mặc định, trạng thái, quan hệ, điều kiện lọc và dữ liệu sau thao tác tạo/sửa/xóa.
 - Nghiêm cấm dùng API response làm nguồn expected cho assertion dữ liệu. API chỉ được dùng để đồng bộ hoặc chờ hoàn tất thao tác kỹ thuật; payload API không quyết định kết quả PASS/FAIL của dữ liệu.
 - Sau thao tác ghi dữ liệu qua UI, testcase phải truy vấn bằng khóa unique do chính testcase tạo và xác nhận các trường, trạng thái, quan hệ hoặc ảnh hưởng dữ liệu được manual testcase yêu cầu.
+- Với testcase thêm mới thành công, phạm vi verify DB phải bao phủ toàn bộ trường trên UI có ánh xạ lưu trữ, không chỉ các trường người dùng chủ động nhập/chọn. Phải kiểm tra cả trường tự động điền, checkbox, trạng thái, dữ liệu bảng con và giá trị hệ thống phát sinh như ID, tenant, cờ xóa hoặc thứ tự dòng khi có.
+- Với testcase chỉ nhập các trường bắt buộc, trước khi lưu phải đọc và lưu lại toàn bộ giá trị mặc định thực tế đang hiển thị trên UI của các trường không nhập. Sau khi lưu, đối chiếu từng giá trị đó với DB; không được tự hardcode hoặc suy diễn default từ API, code ứng dụng hay một testcase khác.
+- Phải phân biệt placeholder với giá trị thực. Nội dung gợi ý như `Chọn`, `Chọn...`, `Chọn kho mặc định` không phải dữ liệu đã chọn và phải được chuẩn hóa tương ứng `NULL`/rỗng khi đối chiếu DB.
+- Trước assertion phải chuẩn hóa có chủ đích các khác biệt biểu diễn giữa UI và DB, gồm label combogrid, enum, number/decimal, boolean, chuỗi rỗng/`NULL` và quy ước thứ tự zero-based. Không được thay expected chỉ để làm testcase PASS; mọi quy tắc chuẩn hóa phải dựa trên contract hoặc dữ liệu chạy thực tế đã được xác minh.
+- Dùng cơ chế polling có timeout để chờ transaction ghi dữ liệu hoàn tất rồi mới đọc bản ghi; không dùng fixed sleep. Mismatch UI mềm như nội dung toast không được ngăn phần verify DB tiếp tục khi testcase cần thu thập đồng thời cả kết quả UI và DB.
+- Chỉ kết luận một testcase đã verify DB đầy đủ khi lần chạy thực tế đã đi xuyên qua toàn bộ DB assertions của chính testcase đó. Không suy luận kết quả từ testcase tương tự hoặc từ lần chạy đã dừng trước phần kiểm tra DB.
 - Mỗi bảng DB phải có repository riêng; không tạo repository tổng hợp chứa query của nhiều bảng nghiệp vụ khác ownership.
 - SQL chỉ nằm trong repository. Page Object không truy vấn DB; helper chỉ điều phối/ánh xạ; assertion nghiệp vụ nằm trong spec.
 - Query dùng để verify phải read-only, parameterized và xác định đúng `tenant_id`; không hardcode tenant, credential hoặc thông tin kết nối.

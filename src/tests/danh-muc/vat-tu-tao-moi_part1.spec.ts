@@ -1,63 +1,20 @@
-import { test, expect } from '@fixtures/base.fixture';
-import type { DatabaseContext } from '@database/database.context';
-import type { AccountOption, CatalogueOption, VatTuPage } from '@pages/danh-muc/vat-tu.page';
+﻿import { test, expect } from '@fixtures/base.fixture';
 import { openVatTuWithAccounts, openVatTuWithCatalogues } from '@helpers/vat-tu-expected-data.helper';
-import { expectedMaterialTypeCards } from '@test-data/vat-tu.data';
+import {
+  boundaryText,
+  fullGoodsData,
+  openGoodsWarehouse,
+  prepareGoodsAccounting,
+  prepareGoodsWarehouses,
+  verifyFullGoodsSavedInDatabase,
+  verifyMaterialTypeCards,
+  verifyRequiredGoodsSavedInDatabase,
+} from '@helpers/vat-tu-part1.helper';
 import { requireCredentials } from '@utils/env.config';
 import { TestDataGenerator } from '@utils/test-data';
 import { accountingAccountCoverage, statusPair } from '@utils/vat-tu-test.util';
 
-/** Đối chiếu đầy đủ sáu thẻ tính chất và mô tả theo testcase mới. */
-async function verifyMaterialTypeCards(vatTuPage: VatTuPage): Promise<void> {
-  for (const card of expectedMaterialTypeCards) {
-    await expect(vatTuPage.materialTypeTitle(card.type), `Phải hiển thị thẻ ${card.type}`).toBeVisible();
-    await expect(
-      vatTuPage.materialTypeDescription(card.description),
-      `Mô tả thẻ ${card.type} phải đúng testcase`,
-    ).toBeVisible();
-  }
-}
-
-/** Sinh chuỗi ASCII unique, traceable và chuẩn hóa đúng độ dài boundary yêu cầu. */
-function boundaryText(testCaseId: string, length: number): string {
-  const seed = new TestDataGenerator().uniqueKeyword(testCaseId);
-  return `${seed}_${'x'.repeat(length)}`.slice(0, length);
-}
-
-/** Mở form Hàng hóa tại tab Hạch toán và trả về danh mục Tài khoản từ DB. */
-async function prepareGoodsAccounting(vatTuPage: VatTuPage): Promise<readonly AccountOption[]> {
-  const accounts = await openVatTuWithAccounts(vatTuPage);
-  await vatTuPage.openMaterialTypePopup();
-  await vatTuPage.selectMaterialType('Hàng hóa');
-  await vatTuPage.openDefaultAccountingTab();
-  return accounts;
-}
-
-/** Mở form Hàng hóa tại combogrid Kho mặc định. */
-async function openGoodsWarehouse(vatTuPage: VatTuPage): Promise<void> {
-  await vatTuPage.openFromDanhMuc();
-  await vatTuPage.openMaterialTypePopup();
-  await vatTuPage.selectMaterialType('Hàng hóa');
-  await vatTuPage.openWarehouseDropdown();
-}
-
-/** Lấy danh mục Kho từ DB đúng tenant mặc định rồi mở combogrid để đối chiếu UI. */
-async function prepareGoodsWarehouses(
-  vatTuPage: VatTuPage,
-  db: DatabaseContext,
-): Promise<readonly CatalogueOption[]> {
-  const credentials = requireCredentials();
-  const records = await db.kho.listForDefaultTenant(credentials.username);
-  await openGoodsWarehouse(vatTuPage);
-  return records.map((record) => ({
-    code: record.code,
-    name: record.name,
-    status: record.active ? 'HoatDong' : 'NgungHoatDong',
-    label: `${record.code} — ${record.name}`,
-  }));
-}
-
-test.describe('PMKT-U-00106 Part 1 - Tạo mới vật tư TC004-TC267', () => {
+test.describe('PMKT-U-00106 Part 1 - Tạo mới vật tư TC004-TC356', () => {
   test.beforeEach(async ({ loginPage }) => {
     const credentials = requireCredentials();
     await loginPage.open();
@@ -2875,6 +2832,114 @@ test.describe('PMKT-U-00106 Part 1 - Tạo mới vật tư TC004-TC267', () => {
   test('TC_PMKT-U-00106-267 - hủy form thêm nhanh Kho', async () => {
     // Chuẩn bị dữ liệu: Phụ thuộc form thêm nhanh Kho.
     test.skip(true, 'BLOCK: combogrid Kho mặc định không hiển thị nút (+) thêm nhanh');
+  });
+
+  test('TC_PMKT-U-00106-353 - tạo Hàng hóa đầy đủ, trạng thái Hoạt động và kiểm tra DB', async ({ vatTuPage, db }) => {
+    const credentials = requireCredentials();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
+    const group = catalogues.groups.find((option) => option.status === 'HoatDong');
+    const mainUnit = catalogues.units.find((option) => option.status === 'HoatDong');
+    test.skip(!group || !mainUnit, 'BLOCK: DB đúng tenant thiếu Nhóm vật tư hoặc Đơn vị tính Hoạt động');
+    if (!group || !mainUnit) return;
+    const material = fullGoodsData('TC353', group, mainUnit);
+
+    // Hành động: Mở form Hàng hóa > nhập đầy đủ dữ liệu > giữ trạng thái Hoạt động > Lưu.
+    await vatTuPage.openMaterialTypePopup();
+    await vatTuPage.selectMaterialType('Hàng hóa');
+    const selection = await vatTuPage.fillFullGoodsMaterial(material);
+    const notificationPromise = vatTuPage.waitForSuccessNotification();
+    await vatTuPage.saveMaterial();
+
+    // Xác nhận UI: Thông báo đúng và form đóng sau khi lưu.
+    await expect.soft(await notificationPromise, 'Thông báo phải đúng MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
+    await expect(vatTuPage.createMaterialDialog).toBeHidden();
+    // Xác nhận DB: Bản ghi đúng tenant khớp toàn bộ dữ liệu đã nhập.
+    await verifyFullGoodsSavedInDatabase(db, credentials.username, material, selection, true);
+  });
+
+  test('TC_PMKT-U-00106-354 - tạo Hàng hóa chỉ với trường bắt buộc và kiểm tra DB', async ({ vatTuPage, db }) => {
+    const credentials = requireCredentials();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
+    const mainUnit = catalogues.units.find((option) => option.status === 'HoatDong');
+    test.skip(!mainUnit, 'BLOCK: DB đúng tenant thiếu Đơn vị tính Hoạt động');
+    if (!mainUnit) return;
+    const data = new TestDataGenerator();
+    const code = data.uniqueCode('TC354');
+    const name = `Hàng hóa bắt buộc TC354 ${code}`;
+
+    // Hành động: Mở form Hàng hóa > chỉ nhập trường bắt buộc > Lưu.
+    await vatTuPage.openMaterialTypePopup();
+    await vatTuPage.selectMaterialType('Hàng hóa');
+    await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit);
+    const defaults = await vatTuPage.readRequiredGoodsUiDefaults();
+    const notificationPromise = vatTuPage.waitForSuccessNotification();
+    await vatTuPage.saveMaterial();
+
+    // Xác nhận UI: Thông báo đúng và form đóng sau khi lưu.
+    await expect.soft(await notificationPromise, 'Thông báo phải đúng MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
+    await expect(vatTuPage.createMaterialDialog).toBeHidden();
+    // Xác nhận DB: Trường bắt buộc, trạng thái và các giá trị rỗng/mặc định được lưu đúng.
+    await verifyRequiredGoodsSavedInDatabase(db, credentials.username, {
+      code,
+      name,
+      mainUnit,
+      active: true,
+      defaults,
+    });
+  });
+
+  test('TC_PMKT-U-00106-355 - tạo Hàng hóa Ngừng hoạt động và kiểm tra DB', async ({ vatTuPage, db }) => {
+    const credentials = requireCredentials();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
+    const group = catalogues.groups.find((option) => option.status === 'HoatDong');
+    const mainUnit = catalogues.units.find((option) => option.status === 'HoatDong');
+    test.skip(!group || !mainUnit, 'BLOCK: DB đúng tenant thiếu Nhóm vật tư hoặc Đơn vị tính Hoạt động');
+    if (!group || !mainUnit) return;
+    const material = fullGoodsData('TC355', group, mainUnit);
+
+    // Hành động: Mở form Hàng hóa > nhập đầy đủ > chuyển Ngừng hoạt động > Lưu.
+    await vatTuPage.openMaterialTypePopup();
+    await vatTuPage.selectMaterialType('Hàng hóa');
+    const selection = await vatTuPage.fillFullGoodsMaterial(material);
+    await vatTuPage.setMaterialStatus(false);
+    const notificationPromise = vatTuPage.waitForSuccessNotification();
+    await vatTuPage.saveMaterial();
+
+    // Xác nhận UI: Thông báo đúng và form đóng sau khi lưu.
+    await expect.soft(await notificationPromise, 'Thông báo phải đúng MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
+    await expect(vatTuPage.createMaterialDialog).toBeHidden();
+    // Xác nhận DB: Toàn bộ dữ liệu khớp và Trạng thái là Ngừng hoạt động.
+    await verifyFullGoodsSavedInDatabase(db, credentials.username, material, selection, false);
+  });
+
+  test('TC_PMKT-U-00106-356 - Lưu và Thêm mới Hàng hóa, kiểm tra DB và reset form', async ({ vatTuPage, db }) => {
+    const credentials = requireCredentials();
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
+    const group = catalogues.groups.find((option) => option.status === 'HoatDong');
+    const mainUnit = catalogues.units.find((option) => option.status === 'HoatDong');
+    test.skip(!group || !mainUnit, 'BLOCK: DB đúng tenant thiếu Nhóm vật tư hoặc Đơn vị tính Hoạt động');
+    if (!group || !mainUnit) return;
+    const material = fullGoodsData('TC356', group, mainUnit);
+
+    // Hành động: Mở form Hàng hóa > nhập đầy đủ > nhấn Lưu và Thêm mới.
+    await vatTuPage.openMaterialTypePopup();
+    await vatTuPage.selectMaterialType('Hàng hóa');
+    const selection = await vatTuPage.fillFullGoodsMaterial(material);
+    const notificationPromise = vatTuPage.waitForSuccessNotification();
+    await vatTuPage.saveAndAddMaterial();
+
+    // Xác nhận UI/DB: Thông báo đúng, dữ liệu đã lưu đủ trong DB và form mới được reset.
+    await expect.soft(await notificationPromise, 'Thông báo phải đúng MSG_PMKT-U-00106_010').toBe('Thêm mới thành công');
+    await verifyFullGoodsSavedInDatabase(db, credentials.username, material, selection, true);
+    await expect(vatTuPage.createMaterialDialog).toBeVisible();
+    await expect(vatTuPage.materialCodeInput()).toHaveValue('');
+    await expect(vatTuPage.materialNameInput()).toHaveValue('');
+    await expect(vatTuPage.groupCombobox).toHaveValue('');
+    await expect(vatTuPage.mainUnitCombobox).toHaveValue('');
+    await expect(vatTuPage.formFieldControl('Tên vật tư khi mua', 'textbox')).toHaveValue('');
+    await expect(vatTuPage.formFieldControl('Tên vật tư khi bán', 'textbox')).toHaveValue('');
+    await expect(vatTuPage.formFieldControl('Mô tả', 'textbox')).toHaveValue('');
+    await expect(vatTuPage.statusSwitch()).toBeChecked();
   });
 
  test('TC_PMKT-U-00106-135 - ẩn Tài khoản giá vốn khi đổi sang Dịch vụ', async ({ vatTuPage }) => {
