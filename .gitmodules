@@ -1,0 +1,3 @@
+[submodule "testcases/pmkt-test"]
+	path = testcases/pmkt-test
+	url = https://github.com/ospgroupvn/pmkt-test.git
