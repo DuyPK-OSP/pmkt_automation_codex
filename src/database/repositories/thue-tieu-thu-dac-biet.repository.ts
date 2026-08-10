@@ -1,22 +1,22 @@
 import type { QueryResultRow } from 'pg';
 import { PostgresClient } from '@database/postgres.client';
 
-/** Bản ghi Thuế tài nguyên dùng để đối chiếu combogrid với bảng mst_thue_tai_nguyen. */
-export interface ThueTaiNguyenRecord extends QueryResultRow {
+/** Bản ghi Thuế tiêu thụ đặc biệt dùng để đối chiếu combogrid với mst_thue_tieu_thu_db. */
+export interface ThueTieuThuDacBietRecord extends QueryResultRow {
   readonly code: string;
   readonly name: string;
   readonly rate: string;
   readonly active: boolean;
 }
 
-/** Cung cấp truy vấn read-only bảng mst_thue_tai_nguyen theo tenant mặc định. */
-export class ThueTaiNguyenRepository {
+/** Cung cấp truy vấn read-only bảng mst_thue_tieu_thu_db theo tenant mặc định. */
+export class ThueTieuThuDacBietRepository {
   /** Khởi tạo repository bằng PostgreSQL client dùng chung. */
   constructor(private readonly client: PostgresClient) {}
 
-  /** Lấy toàn bộ Thuế tài nguyên chưa xóa của tenant mặc định thuộc tài khoản test. */
-  async listForDefaultTenant(username: string): Promise<readonly ThueTaiNguyenRecord[]> {
-    return this.client.query<ThueTaiNguyenRecord>(
+  /** Lấy toàn bộ Thuế tiêu thụ đặc biệt chưa xóa, giữ đúng thứ tự trạng thái của UI. */
+  async listForDefaultTenant(username: string): Promise<readonly ThueTieuThuDacBietRecord[]> {
+    return this.client.query<ThueTieuThuDacBietRecord>(
       `
         WITH selected_tenant AS (
           SELECT mapping.tenant_id
@@ -30,7 +30,7 @@ export class ThueTaiNguyenRepository {
         )
         SELECT catalogue.ma AS code, catalogue.ten AS name,
                catalogue.thue_suat::TEXT AS rate, catalogue.trang_thai AS active
-        FROM public.mst_thue_tai_nguyen catalogue
+        FROM public.mst_thue_tieu_thu_db catalogue
         INNER JOIN selected_tenant tenant ON tenant.tenant_id = catalogue.tenant_id
         WHERE catalogue.da_xoa = FALSE
         ORDER BY catalogue.trang_thai DESC, catalogue.ngay_tao ASC, catalogue.id ASC

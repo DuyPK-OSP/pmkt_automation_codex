@@ -7,6 +7,7 @@ import type {
   FullGoodsMaterialInput,
   FullGoodsMaterialSelection,
   RequiredGoodsUiDefaults,
+  TaxOption,
   VatTuPage,
 } from '@pages/danh-muc/vat-tu.page';
 import { expectedMaterialTypeCards } from '@test-data/danh-muc/vat-tu/vat-tu.data';
@@ -186,6 +187,22 @@ export async function prepareGoodsAccounting(vatTuPage: VatTuPage): Promise<read
   return accounts;
 }
 
+/** Mở form Hàng hóa tại tab Thông tin kho, không tương tác với trường nào. */
+export async function openGoodsInventoryTab(vatTuPage: VatTuPage): Promise<void> {
+  await vatTuPage.openFromDanhMuc();
+  await vatTuPage.openMaterialTypePopup();
+  await vatTuPage.selectMaterialType('Hàng hóa');
+  await vatTuPage.openFormTab('Thông tin kho');
+}
+
+/** Mở form Hàng hóa tại tab Thông tin thuế, không tương tác với trường nào. */
+export async function openGoodsTaxTab(vatTuPage: VatTuPage): Promise<void> {
+  await vatTuPage.openFromDanhMuc();
+  await vatTuPage.openMaterialTypePopup();
+  await vatTuPage.selectMaterialType('Hàng hóa');
+  await vatTuPage.openFormTab('Thông tin thuế');
+}
+
 /** Mở form Hàng hóa tại combogrid Kho mặc định. */
 export async function openGoodsWarehouse(vatTuPage: VatTuPage): Promise<void> {
   await vatTuPage.openFromDanhMuc();
@@ -205,6 +222,42 @@ export async function prepareGoodsWarehouses(
   return records.map((record) => ({
     code: record.code,
     name: record.name,
+    status: record.active ? 'HoatDong' : 'NgungHoatDong',
+    label: `${record.code} — ${record.name}`,
+  }));
+}
+
+/** Lấy danh mục Thuế tài nguyên từ DB đúng tenant rồi mở combogrid để đối chiếu UI. */
+export async function prepareGoodsResourceTaxes(
+  vatTuPage: VatTuPage,
+  db: DatabaseContext,
+): Promise<readonly TaxOption[]> {
+  const credentials = requireCredentials();
+  const records = await db.thueTaiNguyen.listForDefaultTenant(credentials.username);
+  await openGoodsTaxTab(vatTuPage);
+  await vatTuPage.openTaxDropdown('Thuế Tài nguyên');
+  return records.map((record) => ({
+    code: record.code,
+    name: record.name,
+    rate: String(Number(record.rate)),
+    status: record.active ? 'HoatDong' : 'NgungHoatDong',
+    label: `${record.code} — ${record.name}`,
+  }));
+}
+
+/** Lấy danh mục Thuế tiêu thụ đặc biệt từ DB đúng tenant rồi mở combogrid để đối chiếu UI. */
+export async function prepareGoodsExciseTaxes(
+  vatTuPage: VatTuPage,
+  db: DatabaseContext,
+): Promise<readonly TaxOption[]> {
+  const credentials = requireCredentials();
+  const records = await db.thueTieuThuDacBiet.listForDefaultTenant(credentials.username);
+  await openGoodsTaxTab(vatTuPage);
+  await vatTuPage.openTaxDropdown('Thuế tiêu thụ đặc biệt');
+  return records.map((record) => ({
+    code: record.code,
+    name: record.name,
+    rate: String(Number(record.rate)),
     status: record.active ? 'HoatDong' : 'NgungHoatDong',
     label: `${record.code} — ${record.name}`,
   }));

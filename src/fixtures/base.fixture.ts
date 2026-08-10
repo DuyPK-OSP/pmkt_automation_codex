@@ -16,6 +16,8 @@ import { DatabaseContext } from '@database/database.context';
 import { NganhNghePage } from '@pages/danh-muc/nganh-nghe.page';
 import { IndustryCleanupTracker } from '@cleanup/nganh-nghe.cleanup';
 import { expect, runWithEvidenceContext } from '@utils/evidence-expect';
+import { KhoPage } from '@pages/danh-muc/kho.page';
+import { QuickAddCleanupRegistry } from '@cleanup/quick-add.cleanup';
 
 /** Danh sách Page Object, database context, logger và cleanup tracker dùng chung cho test. */
 interface FrameworkFixtures {
@@ -35,6 +37,8 @@ interface FrameworkFixtures {
   readonly paymentOrderListPage: TienGuiChiTienDanhSachPage;
   readonly industryPage: NganhNghePage;
   readonly industryCleanup: IndustryCleanupTracker;
+  readonly warehousePage: KhoPage;
+  readonly quickAddCleanup: QuickAddCleanupRegistry;
 }
 
 /** Mở rộng Playwright test bằng các fixture của framework và lifecycle setup/teardown tương ứng. */
@@ -60,6 +64,12 @@ export const test = base.extend<FrameworkFixtures>({
   cashPaymentListPage: async ({ page, logger }, use) => { await use(new TienMatChiTienDanhSachPage(page, logger)); },
   paymentOrderListPage: async ({ page, logger }, use) => { await use(new TienGuiChiTienDanhSachPage(page, logger)); },
   industryPage: async ({ page, logger }, use) => { await use(new NganhNghePage(page, logger)); },
+  warehousePage: async ({ page, logger }, use) => { await use(new KhoPage(page, logger)); },
+  quickAddCleanup: [async ({ warehousePage, db }, use, testInfo) => {
+    const registry = new QuickAddCleanupRegistry(warehousePage, db);
+    await use(registry);
+    await registry.cleanup(testInfo);
+  }, { auto: true }],
   industryCleanup: [async ({ industryPage }, use, testInfo) => {
     const tracker = new IndustryCleanupTracker(industryPage);
     await use(tracker);

@@ -49,7 +49,7 @@ export async function firstVisibleActiveMainUnit(
     .sort((left, right) => left.code.localeCompare(right.code, 'vi'))
     .slice(0, 10);
   for (const unit of activeUnits) {
-    await vatTuPage.searchMainUnit(unit.name);
+    await vatTuPage.searchMainUnit(unit.code);
     try {
       await vatTuPage.mainUnitOption(unit.label).waitFor({ state: 'visible', timeout: 2_000 });
       return unit;
@@ -90,4 +90,21 @@ export async function openVatTuWithResourceTaxes(vatTuPage: VatTuPage): Promise<
   );
   await vatTuPage.openFromDanhMuc();
   return taxes.map(toCatalogueOption);
+}
+
+/** Lấy bảy tài khoản mặc định của Loại vật tư Hàng hóa từ DB đúng tenant làm expected. */
+export async function goodsDefaultAccountsFromDatabase(): Promise<Readonly<Record<string, string | null>> | undefined> {
+  const defaults = await readExpectedFromDatabase((db, username) =>
+    db.loaiVatTu.findGoodsDefaultAccountsForDefaultTenant(username),
+  );
+  if (!defaults) return undefined;
+  return {
+    'Tài khoản vật tư': defaults.materialAccount,
+    'Tài khoản giá vốn': defaults.costOfGoodsAccount,
+    'Tài khoản doanh thu': defaults.revenueAccount,
+    'Tài khoản hàng bán trả lại': defaults.salesReturnAccount,
+    'Tài khoản chi phí': defaults.expenseAccount,
+    'Tài khoản chiết khấu': defaults.discountAccount,
+    'Tài khoản giảm giá': defaults.priceReductionAccount,
+  };
 }

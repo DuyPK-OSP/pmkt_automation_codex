@@ -1,6 +1,7 @@
 import type { Locator, Page, Response } from '@playwright/test';
 import { BasePage } from '@pages/common/base.page';
 import type { Logger } from '@utils/logger';
+import { collectVirtualDropdownItems } from '@utils/virtual-dropdown.util';
 import { VatTuLocators } from './vat-tu.locators';
 
 export const MATERIAL_TYPES = [
@@ -23,6 +24,11 @@ export interface CatalogueOption {
 
 export interface AccountOption extends CatalogueOption {
   readonly allowed: boolean;
+}
+
+/** Dòng danh mục thuế được chuẩn hóa từ DB hoặc combogrid UI. */
+export interface TaxOption extends CatalogueOption {
+  readonly rate: string;
 }
 
 export interface VatTuCatalogues {
@@ -252,17 +258,40 @@ export class VatTuPage extends BasePage {
     await this.click(this.mainUnitCombobox, 'Mở dropdown Đơn vị tính chính');
   }
 
+  /** Trả về dropdown Đơn vị tính chính đang hiển thị để spec xác nhận trạng thái đóng/mở. */
+  mainUnitDropdown(): Locator {
+    return this.locators.visibleDropdown;
+  }
+
   /** Tìm kiếm Đơn vị tính chính theo mã hoặc tên. */
   async searchMainUnit(query: string): Promise<void> {
     await this.type(this.mainUnitCombobox, query, 'Tìm kiếm Đơn vị tính chính');
   }
 
   /** Đọc các dòng Đơn vị tính đang hiển thị sau khi combogrid lọc dữ liệu. */
-  async visibleMainUnitLabels(): Promise<readonly string[]> {
-    await this.locators.mainUnitOptions().first().waitFor({ state: 'visible' });
-    return (await this.locators.mainUnitOptions().allTextContents())
-      .map((label) => label.trim())
-      .filter(Boolean);
+  async visibleMainUnitLabels(expectedCount?: number): Promise<readonly string[]> {
+    const rows = this.locators.mainUnitRows();
+    await rows.first().waitFor({ state: 'visible' });
+    return collectVirtualDropdownItems({
+      dropdown: this.locators.visibleDropdown,
+      readVisibleItems: async () => rows.evaluateAll((elements) => elements.map((row) => {
+        const cells = Array.from(row.querySelectorAll('[role="cell"], td'))
+          .map((cell) => (cell.textContent ?? '').trim());
+        return `${cells[0] ?? ''} — ${cells[1] ?? ''}`.trim();
+      }).filter((label) => label !== '—')),
+      itemKey: (label) => label,
+      expectedCount,
+    });
+  }
+
+  /** Đọc style hiển thị của từng cell để theo dõi vùng chọn bàn phím trên combogrid Ant Table. */
+  async mainUnitRowVisualStates(): Promise<readonly string[]> {
+    return this.locators.mainUnitRows().evaluateAll((rows) => rows.map((row) =>
+      Array.from(row.querySelectorAll('[role="cell"], td')).map((cell) => {
+        const style = getComputedStyle(cell);
+        return [style.backgroundColor, style.color, style.outline, cell.className].join('|');
+      }).join('||'),
+    ));
   }
 
   /** Gửi phím điều hướng vào combogrid Đơn vị tính chính đang mở. */
@@ -270,19 +299,36 @@ export class VatTuPage extends BasePage {
     await this.mainUnitCombobox.press(key);
   }
 
-  /** Đọc dòng đang được Ant Select đánh dấu active khi điều hướng bằng bàn phím. */
+  /** Đọc option active của Ant Select cũ để giữ tương thích với các spec legacy. */
   async activeMainUnitLabel(): Promise<string> {
     return (await this.locators.mainUnitActiveOption().innerText()).trim();
   }
 
   /** Trả về locator của một lựa chọn Đơn vị tính chính. */
   mainUnitOption(label: string): Locator {
-    return this.locators.dropdownOption(label);
+    return this.locators.mainUnitOption(label);
   }
 
   /** Trả về tiêu đề cột của combogrid Đơn vị tính chính. */
   mainUnitColumnHeader(name: string): Locator {
     return this.locators.mainUnitColumnHeader(name);
+  }
+
+  /** Đọc cột Trạng thái theo đúng thứ tự row đang hiển thị trong combogrid Đơn vị tính chính. */
+  async visibleMainUnitStatuses(expectedCount?: number): Promise<readonly ('HoatDong' | 'NgungHoatDong')[]> {
+    const rows = this.locators.mainUnitRows();
+    await rows.first().waitFor({ state: 'visible' });
+    const collected = await collectVirtualDropdownItems({
+      dropdown: this.locators.visibleDropdown,
+      readVisibleItems: async () => rows.evaluateAll((elements) => elements.map((row) => {
+        const cells = Array.from(row.querySelectorAll('[role="cell"], td'))
+          .map((cell) => (cell.textContent ?? '').trim());
+        return { key: `${cells[0] ?? ''}|${cells[1] ?? ''}`, status: cells.at(-1) ?? '' };
+      })),
+      itemKey: (item) => item.key,
+      expectedCount,
+    });
+    return collected.map(({ status }) => status === 'Hoạt động' ? 'HoatDong' : 'NgungHoatDong');
   }
 
   /** Đọc màu và độ mờ thực tế của một dòng Đơn vị tính chính. */
@@ -303,6 +349,11 @@ export class VatTuPage extends BasePage {
   async clearMainUnit(): Promise<void> {
     await this.locators.formField('Đơn vị tính chính').hover();
     await this.click(this.locators.clearMainUnitButton(), 'Xóa nhanh Đơn vị tính chính đã chọn');
+  }
+
+  /** Trả về nút thêm nhanh Đơn vị tính dành cho tài khoản có đủ quyền. */
+  mainUnitQuickAddButton(): Locator {
+    return this.locators.mainUnitQuickAddButton();
   }
 
   /** Trả về locator của Đơn vị tính chính đang được chọn. */
@@ -361,6 +412,30 @@ export class VatTuPage extends BasePage {
     role: Parameters<Locator['getByRole']>[0],
   ): Locator {
     return this.locators.formFieldControl(label, role);
+  }
+
+  /** Đọc nội dung và màu của dấu bắt buộc được render cạnh label trường. */
+  async requiredIndicatorStyle(label: string): Promise<Readonly<{ content: string; color: string }>> {
+    return this.locators.requiredIndicator(label).evaluate((element) => {
+      const style = getComputedStyle(element, '::before');
+      return { content: style.content.replace(/["']/g, ''), color: style.color };
+    });
+  }
+
+  /** Đọc nội dung và màu dấu bắt buộc của Trạng thái được render ngoài Ant Form Item. */
+  async statusRequiredIndicatorStyle(): Promise<Readonly<{ content: string; color: string }>> {
+    return this.locators.statusRequiredLabel().evaluate((element) => {
+      const star = Array.from(element.querySelectorAll('*')).find((child) => child.textContent?.trim() === '*');
+      return {
+        content: star?.textContent?.trim() ?? element.textContent?.trim() ?? '',
+        color: getComputedStyle(star ?? element).color,
+      };
+    });
+  }
+
+  /** Trả về dấu bắt buộc cạnh label để kiểm tra có/không hiển thị. */
+  requiredIndicator(label: string): Locator {
+    return this.locators.requiredIndicator(label);
   }
 
   /** Trả về control TextArea của trường theo label nghiệp vụ. */
@@ -532,6 +607,11 @@ export class VatTuPage extends BasePage {
   /** Trả về checkbox trên form theo accessible name nghiệp vụ. */
   checkbox(name: string): Locator {
     return this.locators.checkbox(name);
+  }
+
+  /** Trả về label hiển thị cạnh checkbox theo đúng tên nghiệp vụ. */
+  checkboxLabel(name: string): Locator {
+    return this.locators.checkboxLabel(name);
   }
 
   /** Tải ảnh Vật tư lên và chờ API upload hoàn tất. */
@@ -868,6 +948,11 @@ export class VatTuPage extends BasePage {
     return this.locators.namedDropdownOption(name);
   }
 
+  /** Trả về toàn bộ lựa chọn Phương pháp tính giá đang hiển thị. */
+  pricingMethodOptions(): Locator {
+    return this.locators.enabledDropdownOptions();
+  }
+
   /** Trả về Phương pháp tính giá đang được chọn. */
   selectedPricingMethod(name: string): Locator {
     return this.locators.selectedFieldValue('Phương pháp tính giá', name);
@@ -881,6 +966,43 @@ export class VatTuPage extends BasePage {
       this.pricingMethodOption(name),
       `Chọn Phương pháp tính giá ${name}`,
     );
+  }
+
+  /** Xóa giá trị Phương pháp tính giá đang chọn. */
+  async clearPricingMethod(): Promise<void> {
+    await this.locators.formField('Phương pháp tính giá').hover();
+    if (await this.locators.clearPricingMethodButton().isVisible()) {
+      await this.click(this.locators.clearPricingMethodButton(), 'Xóa Phương pháp tính giá');
+    }
+  }
+
+  /** Trả về select Thuế suất GTGT mặc định. */
+  defaultVatRateCombobox(): Locator {
+    return this.formFieldControl('Thuế suất GTGT mặc định', 'combobox');
+  }
+
+  /** Trả về các lựa chọn đang hiển thị của Thuế suất GTGT mặc định. */
+  defaultVatRateOptions(): Locator {
+    return this.locators.enabledDropdownOptions();
+  }
+
+  /** Chọn Thuế suất GTGT mặc định theo đúng giá trị hiển thị. */
+  async selectDefaultVatRate(value: string): Promise<void> {
+    await this.openFormTab('Thông tin thuế');
+    await this.click(this.defaultVatRateCombobox(), 'Mở Thuế suất GTGT mặc định');
+    await this.click(this.locators.defaultVatRateOption(value), `Chọn Thuế suất GTGT mặc định ${value}`);
+  }
+
+  /** Xóa nhanh Thuế suất GTGT mặc định đang chọn. */
+  async clearDefaultVatRate(): Promise<void> {
+    const field = this.formField('Thuế suất GTGT mặc định');
+    await field.hover();
+    await this.click(this.locators.clearDefaultVatRateButton(), 'Xóa Thuế suất GTGT mặc định');
+  }
+
+  /** Trả về ô numeric Giá trị thuế suất GTGT. */
+  vatRateValueInput(): Locator {
+    return this.formFieldControl('Giá trị thuế suất GTGT', 'spinbutton');
   }
 
   /** Trả về combobox Kho mặc định. */
@@ -900,7 +1022,7 @@ export class VatTuPage extends BasePage {
 
   /** Trả về một lựa chọn Kho theo nhãn hiển thị. */
   warehouseOption(label: string): Locator {
-    return this.locators.dropdownOption(label);
+    return this.locators.warehouseOptionRow(label);
   }
 
   /** Trả về dòng dữ liệu của một Kho trong combogrid. */
@@ -915,16 +1037,45 @@ export class VatTuPage extends BasePage {
     await this.warehouseDropdown().waitFor({ state: 'visible' });
   }
 
+  /** Trả về tiêu đề các cột của combogrid thuế đang mở. */
+  taxColumnHeaders(): Locator {
+    return this.locators.taxColumnHeaders();
+  }
+
+  /** Cuộn hết virtual dropdown và đọc toàn bộ nhãn thuế đang hiển thị theo thứ tự UI. */
+  async visibleTaxLabels(expectedCount?: number): Promise<readonly string[]> {
+    const rows = this.locators.taxOptions();
+    await rows.first().waitFor({ state: 'visible' });
+    return collectVirtualDropdownItems({
+      dropdown: this.locators.visibleDropdown,
+      readVisibleItems: async () => rows.evaluateAll((elements) => elements
+        .map((row) => (row.textContent ?? '').trim().replace(/\s*\(Ngừng hoạt động\)\s*$/u, ''))
+        .filter(Boolean)),
+      itemKey: (item) => item,
+      expectedCount,
+    });
+  }
+
   /** Tìm kiếm Kho theo mã hoặc tên. */
   async searchWarehouse(query: string): Promise<void> {
     await this.type(this.warehouseCombobox(), query, 'Tìm kiếm Kho mặc định');
   }
 
   /** Đọc các Kho đang hiển thị sau khi combogrid lọc dữ liệu. */
-  async visibleWarehouseLabels(): Promise<readonly string[]> {
-    return (await this.locators.warehouseOptions().allTextContents())
-      .map((label) => label.trim())
-      .filter(Boolean);
+  async visibleWarehouseLabels(expectedCount?: number): Promise<readonly string[]> {
+    const options = this.locators.warehouseOptions();
+    await options.first().waitFor({ state: 'visible' });
+    return collectVirtualDropdownItems({
+      dropdown: this.locators.visibleDropdown,
+      readVisibleItems: async () => options.evaluateAll((rows) => rows.map((row) => {
+        const cells = Array.from(row.querySelectorAll('td'));
+        const code = cells[0]?.textContent?.trim() ?? '';
+        const name = (cells[1]?.textContent?.trim() ?? '').replace(/\s*\(Ngừng hoạt động\)\s*$/u, '');
+        return code && name ? `${code} — ${name}` : '';
+      }).filter(Boolean)),
+      itemKey: (label) => label,
+      expectedCount,
+    });
   }
 
   /** Gửi phím điều hướng vào combogrid Kho mặc định đang mở. */
@@ -934,7 +1085,9 @@ export class VatTuPage extends BasePage {
 
   /** Đọc dòng Kho đang được Ant Select đánh dấu active. */
   async activeWarehouseLabel(): Promise<string> {
-    return (await this.locators.warehouseActiveOption().innerText()).trim();
+    const option = this.locators.warehouseActiveOption().first();
+    if (await option.count() === 0) return '';
+    return (await option.innerText()).trim();
   }
 
   /** Đọc màu và độ mờ thực tế của một dòng Kho. */
@@ -957,6 +1110,54 @@ export class VatTuPage extends BasePage {
     await this.click(this.locators.clearWarehouseButton(), 'Xóa nhanh Kho mặc định đã chọn');
   }
 
+  /** Trả về nút Thêm nhanh trong combogrid Kho mặc định. */
+  warehouseQuickAddButton(): Locator {
+    return this.locators.warehouseQuickAddButton();
+  }
+
+  /** Mở popup Thêm mới nhanh Kho từ combogrid Kho mặc định. */
+  async openWarehouseQuickAdd(): Promise<void> {
+    if (!await this.warehouseDropdown().isVisible()) await this.openWarehouseDropdown();
+    await this.click(this.warehouseQuickAddButton(), 'Mở form Thêm nhanh Kho');
+    await this.locators.warehouseQuickAddDialog().waitFor({ state: 'visible' });
+  }
+
+  /** Trả về popup Thêm mới nhanh Kho. */
+  warehouseQuickAddDialog(): Locator {
+    return this.locators.warehouseQuickAddDialog();
+  }
+
+  /** Trả về ô nhập liệu của form Thêm mới nhanh Kho. */
+  warehouseQuickAddTextbox(name: 'Mã kho' | 'Tên kho'): Locator {
+    return this.locators.warehouseQuickAddTextbox(name);
+  }
+
+  /** Trả về công tắc Trạng thái của form Thêm mới nhanh Kho. */
+  warehouseQuickAddStatus(): Locator {
+    return this.locators.warehouseQuickAddStatus();
+  }
+
+  /** Nhập hai trường bắt buộc của form Thêm mới nhanh Kho. */
+  async fillWarehouseQuickAdd(code: string, name: string): Promise<void> {
+    await this.type(this.warehouseQuickAddTextbox('Mã kho'), code, 'Nhập Mã kho thêm nhanh');
+    await this.type(this.warehouseQuickAddTextbox('Tên kho'), name, 'Nhập Tên kho thêm nhanh');
+  }
+
+  /** Lưu form Thêm mới nhanh Kho. */
+  async saveWarehouseQuickAdd(): Promise<void> {
+    await this.click(this.locators.warehouseQuickAddAction('Lưu'), 'Lưu Kho thêm nhanh');
+  }
+
+  /** Hủy form Thêm mới nhanh Kho. */
+  async cancelWarehouseQuickAdd(): Promise<void> {
+    await this.click(this.locators.warehouseQuickAddAction('Hủy'), 'Hủy form Thêm nhanh Kho');
+  }
+
+  /** Trả về validation dưới trường bắt buộc của form Thêm mới nhanh Kho. */
+  warehouseQuickAddValidation(label: 'Mã kho' | 'Tên kho'): Locator {
+    return this.locators.warehouseQuickAddValidation(label);
+  }
+
   /** Trả về popup cảnh báo dùng Kho Ngừng hoạt động. */
   warehouseConfirmationDialog(): Locator {
     return this.locators.mainUnitConfirmationDialog();
@@ -974,7 +1175,8 @@ export class VatTuPage extends BasePage {
 
   /** Trả về Kho đang được chọn. */
   selectedWarehouse(label: string): Locator {
-    return this.locators.selectedFieldValue('Kho mặc định', label);
+    const [code = '', name = ''] = label.split(' — ');
+    return this.formField('Kho mặc định').getByText(`${code} - ${name}`, { exact: false });
   }
 
   /** Mở dropdown của trường Thuế được xác định bằng label. */
@@ -1029,6 +1231,11 @@ export class VatTuPage extends BasePage {
   /** Trả về thông báo validation của trường theo label và nội dung lỗi. */
   validationMessage(fieldLabel: string, message: string): Locator {
     return this.locators.validationMessage(fieldLabel, message);
+  }
+
+  /** Trả về validation thực tế dưới một trường form. */
+  fieldValidation(fieldLabel: string): Locator {
+    return this.locators.fieldValidation(fieldLabel);
   }
 
   /** Trả về thông báo hệ thống theo nội dung hiển thị chính xác. */
@@ -1250,7 +1457,7 @@ export class VatTuPage extends BasePage {
 
   /** Trả về một lựa chọn Tài khoản kế toán theo nhãn. */
   accountingAccountOption(label: string): Locator {
-    return this.locators.dropdownOption(label);
+    return this.locators.accountingAccountOptionRow(label);
   }
 
   /** Trả về dòng dữ liệu của Tài khoản trong combogrid. */
@@ -1259,15 +1466,33 @@ export class VatTuPage extends BasePage {
   }
 
   /** Trả về nhãn các Tài khoản đang hiển thị trong combogrid theo đúng thứ tự UI. */
-  async visibleAccountingAccountLabels(): Promise<readonly string[]> {
+  async visibleAccountingAccountLabels(expectedCount?: number): Promise<readonly string[]> {
     const options = this.locators.accountingAccountOptions();
     await options.first().waitFor({ state: 'visible' });
-    return (await options.allInnerTexts()).map((label) => label.trim());
+    return collectVirtualDropdownItems({
+      dropdown: this.locators.visibleDropdown,
+      readVisibleItems: async () => Promise.all((await options.all()).map(async (row) => {
+        const cells = await row.getByRole('cell').allTextContents();
+        return `${cells[0]?.trim()} — ${cells[1]?.trim()}`;
+      })),
+      itemKey: (label) => label,
+      expectedCount,
+    });
   }
 
   /** Trả về màu chữ thực tế của một dòng Tài khoản trong combogrid. */
   async accountingAccountTextColor(label: string): Promise<string> {
     return this.accountingAccountOptionRow(label).evaluate((element) => getComputedStyle(element).color);
+  }
+
+  /** Đọc style từng cell để theo dõi vùng chọn bàn phím trên combogrid Tài khoản dạng table. */
+  async accountingAccountRowVisualStates(): Promise<readonly string[]> {
+    return this.locators.accountingAccountOptions().evaluateAll((rows) => rows.map((row) =>
+      Array.from(row.querySelectorAll('[role="cell"], td')).map((cell) => {
+        const style = getComputedStyle(cell);
+        return [style.backgroundColor, style.color, style.outline, cell.className].join('|');
+      }).join('||'),
+    ));
   }
 
   /** Trả về popup xác nhận dùng Tài khoản đang Ngừng hoạt động. */
