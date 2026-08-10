@@ -14,7 +14,7 @@ import {
   createTc50IndustryData,
   createTc51IndustryData,
   createTc53IndustryData,
-} from '@test-data/nganh-nghe.data';
+} from '@test-data/danh-muc/nganh-nghe/nganh-nghe.data';
 import { requireCredentials } from '@utils/env.config';
 
 test.describe('PMKT-U-00123 - Thêm mới Ngành nghề', () => {

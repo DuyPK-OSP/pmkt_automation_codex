@@ -946,7 +946,7 @@ test.describe('PMKT-U-00106 Part 1 - Tạo mới vật tư TC004-TC356', () => {
     await vatTuPage.selectMaterialType('Hàng hóa');
 
     // Hành động: Tải file JPG nhỏ hơn giới hạn 2MB.
-    await vatTuPage.uploadMaterialImage('test-data/tc074-material-1_5mb.jpg');
+    await vatTuPage.uploadMaterialImage('test-data/danh-muc/vat-tu/tc074-material-1_5mb.jpg');
 
     // Xác nhận UI: Ảnh tải thành công và hiển thị preview.
     await expect(vatTuPage.materialImagePreview(), 'Ảnh JPG 1.5MB phải hiển thị preview').toBeVisible();
@@ -959,7 +959,7 @@ test.describe('PMKT-U-00106 Part 1 - Tạo mới vật tư TC004-TC356', () => {
     await vatTuPage.selectMaterialType('Hàng hóa');
 
     // Hành động: Tải file JPG tại đúng giới hạn 2MB.
-    await vatTuPage.uploadMaterialImage('test-data/tc075-material-2mb.jpg');
+    await vatTuPage.uploadMaterialImage('test-data/danh-muc/vat-tu/tc075-material-2mb.jpg');
 
     // Xác nhận UI: Ảnh tải thành công và hiển thị preview.
     await expect(vatTuPage.materialImagePreview(), 'Ảnh JPG đúng 2MB phải hiển thị preview').toBeVisible();
@@ -972,7 +972,7 @@ test.describe('PMKT-U-00106 Part 1 - Tạo mới vật tư TC004-TC356', () => {
     await vatTuPage.selectMaterialType('Hàng hóa');
 
     // Hành động: Chọn file JPG dung lượng 2.1 MiB.
-    await vatTuPage.chooseMaterialImage('test-data/tc076-material-2_1mb.jpg');
+    await vatTuPage.chooseMaterialImage('test-data/danh-muc/vat-tu/tc076-material-2_1mb.jpg');
 
     // Xác nhận UI: Hệ thống chặn upload, không preview và cảnh báo dung lượng.
     await expect(vatTuPage.materialImagePreview(), 'Ảnh JPG vượt 2MB không được hiển thị preview').toBeHidden();
@@ -986,7 +986,7 @@ test.describe('PMKT-U-00106 Part 1 - Tạo mới vật tư TC004-TC356', () => {
     await vatTuPage.selectMaterialType('Hàng hóa');
 
     // Hành động: Tải file PNG dung lượng 1.5 MiB.
-    await vatTuPage.uploadMaterialImage('test-data/tc077-material-1_5mb.png');
+    await vatTuPage.uploadMaterialImage('test-data/danh-muc/vat-tu/tc077-material-1_5mb.png');
 
     // Xác nhận UI: Ảnh tải thành công và hiển thị preview.
     await expect(vatTuPage.materialImagePreview(), 'Ảnh PNG 1.5MB phải hiển thị preview').toBeVisible();
@@ -999,7 +999,7 @@ test.describe('PMKT-U-00106 Part 1 - Tạo mới vật tư TC004-TC356', () => {
     await vatTuPage.selectMaterialType('Hàng hóa');
 
     // Hành động: Tải file PNG dung lượng đúng 2 MiB.
-    await vatTuPage.uploadMaterialImage('test-data/tc078-material-2mb.png');
+    await vatTuPage.uploadMaterialImage('test-data/danh-muc/vat-tu/tc078-material-2mb.png');
 
     // Xác nhận UI: Ảnh tải thành công và hiển thị preview.
     await expect(vatTuPage.materialImagePreview(), 'Ảnh PNG đúng 2MB phải hiển thị preview').toBeVisible();
@@ -1012,7 +1012,7 @@ test.describe('PMKT-U-00106 Part 1 - Tạo mới vật tư TC004-TC356', () => {
     await vatTuPage.selectMaterialType('Hàng hóa');
 
     // Hành động: Chọn file PNG dung lượng 2.1 MiB.
-    await vatTuPage.chooseMaterialImage('test-data/tc079-material-2_1mb.png');
+    await vatTuPage.chooseMaterialImage('test-data/danh-muc/vat-tu/tc079-material-2_1mb.png');
 
     // Xác nhận UI: Hệ thống chặn upload, không preview và cảnh báo dung lượng.
     await expect(vatTuPage.materialImagePreview(), 'Ảnh PNG vượt 2MB không được hiển thị preview').toBeHidden();
@@ -1026,7 +1026,7 @@ test.describe('PMKT-U-00106 Part 1 - Tạo mới vật tư TC004-TC356', () => {
     await vatTuPage.selectMaterialType('Hàng hóa');
 
     // Hành động: Tải file WEBP dung lượng 1.5 MiB.
-    await vatTuPage.uploadMaterialImage('test-data/tc080-material-1_5mb.webp');
+    await vatTuPage.uploadMaterialImage('test-data/danh-muc/vat-tu/tc080-material-1_5mb.webp');
 
     // Xác nhận UI: Ảnh tải thành công và hiển thị preview.
     await expect(vatTuPage.materialImagePreview(), 'Ảnh WEBP 1.5MB phải hiển thị preview').toBeVisible();
@@ -1039,7 +1039,7 @@ test.describe('PMKT-U-00106 Part 1 - Tạo mới vật tư TC004-TC356', () => {
     await vatTuPage.selectMaterialType('Hàng hóa');
 
     // Hành động: Tải file WEBP dung lượng đúng 2 MiB.
-    await vatTuPage.uploadMaterialImage('test-data/tc081-material-2mb.webp');
+    await vatTuPage.uploadMaterialImage('test-data/danh-muc/vat-tu/tc081-material-2mb.webp');
 
     // Xác nhận UI: Ảnh tải thành công và hiển thị preview.
     await expect(vatTuPage.materialImagePreview(), 'Ảnh WEBP đúng 2MB phải hiển thị preview').toBeVisible();
@@ -1052,7 +1052,7 @@ test.describe('PMKT-U-00106 Part 1 - Tạo mới vật tư TC004-TC356', () => {
     await vatTuPage.selectMaterialType('Hàng hóa');
 
     // Hành động: Chọn file WEBP dung lượng 2.1 MiB.
-    await vatTuPage.chooseMaterialImage('test-data/tc082-material-2_1mb.webp');
+    await vatTuPage.chooseMaterialImage('test-data/danh-muc/vat-tu/tc082-material-2_1mb.webp');
 
     // Xác nhận UI: Hệ thống chặn upload, không preview và cảnh báo dung lượng.
     await expect(vatTuPage.materialImagePreview(), 'Ảnh WEBP vượt 2MB không được hiển thị preview').toBeHidden();
@@ -1066,7 +1066,7 @@ test.describe('PMKT-U-00106 Part 1 - Tạo mới vật tư TC004-TC356', () => {
     await vatTuPage.selectMaterialType('Hàng hóa');
 
     // Hành động: Chọn file PDF tại control Ảnh.
-    await vatTuPage.chooseMaterialImage('test-data/tc083-invalid-format.pdf');
+    await vatTuPage.chooseMaterialImage('test-data/danh-muc/vat-tu/tc083-invalid-format.pdf');
 
     // Xác nhận UI: Hệ thống chặn file, không preview và cảnh báo sai định dạng.
     await expect(vatTuPage.materialImagePreview(), 'File PDF không được hiển thị preview ảnh').toBeHidden();
@@ -1092,7 +1092,7 @@ test.describe('PMKT-U-00106 Part 1 - Tạo mới vật tư TC004-TC356', () => {
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
     await vatTuPage.selectMaterialType('Hàng hóa');
-    await vatTuPage.uploadMaterialImage('test-data/tc074-material-1_5mb.jpg');
+    await vatTuPage.uploadMaterialImage('test-data/danh-muc/vat-tu/tc074-material-1_5mb.jpg');
     await expect(vatTuPage.materialImagePreview(), 'Ảnh phải có preview trước khi đổi tính chất').toBeVisible();
 
     // Hành động: Thay đổi tính chất > chọn Nguyên vật liệu.

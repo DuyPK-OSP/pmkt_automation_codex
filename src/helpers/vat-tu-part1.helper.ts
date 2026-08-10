@@ -9,7 +9,7 @@ import type {
   RequiredGoodsUiDefaults,
   VatTuPage,
 } from '@pages/danh-muc/vat-tu.page';
-import { expectedMaterialTypeCards } from '@test-data/vat-tu.data';
+import { expectedMaterialTypeCards } from '@test-data/danh-muc/vat-tu/vat-tu.data';
 import { requireCredentials } from '@utils/env.config';
 import { TestDataGenerator } from '@utils/test-data';
 
@@ -43,7 +43,7 @@ export function fullGoodsData(
     description: `Mô tả nghiệp vụ ${testCaseId} ${code}`,
     purchaseName: `Tên mua ${testCaseId} ${code}`,
     saleName: `Tên bán ${testCaseId} ${code}`,
-    imagePath: 'test-data/tc32-material.png',
+    imagePath: 'test-data/danh-muc/vat-tu/tc32-material.png',
     group,
     mainUnit,
   };

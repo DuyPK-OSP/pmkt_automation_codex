@@ -1,5 +1,5 @@
-import { purchaseDocumentData } from '@test-data/chung-tu-mua-hang.data';
-import type { PurchaseDocumentData } from '@test-data/chung-tu-mua-hang.data';
+import { purchaseDocumentData } from '@test-data/mua-hang/chung-tu-mua-hang/chung-tu-mua-hang.data';
+import type { PurchaseDocumentData } from '@test-data/mua-hang/chung-tu-mua-hang/chung-tu-mua-hang.data';
 import type { ChungTuMuaHangThemMoiPage, PurchaseDocumentAutoFilledValues } from '@pages/mua-hang/chung-tu-mua-hang-them-moi.page';
 import type { ChungTuMuaHangDanhSachPage } from '@pages/mua-hang/chung-tu-mua-hang-danh-sach.page';
 import type { PurchaseDocumentCleanupTracker } from '@cleanup/chung-tu-mua-hang.cleanup';

@@ -1,6 +1,6 @@
 import { test, expect } from '@fixtures/base.fixture';
 import { requireCredentials } from '@utils/env.config';
-import { purchaseDocumentData } from '@test-data/chung-tu-mua-hang.data';
+import { purchaseDocumentData } from '@test-data/mua-hang/chung-tu-mua-hang/chung-tu-mua-hang.data';
 import { executeImmediatePaymentCase } from '@helpers/chung-tu-mua-hang.flow';
 import type { ImmediatePaymentExecutionResult, ImmediatePaymentScenario } from '@helpers/chung-tu-mua-hang.flow';
 

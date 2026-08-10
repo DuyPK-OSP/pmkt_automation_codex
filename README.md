@@ -80,6 +80,9 @@ Yêu cầu:
 - npm 10+
 
 ```powershell
+# Clone Repo Automation (đã được nhúng Repo pmkt)
+git clone --recurse-submodules https://github.com/DuyPK-OSP/pmkt_automation_codex.git
+
 # Sau khi clone Repo về, chạy các lệnh sau trong cửa sổ terminal (chỉ cần làm 1 lần)
 npm install
 npm ci

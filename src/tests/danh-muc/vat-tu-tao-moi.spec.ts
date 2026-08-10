@@ -13,7 +13,7 @@ import {
   openVatTuWithWarehouses,
 } from '@helpers/vat-tu-expected-data.helper';
 import { MATERIAL_TYPES } from '@pages/danh-muc/vat-tu.page';
-import { expectedMaterialTypeCards } from '@test-data/vat-tu.data';
+import { expectedMaterialTypeCards } from '@test-data/danh-muc/vat-tu/vat-tu.data';
 import { requireCredentials } from '@utils/env.config';
 import { statusPair } from '@utils/vat-tu-test.util';
 import { TestDataGenerator } from '@utils/test-data';
@@ -373,7 +373,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
     const description = `Vật tư phục vụ kiểm thử nghiệp vụ mua bán ${code}`;
     const purchaseName = `Hàng mua ${code}`;
     const saleName = `Hàng bán ${code}`;
-    const imagePath = 'test-data/tc32-material.png';
+    const imagePath = 'test-data/danh-muc/vat-tu/tc32-material.png';
     // Hành động: Truy cập Danh mục Vật tư > Chọn loại phù hợp > Nhập đầy đủ dữ liệu > Nhấn Lưu.
     const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const group = catalogues.groups[0];
@@ -1334,7 +1334,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
     await vatTuPage.fillFormField('Mô tả', description);
     await vatTuPage.fillFormField('Tên vật tư khi mua', purchaseName);
     await vatTuPage.fillFormField('Tên vật tư khi bán', saleName);
-    await vatTuPage.uploadMaterialImage('test-data/tc32-material.png');
+    await vatTuPage.uploadMaterialImage('test-data/danh-muc/vat-tu/tc32-material.png');
     await vatTuPage.setMaterialStatus(true);
 
     await vatTuPage.openDefaultAccountingTab();
@@ -1512,7 +1512,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
       description: `Công cụ dụng cụ phục vụ hoạt động ${code}`,
       purchaseName: `CCDC mua ${code}`,
       saleName: `CCDC bán ${code}`,
-      imagePath: 'test-data/tc32-material.png',
+      imagePath: 'test-data/danh-muc/vat-tu/tc32-material.png',
       group,
       mainUnit,
     };
@@ -1664,7 +1664,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
     await vatTuPage.openMaterialTypePopup();
     await vatTuPage.selectMaterialType('Công cụ, dụng cụ');
     await vatTuPage.fillRequiredInventoryMaterialFields(code, `CCDC ảnh TC102 ${code}`, mainUnit);
-    await vatTuPage.uploadMaterialImage('test-data/tc32-material.png');
+    await vatTuPage.uploadMaterialImage('test-data/danh-muc/vat-tu/tc32-material.png');
     // Xác nhận: Ảnh được preview trước khi lưu và hiển thị trong chi tiết Vật tư sau khi lưu.
     await expect(vatTuPage.materialImagePreview(), 'Ảnh hợp lệ phải được preview').toBeVisible();
     await vatTuPage.saveMaterial();
@@ -1689,7 +1689,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
       description: `Thành phẩm hoàn thiện phục vụ kinh doanh ${code}`,
       purchaseName: `Thành phẩm mua ${code}`,
       saleName: `Thành phẩm bán ${code}`,
-      imagePath: 'test-data/tc32-material.png',
+      imagePath: 'test-data/danh-muc/vat-tu/tc32-material.png',
       group,
       mainUnit,
     };
@@ -1842,7 +1842,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
     await vatTuPage.openMaterialTypePopup();
     await vatTuPage.selectMaterialType('Thành phẩm');
     await vatTuPage.fillRequiredInventoryMaterialFields(code, `Thành phẩm ảnh TC126 ${code}`, mainUnit);
-    await vatTuPage.uploadMaterialImage('test-data/tc32-material.png');
+    await vatTuPage.uploadMaterialImage('test-data/danh-muc/vat-tu/tc32-material.png');
     // Xác nhận: Ảnh được preview trước khi lưu và hiển thị trong chi tiết Vật tư sau khi lưu.
     await expect(vatTuPage.materialImagePreview(), 'Ảnh hợp lệ phải được preview').toBeVisible();
     await vatTuPage.saveMaterial();
@@ -1867,7 +1867,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
       description: `Bán thành phẩm phục vụ sản xuất ${code}`,
       purchaseName: `Bán thành phẩm mua ${code}`,
       saleName: `Bán thành phẩm bán ${code}`,
-      imagePath: 'test-data/tc32-material.png',
+      imagePath: 'test-data/danh-muc/vat-tu/tc32-material.png',
       group,
       mainUnit,
     };
@@ -2020,7 +2020,7 @@ test.describe('PMKT-U-00106 - Thêm mới Danh mục Vật tư', () => {
     await vatTuPage.openMaterialTypePopup();
     await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.fillRequiredInventoryMaterialFields(code, `Bán thành phẩm ảnh TC150 ${code}`, mainUnit);
-    await vatTuPage.uploadMaterialImage('test-data/tc32-material.png');
+    await vatTuPage.uploadMaterialImage('test-data/danh-muc/vat-tu/tc32-material.png');
     // Xác nhận: Ảnh được preview trước khi lưu và hiển thị trong chi tiết Vật tư sau khi lưu.
     await expect(vatTuPage.materialImagePreview(), 'Ảnh hợp lệ phải được preview').toBeVisible();
     await vatTuPage.saveMaterial();
