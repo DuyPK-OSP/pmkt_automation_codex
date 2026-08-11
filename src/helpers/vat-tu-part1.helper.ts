@@ -1,6 +1,7 @@
 import type { DatabaseContext } from '@database/database.context';
 import { expect } from '@fixtures/base.fixture';
 import { openVatTuWithAccounts } from '@helpers/vat-tu-expected-data.helper';
+import { openVatTuWithCatalogues } from '@helpers/vat-tu-expected-data.helper';
 import type {
   AccountOption,
   CatalogueOption,
@@ -9,10 +10,22 @@ import type {
   RequiredGoodsUiDefaults,
   TaxOption,
   VatTuPage,
+  VatTuCatalogues,
 } from '@pages/danh-muc/vat-tu.page';
 import { expectedMaterialTypeCards } from '@test-data/danh-muc/vat-tu/vat-tu.data';
 import { requireCredentials } from '@utils/env.config';
 import { TestDataGenerator } from '@utils/test-data';
+
+const normalizeAccountLabel = (value: string | null | undefined): string | null => value
+  ?.trim()
+  .replace(/\s*[-–—]\s*/u, ' — ') ?? null;
+
+/** Chuẩn hóa riêng định dạng số; giữ nguyên khác biệt có ý nghĩa giữa NULL và 0. */
+const nullableNumericValue = (value: string | null | undefined): number | null => {
+  if (value === null || value === undefined || value.trim() === '') return null;
+  const numericText = value.match(/-?\d+(?:[.,]\d+)?/)?.[0]?.replace(',', '.');
+  return numericText === undefined ? null : Number(numericText);
+};
 
 /** Đối chiếu đầy đủ sáu thẻ tính chất và mô tả theo testcase mới. */
 export async function verifyMaterialTypeCards(vatTuPage: VatTuPage): Promise<void> {
@@ -29,6 +42,16 @@ export async function verifyMaterialTypeCards(vatTuPage: VatTuPage): Promise<voi
 export function boundaryText(testCaseId: string, length: number): string {
   const seed = new TestDataGenerator().uniqueKeyword(testCaseId);
   return `${seed}_${'x'.repeat(length)}`.slice(0, length);
+}
+
+/** Lấy danh mục từ DB đúng tenant rồi mở form Hàng hóa tại tab Đơn vị quy đổi và thêm dòng đầu tiên. */
+export async function prepareGoodsConversionGrid(vatTuPage: VatTuPage): Promise<VatTuCatalogues> {
+  const catalogues = await openVatTuWithCatalogues(vatTuPage);
+  await vatTuPage.openMaterialTypePopup();
+  await vatTuPage.selectMaterialType('Hàng hóa');
+  await vatTuPage.openFormTab('Đơn vị quy đổi');
+  await vatTuPage.addConversionRow();
+  return catalogues;
 }
 
 /** Sinh bộ dữ liệu Hàng hóa đầy đủ, unique và truy vết được cho một testcase lưu thành công. */
@@ -57,6 +80,7 @@ export async function verifyFullGoodsSavedInDatabase(
   material: FullGoodsMaterialInput,
   selection: FullGoodsMaterialSelection,
   active: boolean,
+  expectedConversionCount = 1,
 ): Promise<void> {
   await expect.poll(
     async () => (await db.vatTu.findByCodeForDefaultTenant(username, material.code)).length,
@@ -83,34 +107,34 @@ export async function verifyFullGoodsSavedInDatabase(
   expect(actual.description).toBe(material.description);
   expect(actual.groups).toEqual([material.group.label]);
   expect(actual.reducedTax).toBe(true);
-  expect(actual.materialAccount).toBe(selection.accounts['Tài khoản vật tư']);
-  expect(actual.costOfGoodsAccount).toBe(selection.accounts['Tài khoản giá vốn']);
-  expect(actual.revenueAccount).toBe(selection.accounts['Tài khoản doanh thu']);
-  expect(actual.salesReturnAccount).toBe(selection.accounts['Tài khoản hàng bán trả lại']);
-  expect(actual.expenseAccount).toBe(selection.accounts['Tài khoản chi phí']);
-  expect(actual.discountAccount).toBe(selection.accounts['Tài khoản chiết khấu']);
-  expect(actual.priceReductionAccount).toBe(selection.accounts['Tài khoản giảm giá']);
+  expect(normalizeAccountLabel(actual.materialAccount)).toBe(normalizeAccountLabel(selection.accounts['Tài khoản vật tư']));
+  expect(normalizeAccountLabel(actual.costOfGoodsAccount)).toBe(normalizeAccountLabel(selection.accounts['Tài khoản giá vốn']));
+  expect(normalizeAccountLabel(actual.revenueAccount)).toBe(normalizeAccountLabel(selection.accounts['Tài khoản doanh thu']));
+  expect(normalizeAccountLabel(actual.salesReturnAccount)).toBe(normalizeAccountLabel(selection.accounts['Tài khoản hàng bán trả lại']));
+  expect(normalizeAccountLabel(actual.expenseAccount)).toBe(normalizeAccountLabel(selection.accounts['Tài khoản chi phí']));
+  expect(normalizeAccountLabel(actual.discountAccount)).toBe(normalizeAccountLabel(selection.accounts['Tài khoản chiết khấu']));
+  expect(normalizeAccountLabel(actual.priceReductionAccount)).toBe(normalizeAccountLabel(selection.accounts['Tài khoản giảm giá']));
   expect(actual.warehouse).toBe(selection.warehouse);
   expect(actual.pricingMethod).toBe(selection.pricingMethod);
-  expect(Number(actual.minimumStock)).toBe(10);
-  expect(Number(actual.maximumStock)).toBe(1000);
+  expect(nullableNumericValue(actual.minimumStock)).toBe(10);
+  expect(nullableNumericValue(actual.maximumStock)).toBe(1000);
   expect(actual.trackLot).toBe(true);
   expect(actual.trackBarcode).toBe(true);
-  const selectedVatRate = selection.vatRate.match(/\d+(?:[.,]\d+)?/)?.[0]?.replace(',', '.');
-  expect(Number(actual.defaultVatRate)).toBe(Number(selectedVatRate));
-  expect(Number(actual.defaultVatValue)).toBe(Number(selectedVatRate));
-  expect(Number(actual.importTax)).toBe(0);
-  expect(Number(actual.exportTax)).toBe(0);
+  expect(nullableNumericValue(actual.defaultVatRate)).toBe(nullableNumericValue(selection.vatRate));
+  expect(nullableNumericValue(actual.defaultVatValue)).toBe(nullableNumericValue(selection.vatRateValue));
+  expect(nullableNumericValue(actual.importTax)).toBe(0);
+  expect(nullableNumericValue(actual.exportTax)).toBe(0);
   expect(actual.exciseTax).toBe(selection.exciseTax);
   expect(actual.resourceTax).toBe(selection.resourceTax);
   expect(actual.deleted).toBe(false);
 
   const conversions = await db.donViQuyDoiVatTu.listByMaterialCodeForDefaultTenant(username, material.code);
-  expect(conversions).toHaveLength(1);
+  expect(conversions).toHaveLength(expectedConversionCount);
+  if (expectedConversionCount === 0) return;
   expect(conversions[0]?.unit).toBe(selection.conversion.unit);
-  expect(Number(conversions[0]?.ratio)).toBe(2);
+  expect(nullableNumericValue(conversions[0]?.ratio)).toBe(nullableNumericValue(selection.conversion.ratio));
   expect(conversions[0]?.operation).toBe(selection.conversion.operation);
-  expect(conversions[0]?.description).toBeNull();
+  expect(conversions[0]?.description).toBe(selection.conversion.description);
   expect(conversions[0]?.order).toBe(0);
 }
 
@@ -146,13 +170,13 @@ export async function verifyRequiredGoodsSavedInDatabase(
   const nullableText = (value: string): string | null => value === '' ? null : value;
   const nullableNumber = (value: string): number | null => value === '' ? null : Number(value);
   expect(actual.pricingMethod).toBe(defaults.pricingMethod);
-  expect(actual.materialAccount).toBe(defaults.accounts['Tài khoản vật tư']);
-  expect(actual.costOfGoodsAccount).toBe(defaults.accounts['Tài khoản giá vốn']);
-  expect(actual.revenueAccount).toBe(defaults.accounts['Tài khoản doanh thu']);
-  expect(actual.salesReturnAccount).toBe(defaults.accounts['Tài khoản hàng bán trả lại']);
-  expect(actual.expenseAccount).toBe(defaults.accounts['Tài khoản chi phí']);
-  expect(actual.discountAccount).toBe(defaults.accounts['Tài khoản chiết khấu']);
-  expect(actual.priceReductionAccount).toBe(defaults.accounts['Tài khoản giảm giá']);
+  expect(normalizeAccountLabel(actual.materialAccount)).toBe(normalizeAccountLabel(defaults.accounts['Tài khoản vật tư']));
+  expect(normalizeAccountLabel(actual.costOfGoodsAccount)).toBe(normalizeAccountLabel(defaults.accounts['Tài khoản giá vốn']));
+  expect(normalizeAccountLabel(actual.revenueAccount)).toBe(normalizeAccountLabel(defaults.accounts['Tài khoản doanh thu']));
+  expect(normalizeAccountLabel(actual.salesReturnAccount)).toBe(normalizeAccountLabel(defaults.accounts['Tài khoản hàng bán trả lại']));
+  expect(normalizeAccountLabel(actual.expenseAccount)).toBe(normalizeAccountLabel(defaults.accounts['Tài khoản chi phí']));
+  expect(normalizeAccountLabel(actual.discountAccount)).toBe(normalizeAccountLabel(defaults.accounts['Tài khoản chiết khấu']));
+  expect(normalizeAccountLabel(actual.priceReductionAccount)).toBe(normalizeAccountLabel(defaults.accounts['Tài khoản giảm giá']));
   expect(actual.purchaseName).toBe(nullableText(defaults.purchaseName));
   expect(actual.saleName).toBe(nullableText(defaults.saleName));
   expect(actual.description).toBe(nullableText(defaults.description));
@@ -169,7 +193,7 @@ export async function verifyRequiredGoodsSavedInDatabase(
   expect(actual.trackBarcode).toBe(defaults.trackBarcode);
   const defaultVatRate = defaults.defaultVatRate?.match(/\d+(?:[.,]\d+)?/)?.[0]?.replace(',', '.');
   expect(actual.defaultVatRate === null ? null : Number(actual.defaultVatRate)).toBe(defaultVatRate === undefined ? null : Number(defaultVatRate));
-  expect(actual.defaultVatValue === null ? null : Number(actual.defaultVatValue)).toBe(defaultVatRate === undefined ? null : Number(defaultVatRate));
+  expect(nullableNumericValue(actual.defaultVatValue)).toBe(nullableNumericValue(defaults.defaultVatValue));
   expect(actual.importTax === null ? null : Number(actual.importTax)).toBe(nullableNumber(defaults.importTax));
   expect(actual.exportTax === null ? null : Number(actual.exportTax)).toBe(nullableNumber(defaults.exportTax));
   expect(actual.exciseTax).toBe(defaults.exciseTax);

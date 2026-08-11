@@ -49,6 +49,7 @@ export class VatTuLocators {
   materialTypeTitle = (type: string): Locator => this.materialTypeDialog.getByText(type, { exact: true });
   materialTypeDescription = (description: string): Locator => this.materialTypeDialog.getByText(description, { exact: true });
   closeMaterialTypeButton = (): Locator => this.materialTypeDialog.getByRole('button', { name: 'Close', exact: true });
+  closeCreateMaterialButton = (): Locator => this.createMaterialDialog.getByRole('button', { name: 'Close', exact: true });
   cancelButton = (): Locator => this.createMaterialDialog.getByRole('button', { name: 'Hủy', exact: true });
   closeConfirmationMessage = (): Locator => this.closeConfirmationDialog.getByText(/Dữ liệu đã có thay đổi|Bạn có chắc chắn muốn hủy/);
   dismissCloseConfirmationButton = (): Locator => this.closeConfirmationDialog.getByRole('button', { name: 'Hủy', exact: true });
@@ -107,9 +108,9 @@ export class VatTuLocators {
   };
   requiredIndicator = (label: string): Locator => {
     const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return this.createMaterialDialog
-      .locator('label.ant-form-item-required')
-      .filter({ hasText: new RegExp(`^${escapedLabel}\\s*$`) });
+    return this.formField(label)
+      .getByText(new RegExp(`^${escapedLabel}\\s*\\*$`))
+      .first();
   };
   statusRequiredLabel = (): Locator => this.createMaterialDialog.getByText(/^Trạng thái:\s*\*$/).last();
   dialogControl = (role: AriaRole, name: string): Locator => this.createMaterialDialog.getByRole(role, { name, exact: true });
@@ -175,11 +176,18 @@ export class VatTuLocators {
   materialDetailTab = (code: string, tabName: string): Locator => this.materialDetails(code).getByRole('tab', { name: tabName, exact: true });
   conversionGrid = (): Locator => this.createMaterialDialog.getByRole('tabpanel', { name: 'Đơn vị quy đổi', exact: true }).getByRole('table');
   addConversionRowButton = (): Locator => this.createMaterialDialog.getByRole('button', { name: 'Thêm dòng', exact: true });
+  conversionColumnHeaders = (): Locator => this.conversionGrid().getByRole('columnheader');
   conversionColumnHeader = (name: string): Locator => this.conversionGrid().getByRole('columnheader', { name, exact: true });
+  conversionOperationCell = (value: string): Locator => this.conversionGrid().getByRole('cell', { name: new RegExp(`^${value}\\b`) });
   selectedConversionUnit = (label: string): Locator => this.conversionGrid().getByTitle(label, { exact: true });
+  clearConversionUnitButton = (): Locator => this.conversionGrid().locator('.ant-select-clear').first();
+  conversionUnitQuickAddButton = (): Locator => this.visibleDropdown.getByRole('button', { name: 'Thêm nhanh', exact: true });
   conversionRowControls = (role: AriaRole): Locator => this.conversionGrid().getByRole(role);
   conversionValidationMessages = (): Locator => this.conversionGrid().locator('.ant-form-item-explain-error');
+  conversionMessage = (message: string): Locator => this.createMaterialDialog.getByRole('tabpanel', { name: 'Đơn vị quy đổi', exact: true }).getByText(message, { exact: true });
+  deleteConversionRowButton = (): Locator => this.conversionGrid().getByRole('button', { name: 'Xóa dòng', exact: true });
   conversionUnitOption = (mainUnit: string): Locator => this.enabledDropdownOptions().filter({ hasNotText: mainUnit }).first();
+  visibleDropdownOption = (label: string): Locator => this.namedDropdownOption(label);
   accountingAccountOptionRow = (label: string): Locator => {
     const [code = '', name = ''] = label.split(' — ');
     return this.accountingAccountOptions()

@@ -55,9 +55,15 @@ export interface FullGoodsMaterialSelection {
   readonly warehouse: string;
   readonly pricingMethod: string;
   readonly vatRate: string;
+  readonly vatRateValue: string;
   readonly exciseTax: string;
   readonly resourceTax: string;
-  readonly conversion: Readonly<{ unit: string; operation: string }>;
+  readonly conversion: Readonly<{
+    unit: string;
+    ratio: string;
+    operation: string;
+    description: string;
+  }>;
 }
 
 export interface FullServiceMaterialInput {
@@ -96,6 +102,7 @@ export interface RequiredGoodsUiDefaults {
   readonly trackLot: boolean;
   readonly trackBarcode: boolean;
   readonly defaultVatRate: string | null;
+  readonly defaultVatValue: string;
   readonly importTax: string;
   readonly exportTax: string;
   readonly exciseTax: string | null;
@@ -187,9 +194,21 @@ export class VatTuPage extends BasePage {
     await this.click(this.cancelButton(), 'Hủy tạo mới vật tư');
   }
 
+  /** Nhấn icon X ở góc form để yêu cầu đóng form Thêm mới Vật tư. */
+  async closeCreatingMaterial(): Promise<void> {
+    await this.click(this.locators.closeCreateMaterialButton(), 'Đóng form thêm mới vật tư bằng icon X');
+  }
+
   /** Trả về nội dung cảnh báo khi đóng form có dữ liệu chưa lưu. */
   closeConfirmationMessage(): Locator {
     return this.locators.closeConfirmationMessage();
+  }
+
+  /** Trả về nút hành động trên popup Xác nhận đóng để testcase kiểm tra trạng thái hiển thị. */
+  closeConfirmationButton(name: 'Xác nhận' | 'Hủy'): Locator {
+    return name === 'Xác nhận'
+      ? this.locators.confirmCloseButton()
+      : this.locators.dismissCloseConfirmationButton();
   }
 
   /** Hủy thao tác đóng để tiếp tục chỉnh sửa Vật tư. */
@@ -417,6 +436,12 @@ export class VatTuPage extends BasePage {
   /** Đọc nội dung và màu của dấu bắt buộc được render cạnh label trường. */
   async requiredIndicatorStyle(label: string): Promise<Readonly<{ content: string; color: string }>> {
     return this.locators.requiredIndicator(label).evaluate((element) => {
+      const star = Array.from(element.querySelectorAll('*'))
+        .find((child) => child.textContent?.trim() === '*');
+      if (star) {
+        return { content: '*', color: getComputedStyle(star).color };
+      }
+
       const style = getComputedStyle(element, '::before');
       return { content: style.content.replace(/["']/g, ''), color: style.color };
     });
@@ -553,6 +578,7 @@ export class VatTuPage extends BasePage {
 
     await this.openFormTab('Thông tin thuế');
     const defaultVatRate = await this.currentFormOption('Thuế suất GTGT mặc định');
+    const defaultVatValue = await this.vatRateValueInput().inputValue();
     const importTax = await readInput('Thuế nhập khẩu');
     const exportTax = await readInput('Thuế xuất khẩu');
     const exciseTax = await this.currentFormOption('Thuế tiêu thụ đặc biệt');
@@ -578,6 +604,7 @@ export class VatTuPage extends BasePage {
       trackLot,
       trackBarcode,
       defaultVatRate,
+      defaultVatValue,
       importTax,
       exportTax,
       exciseTax,
@@ -656,7 +683,8 @@ export class VatTuPage extends BasePage {
       ?? await this.selectFirstFormOption('Tài khoản chi phí');
 
     await this.openFormTab('Thông tin kho');
-    const warehouse = await this.ensureFirstFormOption('Kho mặc định');
+    const warehouse = await this.currentFormOption('Kho mặc định')
+      ?? await this.selectFirstActiveWarehouse();
     const pricingMethod = await this.selectFirstFormOption('Phương pháp tính giá');
     await this.fillFormField('Tồn tối thiểu', '10');
     await this.fillFormField('Tồn tối đa', '1000');
@@ -665,6 +693,7 @@ export class VatTuPage extends BasePage {
 
     await this.openFormTab('Thông tin thuế');
     const vatRate = await this.selectFirstFormOption('Thuế suất GTGT mặc định');
+    const vatRateValue = await this.vatRateValueInput().inputValue();
     await this.fillFormField('Thuế xuất khẩu', '0');
     await this.fillFormField('Thuế nhập khẩu', '0');
     const exciseTax = await this.selectFirstFormOption('Thuế tiêu thụ đặc biệt');
@@ -682,6 +711,7 @@ export class VatTuPage extends BasePage {
       warehouse,
       pricingMethod,
       vatRate,
+      vatRateValue,
       exciseTax,
       resourceTax,
       conversion,
@@ -1078,6 +1108,20 @@ export class VatTuPage extends BasePage {
     });
   }
 
+  /** Chọn Kho hoạt động đầu tiên từ combogrid và trả về nhãn chuẩn hóa mã — tên. */
+  async selectFirstActiveWarehouse(): Promise<string> {
+    await this.openWarehouseDropdown();
+    const row = this.locators.warehouseOptions()
+      .filter({ hasNotText: 'Ngừng hoạt động' })
+      .first();
+    await row.waitFor({ state: 'visible' });
+    const cells = row.locator('td');
+    const code = (await cells.nth(0).innerText()).trim();
+    const name = (await cells.nth(1).innerText()).trim();
+    await this.click(row, `Chọn kho hoạt động đầu tiên ${code}`);
+    return `${code} — ${name}`;
+  }
+
   /** Gửi phím điều hướng vào combogrid Kho mặc định đang mở. */
   async pressWarehouseKey(key: 'Enter' | 'Escape' | 'ArrowDown' | 'ArrowUp'): Promise<void> {
     await this.warehouseCombobox().press(key);
@@ -1228,6 +1272,40 @@ export class VatTuPage extends BasePage {
     return this.locators.selectedConversionUnit(label);
   }
 
+  /** Trả về toàn bộ option đang render của dropdown Đơn vị tính quy đổi. */
+  conversionUnitOptions(): Locator {
+    return this.locators.enabledDropdownOptions();
+  }
+
+  /** Đọc style của option Đơn vị tính quy đổi theo nhãn. */
+  async conversionUnitOptionStyle(label: string): Promise<Readonly<{ color: string; opacity: string }>> {
+    return this.locators.dropdownOption(label).evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { color: style.color, opacity: style.opacity };
+    });
+  }
+
+  /** Đọc nhãn option đang active khi điều hướng bàn phím trên dropdown quy đổi. */
+  async activeConversionUnitLabel(): Promise<string> {
+    return (await this.locators.mainUnitActiveOption().innerText()).trim();
+  }
+
+  /** Gửi phím điều hướng vào combogrid Đơn vị tính trên dòng quy đổi đầu tiên. */
+  async pressFirstConversionUnitKey(key: 'Enter' | 'Escape' | 'ArrowDown' | 'ArrowUp'): Promise<void> {
+    await this.conversionRowControls('combobox').first().press(key);
+  }
+
+  /** Xóa nhanh Đơn vị tính đã chọn trên dòng quy đổi đầu tiên. */
+  async clearFirstConversionUnit(): Promise<void> {
+    await this.conversionRowControls('combobox').first().hover();
+    await this.click(this.locators.clearConversionUnitButton(), 'Xóa Đơn vị tính quy đổi đã chọn');
+  }
+
+  /** Trả về nút Thêm nhanh trong dropdown Đơn vị tính của dòng quy đổi. */
+  conversionUnitQuickAddButton(): Locator {
+    return this.locators.conversionUnitQuickAddButton();
+  }
+
   /** Trả về thông báo validation của trường theo label và nội dung lỗi. */
   validationMessage(fieldLabel: string, message: string): Locator {
     return this.locators.validationMessage(fieldLabel, message);
@@ -1313,8 +1391,11 @@ export class VatTuPage extends BasePage {
       await this.page.keyboard.press('Escape');
       await details.waitFor({ state: 'hidden' });
     }
-    await this.materialSearchInput().waitFor({ state: 'visible' });
-    await this.searchMaterial(code);
+    const searchInput = this.materialSearchInput();
+    await searchInput.waitFor({ state: 'visible' });
+    // Test nghiệp vụ thường vừa tìm đúng mã trước khi teardown. Tái sử dụng kết quả
+    // đang hiển thị để tránh chờ request reset không được UI phát sinh.
+    if (await searchInput.inputValue() !== code) await this.searchMaterial(code);
     if (!(await this.materialRow(code).isVisible())) return false;
 
     await this.click(
@@ -1323,13 +1404,25 @@ export class VatTuPage extends BasePage {
     );
     const confirmation = this.locators.deleteConfirmation();
     await confirmation.waitFor({ state: 'visible' });
+    const deleteResponse = this.page.waitForResponse((response) => {
+      const request = response.request();
+      const url = new URL(response.url());
+      return request.method() === 'DELETE'
+        && url.pathname.startsWith('/api/master-data/vat-tu/');
+    });
     await this.click(
       this.locators.confirmDeleteButton(),
       `Xác nhận xóa vật tư ${code}`,
     );
+    const response = await deleteResponse;
     await confirmation.waitFor({ state: 'hidden' });
-    await this.searchMaterial(code);
-    if (await this.materialRow(code).isVisible()) {
+    if (!response.ok()) {
+      const detail = await response.text().catch(() => '');
+      throw new Error(`Cleanup ${code} bị backend từ chối (${response.status()}): ${detail}`);
+    }
+    const deletedRow = this.materialRow(code);
+    await deletedRow.waitFor({ state: 'hidden' });
+    if (await deletedRow.isVisible()) {
       throw new Error(`Cleanup ${code} thất bại: bản ghi vẫn hiển thị trên UI`);
     }
     return true;
@@ -1419,6 +1512,16 @@ export class VatTuPage extends BasePage {
     return this.locators.conversionColumnHeader(name);
   }
 
+  /** Trả về toàn bộ tiêu đề cột theo thứ tự hiển thị của bảng Đơn vị quy đổi. */
+  conversionColumnHeaders(): Locator {
+    return this.locators.conversionColumnHeaders();
+  }
+
+  /** Trả về ô Phép tính đang hiển thị giá trị được chọn trên dòng quy đổi. */
+  conversionOperationCell(value: string): Locator {
+    return this.locators.conversionOperationCell(value);
+  }
+
   /** Trả về các control theo role tại dòng quy đổi đầu tiên. */
   conversionRowControls(role: Parameters<Locator['getByRole']>[0]): Locator {
     return this.locators.conversionRowControls(role);
@@ -1429,10 +1532,51 @@ export class VatTuPage extends BasePage {
     return this.locators.conversionValidationMessages();
   }
 
+  /** Trả về thông báo nghiệp vụ tại lưới Đơn vị quy đổi. */
+  conversionMessage(message: string): Locator {
+    return this.locators.conversionMessage(message);
+  }
+
+  /** Chọn Đơn vị tính cho dòng quy đổi theo chỉ số bắt đầu từ 0. */
+  async selectConversionUnit(rowIndex: number, option: CatalogueOption): Promise<void> {
+    const input = this.conversionRowControls('combobox').nth(rowIndex * 2);
+    await this.type(input, option.code, `Tìm Đơn vị tính dòng quy đổi ${rowIndex + 1}`);
+    await input.press('Enter');
+    await this.locators.selectedConversionUnit(option.label).nth(rowIndex).waitFor({ state: 'visible' });
+  }
+
+  /** Nhập tỷ lệ cho dòng quy đổi theo chỉ số bắt đầu từ 0. */
+  async fillConversionRatio(rowIndex: number, value: string): Promise<void> {
+    await this.type(this.conversionRowControls('spinbutton').nth(rowIndex), value, `Tỷ lệ dòng quy đổi ${rowIndex + 1}`);
+  }
+
+  /** Mở danh sách Phép tính của dòng quy đổi. */
+  async openConversionOperation(rowIndex = 0): Promise<void> {
+    await this.click(this.conversionRowControls('combobox').nth(rowIndex * 2 + 1), `Mở Phép tính dòng ${rowIndex + 1}`);
+  }
+
+  /** Chọn Phép tính của dòng quy đổi. */
+  async selectConversionOperation(value: 'Nhân' | 'Chia', rowIndex = 0): Promise<void> {
+    await this.openConversionOperation(rowIndex);
+    await this.click(this.locators.visibleDropdownOption(value), `Chọn phép tính ${value}`);
+  }
+
+  /** Trả về Mô tả tự sinh của dòng quy đổi. */
+  conversionDescription(rowIndex = 0): Locator {
+    return this.conversionRowControls('textbox').nth(rowIndex);
+  }
+
+  /** Xóa ngay dòng quy đổi theo chỉ số bắt đầu từ 0. */
+  async deleteConversionRow(rowIndex = 0): Promise<void> {
+    await this.click(this.locators.deleteConversionRowButton().nth(rowIndex), `Xóa dòng quy đổi ${rowIndex + 1}`);
+  }
+
   /** Nhập dòng quy đổi đầu tiên và trả về Đơn vị quy đổi cùng Phép tính đã chọn. */
   async fillFirstConversionRow(ratio: string, mainUnit: string): Promise<{
     readonly unit: string;
+    readonly ratio: string;
     readonly operation: string;
+    readonly description: string;
   }> {
     const comboboxes = this.conversionRowControls('combobox');
     await this.click(comboboxes.nth(0), 'Mở Đơn vị quy đổi');
@@ -1452,7 +1596,9 @@ export class VatTuPage extends BasePage {
     const operation = (await operationOption.innerText()).trim();
     await this.click(operationOption, 'Chọn Phép tính hợp lệ đầu tiên');
     await operationOption.waitFor({ state: 'hidden' });
-    return { unit, operation };
+    const actualRatio = await this.conversionRowControls('spinbutton').first().inputValue();
+    const description = await this.conversionDescription().inputValue();
+    return { unit, ratio: actualRatio, operation, description };
   }
 
   /** Trả về một lựa chọn Tài khoản kế toán theo nhãn. */

@@ -61,12 +61,18 @@
   3. Thu thập kết quả thực tế gồm PASS, FAIL, SKIP, thời lượng và artifacts.
   4. Phân tích lỗi, gom nhóm các test có cùng triệu chứng hoặc cùng root cause hợp lý; phải ghi rõ nếu nhận định root cause chỉ là suy luận.
   5. Sao chép các screenshot cần lưu lâu dài vào `report/evidence/<feature-or-run-id>/` và đặt tên theo bug/testcase.
-  6. Tạo file báo cáo mới theo `report/templates/test-execution-report-template.md`.
-  7. Kiểm tra số liệu, nội dung bug, link điều hướng, link evidence và trạng thái `.gitignore` trước khi bàn giao.
-  8. Trả lại đường dẫn file báo cáo hoàn chỉnh và tóm tắt kết quả chạy.
-- BẮT BUỘC sử dụng `report/templates/test-execution-report-template.md` làm mẫu nền mỗi khi tạo báo cáo kết quả chạy test. Phải giữ thứ tự các section, dashboard kết quả, điều hướng, các trường chi tiết bug, chú thích evidence và link quay lại đầu trang.
+  6. Tạo đồng thời hai file báo cáo từ cùng một kết quả chạy:
+     - Markdown theo `report/templates/test-execution-report-template.md`.
+     - HTML độc lập theo `report/templates/test-execution-report-template.html`.
+  7. Kiểm tra số liệu, nội dung bug, link điều hướng, evidence, trạng thái `.gitignore` và tính nhất quán giữa hai báo cáo trước khi bàn giao.
+  8. Trả lại đường dẫn của cả hai file báo cáo hoàn chỉnh và tóm tắt kết quả chạy.
+- BẮT BUỘC sử dụng đồng thời `report/templates/test-execution-report-template.md` và `report/templates/test-execution-report-template.html` làm mẫu nền mỗi khi tạo báo cáo kết quả chạy test.
+- Hai báo cáo `.md` và `.html` phải được sinh từ cùng một nguồn kết quả chạy, dùng cùng timestamp và khớp tuyệt đối về tổng số test, PASS, FAIL, SKIP, BLOCK, tỷ lệ PASS, danh sách testcase, nội dung bug, Expected, Actual và thời lượng.
+- Báo cáo Markdown phải giữ thứ tự các section, dashboard kết quả, điều hướng, các trường chi tiết bug, chú thích evidence và link quay lại đầu trang theo template Markdown.
+- Báo cáo HTML phải là một file độc lập, không phụ thuộc thư viện hoặc tài nguyên ngoài; ảnh evidence phải được chuyển sang WebP, nhúng Base64 trực tiếp và chỉ nhúng một lần cho mỗi ảnh để báo cáo vẫn xem được khi thư mục ảnh gốc không còn tồn tại.
+- Báo cáo HTML phải giữ các chức năng của template: biểu đồ tổng quan, hiệu ứng và tooltip trên các thanh ngang, bộ lọc từng cột trong bảng kết quả chi tiết, dropdown trạng thái gồm Tất cả/PASS/FAIL/SKIP/BLOCK và chế độ xem ảnh phóng to. Không thêm section Thông tin kỹ thuật.
 - Nội dung báo cáo phải được tổng hợp từ kết quả chạy thật và artifacts tương ứng. KHÔNG tự tạo hoặc suy đoán kết quả, tần suất, test data, Expected/Actual hay evidence còn thiếu.
-- Đặt tên báo cáo có ý nghĩa và kèm timestamp của lần chạy, ví dụ `report/<feature>-report-YYYY-MM-DD-HHmmss.md`.
+- Đặt tên hai báo cáo có ý nghĩa và cùng timestamp của lần chạy, ví dụ `report/<feature>-report-YYYY-MM-DD-HHmmss.md` và `report/<feature>-report-YYYY-MM-DD-HHmmss.html`.
 - Xem `test-results/`, `playwright-report/` và `allure-results/` là artifacts tạm thời. Báo cáo cần đưa lên Git KHÔNG ĐƯỢC liên kết tới file nằm trong các thư mục này.
 - Với mỗi báo cáo cần lưu screenshot lâu dài, chỉ sao chép các evidence liên quan vào `report/evidence/<feature-or-run-id>/` và sử dụng tên file ổn định, có ý nghĩa.
 - Ưu tiên screenshot được attach ngay tại thời điểm mismatch. Với `expect.soft()` hoặc testcase tiếp tục thay đổi UI sau điểm lỗi, không dùng screenshot cuối testcase nếu nó không còn hiển thị triệu chứng; khi chưa có milestone evidence, phải trích đúng frame từ trace/video.
@@ -76,7 +82,7 @@
 - Khi `Chạy và report`, không truyền `--reporter` trên CLI vì tùy chọn này thay thế reporter trong config và làm mất cơ chế ghi JSON từng testcase.
 - Bắt buộc mở kiểm tra trực quan từng ảnh trước khi đưa vào báo cáo, xác nhận ảnh thể hiện đúng trường, giá trị Actual và nội dung bug.
 - Liên kết evidence trong báo cáo Markdown bằng đường dẫn tương đối dưới `./evidence/...`; phải kiểm tra mọi file được liên kết đều tồn tại trước khi bàn giao.
-- Khi chuẩn bị thay đổi để commit, phải bao gồm cả file báo cáo Markdown và thư mục `report/evidence/` tương ứng.
+- Khi chuẩn bị thay đổi để commit, phải bao gồm cả hai file báo cáo Markdown/HTML và thư mục `report/evidence/` tương ứng của báo cáo Markdown.
 - Trước khi bàn giao báo cáo, BẮT BUỘC kiểm tra:
   - Tổng `PASS + FAIL + SKIP` bằng tổng số test.
   - Tỷ lệ PASS được tính đúng.
@@ -84,4 +90,6 @@
   - Mỗi bug có đủ bảy phần bắt buộc trong template.
   - Có link quay lại đầu trang sau từng phần chi tiết chính.
   - Tất cả đường dẫn evidence hợp lệ và không bị `.gitignore` loại bỏ.
+  - Số liệu và nội dung giữa báo cáo Markdown và HTML khớp tuyệt đối.
+  - Báo cáo HTML không liên kết tới evidence ngoài file và tất cả ảnh cần thiết đã được nhúng WebP Base64.
 - Bảo toàn các chỉnh sửa thủ công trong báo cáo hiện có. Chỉ cập nhật đúng phần người dùng yêu cầu, trừ khi người dùng yêu cầu viết lại toàn bộ file.

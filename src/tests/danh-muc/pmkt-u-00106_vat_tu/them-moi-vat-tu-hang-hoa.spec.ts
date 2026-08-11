@@ -2,13 +2,17 @@ import { test, expect } from '@fixtures/base.fixture';
 import { firstVisibleActiveMainUnit, goodsDefaultAccountsFromDatabase, openVatTuWithCatalogues } from '@helpers/vat-tu-expected-data.helper';
 import {
   boundaryText,
+  fullGoodsData,
   openGoodsInventoryTab,
   openGoodsTaxTab,
   openGoodsWarehouse,
   prepareGoodsAccounting,
   prepareGoodsExciseTaxes,
   prepareGoodsResourceTaxes,
+  prepareGoodsConversionGrid,
   prepareGoodsWarehouses,
+  verifyFullGoodsSavedInDatabase,
+  verifyRequiredGoodsSavedInDatabase,
   verifyMaterialTypeCards,
 } from '@helpers/vat-tu-part1.helper';
 import { requireCredentials } from '@utils/env.config';
@@ -3482,6 +3486,607 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Hàng hóa TC4-TC242, TC257-
     if (firstInactiveIndex >= 0) {
       expect(actualStatuses.slice(firstInactiveIndex).every((status) => status === 'NgungHoatDong'), 'Mọi Thuế tiêu thụ đặc biệt Hoạt động phải đứng trước Thuế Ngừng hoạt động').toBe(true);
     }
+  });
+
+  test('TC_PMKT-U-00106-271 - đổi sang Dịch vụ ẩn tab Đơn vị quy đổi', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Hàng hóa tại tab Đơn vị quy đổi theo pre-condition testcase.
+    await vatTuPage.openFromDanhMuc();
+    await vatTuPage.openMaterialTypePopup();
+    await vatTuPage.selectMaterialType('Hàng hóa');
+    await vatTuPage.openFormTab('Đơn vị quy đổi');
+
+    // Hành động: Thay đổi tính chất > chọn Dịch vụ.
+    await vatTuPage.changeMaterialType();
+    await vatTuPage.selectMaterialType('Dịch vụ');
+
+    // Xác nhận UI: Form tải lại đúng loại Dịch vụ và ẩn hoàn toàn tab Đơn vị quy đổi.
+    await expect(vatTuPage.materialTypeValue('Dịch vụ')).toBeVisible();
+    await expect(vatTuPage.formTab('Đơn vị quy đổi')).toBeHidden();
+  });
+
+  test('TC_PMKT-U-00106-272 - đổi từ Dịch vụ về Hàng hóa hiện lại tab Đơn vị quy đổi', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Hàng hóa rồi đổi sang Dịch vụ để tab Đơn vị quy đổi bị ẩn.
+    await vatTuPage.openFromDanhMuc();
+    await vatTuPage.openMaterialTypePopup();
+    await vatTuPage.selectMaterialType('Hàng hóa');
+    await vatTuPage.changeMaterialType();
+    await vatTuPage.selectMaterialType('Dịch vụ');
+    await expect(vatTuPage.formTab('Đơn vị quy đổi')).toBeHidden();
+
+    // Hành động: Thay đổi tính chất > chọn lại Hàng hóa.
+    await vatTuPage.changeMaterialType();
+    await vatTuPage.selectMaterialType('Hàng hóa');
+
+    // Xác nhận UI: Form tải lại đúng loại Hàng hóa và tab Đơn vị quy đổi hiển thị bình thường.
+    await expect(vatTuPage.materialTypeValue('Hàng hóa')).toBeVisible();
+    await expect(vatTuPage.formTab('Đơn vị quy đổi')).toBeVisible();
+  });
+
+  test('TC_PMKT-U-00106-273 - đổi sang Dịch vụ hiện tab Đơn vị tính khác', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Hàng hóa tại tab Đơn vị quy đổi theo pre-condition testcase.
+    await vatTuPage.openFromDanhMuc();
+    await vatTuPage.openMaterialTypePopup();
+    await vatTuPage.selectMaterialType('Hàng hóa');
+    await vatTuPage.openFormTab('Đơn vị quy đổi');
+
+    // Hành động: Thay đổi tính chất > chọn Dịch vụ.
+    await vatTuPage.changeMaterialType();
+    await vatTuPage.selectMaterialType('Dịch vụ');
+
+    // Xác nhận UI: Form tải lại đúng loại Dịch vụ và tab Đơn vị tính khác hiển thị.
+    await expect(vatTuPage.materialTypeValue('Dịch vụ')).toBeVisible();
+    await expect(vatTuPage.formTab('Đơn vị tính khác')).toBeVisible();
+  });
+
+  test('TC_PMKT-U-00106-274 - đổi từ Dịch vụ về Hàng hóa ẩn tab Đơn vị tính khác', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Hàng hóa rồi đổi sang Dịch vụ để tab Đơn vị tính khác xuất hiện.
+    await vatTuPage.openFromDanhMuc();
+    await vatTuPage.openMaterialTypePopup();
+    await vatTuPage.selectMaterialType('Hàng hóa');
+    await vatTuPage.changeMaterialType();
+    await vatTuPage.selectMaterialType('Dịch vụ');
+    await expect(vatTuPage.formTab('Đơn vị tính khác')).toBeVisible();
+
+    // Hành động: Thay đổi tính chất > chọn lại Hàng hóa.
+    await vatTuPage.changeMaterialType();
+    await vatTuPage.selectMaterialType('Hàng hóa');
+
+    // Xác nhận UI: Form tải lại đúng loại Hàng hóa và ẩn hoàn toàn tab Đơn vị tính khác.
+    await expect(vatTuPage.materialTypeValue('Hàng hóa')).toBeVisible();
+    await expect(vatTuPage.formTab('Đơn vị tính khác')).toBeHidden();
+  });
+
+  test('TC_PMKT-U-00106-275 - hiển thị đúng control trên dòng lưới Đơn vị quy đổi', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Hàng hóa và tab Đơn vị quy đổi.
+    await vatTuPage.openFromDanhMuc();
+    await vatTuPage.openMaterialTypePopup();
+    await vatTuPage.selectMaterialType('Hàng hóa');
+    await vatTuPage.openFormTab('Đơn vị quy đổi');
+
+    // Hành động: Nhấn Thêm dòng để hiển thị các control của một dòng quy đổi mới.
+    await vatTuPage.addConversionRow();
+
+    // Xác nhận UI: Hiển thị đủ và đúng thứ tự bốn tên cột theo testcase.
+    const columnHeaders = (await vatTuPage.conversionColumnHeaders().allTextContents())
+      .map((header) => header.trim())
+      .filter(Boolean);
+    await expect.soft(
+      columnHeaders.map((header) => header.replace(/\s*\*$/, '')),
+      'Lưới Đơn vị quy đổi phải hiển thị đủ và đúng thứ tự bốn tên cột theo testcase',
+    ).toEqual(['Đơn vị tính', 'Tỷ lệ quy đổi', 'Phép tính', 'Mô tả']);
+    await expect.soft(
+      columnHeaders.slice(0, 3).every((header) => /\*$/.test(header)),
+      'Ba cột Đơn vị tính, Tỷ lệ quy đổi và Phép tính phải hiển thị dấu bắt buộc',
+    ).toBe(true);
+
+    // Xác nhận UI: Đơn vị tính, Tỷ lệ và Phép tính là các control bắt buộc đúng loại.
+    await expect(vatTuPage.conversionRowControls('combobox')).toHaveCount(2);
+    await expect(vatTuPage.conversionRowControls('spinbutton')).toHaveCount(1);
+
+    // Xác nhận UI: Phép tính mặc định là Nhân; Mô tả là textbox read-only và để trống.
+    await expect(vatTuPage.conversionOperationCell('Nhân')).toBeVisible();
+    const description = vatTuPage.conversionRowControls('textbox').first();
+    await expect(description).toBeVisible();
+    await expect(description).toHaveAttribute('readonly', '');
+    await expect(description).toHaveValue('');
+  });
+
+  test('TC_PMKT-U-00106-276 - thêm dòng Đơn vị quy đổi với thông tin đầy đủ', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Lấy hai Đơn vị tính Hoạt động khác nhau từ DB đúng tenant.
+    const catalogues = await openVatTuWithCatalogues(vatTuPage);
+    const activeUnits = catalogues.units.filter((unit) => unit.status === 'HoatDong');
+    test.skip(activeUnits.length < 2, 'DB cần tối thiểu hai Đơn vị tính Hoạt động');
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa');
+    await vatTuPage.openMainUnitDropdown(); await vatTuPage.selectMainUnit(activeUnits[0]!);
+    await vatTuPage.openFormTab('Đơn vị quy đổi'); await vatTuPage.addConversionRow();
+    // Hành động: Chọn Đơn vị tính, nhập tỷ lệ 12 và giữ Phép tính mặc định Nhân.
+    await vatTuPage.selectFirstConversionUnit(activeUnits[1]!);
+    await vatTuPage.conversionRowControls('spinbutton').fill('12');
+    // Xác nhận UI: Dòng mới nhận đủ dữ liệu và Mô tả tự sinh đúng công thức Nhân.
+    await expect(vatTuPage.selectedFirstConversionUnit(activeUnits[1]!.label)).toBeVisible();
+    await expect(vatTuPage.conversionOperationCell('Nhân')).toBeVisible();
+    await expect(vatTuPage.conversionRowControls('textbox').first()).toHaveValue(`1 ${activeUnits[1]!.name} = 12 ${activeUnits[0]!.name}`);
+  });
+
+  test('TC_PMKT-U-00106-277 - combogrid Đơn vị tính quy đổi khớp cột dữ liệu DB và thứ tự trạng thái', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Lấy toàn bộ Đơn vị tính từ DB đúng tenant và mở combogrid trên dòng quy đổi.
+    const { units } = await prepareGoodsConversionGrid(vatTuPage); await vatTuPage.openFirstConversionUnitDropdown();
+    const headers = (await vatTuPage.mainUnitDropdown().getByRole('columnheader').allTextContents()).map((v) => v.trim()).filter(Boolean);
+    const labels = (await vatTuPage.conversionUnitOptions().allTextContents()).map((v) => v.trim()).filter(Boolean);
+    // Xác nhận UI/DB: Cột, dữ liệu và thứ tự Hoạt động trên Ngừng hoạt động đúng testcase.
+    await expect.soft(headers).toEqual(['Mã đơn vị tính', 'Tên đơn vị tính', 'Trạng thái']);
+    await expect.soft([...labels].sort()).toEqual([...units.map((u) => u.label)].sort());
+    const statuses = labels.map((label) => units.find((u) => u.label === label)?.status);
+    const firstInactive = statuses.indexOf('NgungHoatDong'); expect(firstInactive < 0 || statuses.slice(firstInactive).every((s) => s === 'NgungHoatDong')).toBe(true);
+  });
+
+  test('TC_PMKT-U-00106-278 - Đơn vị tính quy đổi Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage }) => {
+    const { units } = await prepareGoodsConversionGrid(vatTuPage); const inactive = units.find((u) => u.status === 'NgungHoatDong');
+    test.skip(!inactive, 'DB không có Đơn vị tính Ngừng hoạt động'); if (!inactive) return;
+    await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit(inactive.code);
+    test.skip(!(await vatTuPage.conversionUnitOptions().filter({ hasText: inactive.label }).isVisible()), 'Combogrid không hiển thị Đơn vị tính Ngừng hoạt động');
+    const style = await vatTuPage.conversionUnitOptionStyle(inactive.label);
+    expect(isGrayCssColor(style.color) || Number(style.opacity) < 1).toBe(true);
+  });
+
+  test('TC_PMKT-U-00106-279 - xác nhận sử dụng Đơn vị tính quy đổi Ngừng hoạt động', async ({ vatTuPage }) => {
+    const { units } = await prepareGoodsConversionGrid(vatTuPage); const inactive = units.find((u) => u.status === 'NgungHoatDong');
+    test.skip(!inactive, 'DB không có Đơn vị tính Ngừng hoạt động'); if (!inactive) return;
+    await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit(inactive.code);
+    test.skip(!(await vatTuPage.conversionUnitOptions().filter({ hasText: inactive.label }).isVisible()), 'BLOCK bởi TC277: combogrid không hiển thị Đơn vị tính Ngừng hoạt động');
+    await vatTuPage.selectFirstConversionUnit(inactive);
+    await expect(vatTuPage.mainUnitConfirmationMessage()).toHaveText('Bản ghi đang ở trạng thái Ngừng hoạt động. Bạn có chắc chắn muốn sử dụng?');
+    await vatTuPage.confirmInactiveMainUnit(); await expect(vatTuPage.selectedFirstConversionUnit(inactive.label)).toBeVisible();
+  });
+
+  test('TC_PMKT-U-00106-280 - hủy sử dụng Đơn vị tính quy đổi Ngừng hoạt động', async ({ vatTuPage }) => {
+    const { units } = await prepareGoodsConversionGrid(vatTuPage); const inactive = units.find((u) => u.status === 'NgungHoatDong');
+    test.skip(!inactive, 'DB không có Đơn vị tính Ngừng hoạt động'); if (!inactive) return;
+    await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit(inactive.code);
+    test.skip(!(await vatTuPage.conversionUnitOptions().filter({ hasText: inactive.label }).isVisible()), 'BLOCK bởi TC277: combogrid không hiển thị Đơn vị tính Ngừng hoạt động');
+    await vatTuPage.selectFirstConversionUnit(inactive); await vatTuPage.cancelInactiveMainUnit();
+    await expect(vatTuPage.selectedFirstConversionUnit(inactive.label)).toBeHidden();
+  });
+
+  test('TC_PMKT-U-00106-281 - chọn Đơn vị tính quy đổi Hoạt động không hiển thị cảnh báo', async ({ vatTuPage }) => {
+    const { units } = await prepareGoodsConversionGrid(vatTuPage); const active = units.find((u) => u.status === 'HoatDong');
+    test.skip(!active, 'DB không có Đơn vị tính Hoạt động'); if (!active) return;
+    await vatTuPage.selectFirstConversionUnit(active);
+    await expect(vatTuPage.selectedFirstConversionUnit(active.label)).toBeVisible(); await expect(vatTuPage.mainUnitConfirmationDialog()).toBeHidden();
+  });
+
+  test('TC_PMKT-U-00106-282 - tìm Đơn vị tính quy đổi theo Mã', async ({ vatTuPage }) => {
+    const { units } = await prepareGoodsConversionGrid(vatTuPage); const unit = units[0]; test.skip(!unit, 'DB không có Đơn vị tính'); if (!unit) return;
+    await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit(unit.code);
+    expect((await vatTuPage.conversionUnitOptions().allTextContents()).map((v) => v.trim())).toContain(unit.label);
+  });
+
+  test('TC_PMKT-U-00106-283 - tìm Đơn vị tính quy đổi theo Tên', async ({ vatTuPage }) => {
+    const { units } = await prepareGoodsConversionGrid(vatTuPage); const unit = units[0]; test.skip(!unit, 'DB không có Đơn vị tính'); if (!unit) return;
+    await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit(unit.name);
+    expect((await vatTuPage.conversionUnitOptions().allTextContents()).map((v) => v.trim())).toContain(unit.label);
+  });
+
+  test('TC_PMKT-U-00106-284 - tìm Đơn vị tính quy đổi theo Trạng thái', async ({ vatTuPage }) => {
+    const { units } = await prepareGoodsConversionGrid(vatTuPage); await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit('Hoạt động');
+    const labels = (await vatTuPage.conversionUnitOptions().allTextContents()).map((v) => v.trim()).filter(Boolean);
+    expect(labels.length).toBeGreaterThan(0); expect(labels.every((label) => units.find((u) => u.label === label)?.status === 'HoatDong')).toBe(true);
+  });
+
+  test('TC_PMKT-U-00106-285 - Enter chọn dòng Đơn vị tính quy đổi đầu tiên', async ({ vatTuPage }) => {
+    const { units } = await prepareGoodsConversionGrid(vatTuPage); const keyword = units[0]?.code.slice(0, 1); test.skip(!keyword, 'DB không có dữ liệu tìm kiếm'); if (!keyword) return;
+    await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit(keyword); const first = (await vatTuPage.conversionUnitOptions().allTextContents()).map((v) => v.trim()).filter(Boolean)[0]!;
+    await vatTuPage.pressFirstConversionUnitKey('Enter'); await expect(vatTuPage.selectedFirstConversionUnit(first)).toBeVisible();
+  });
+
+  test('TC_PMKT-U-00106-286 - Up Down di chuyển dòng Đơn vị tính quy đổi', async ({ vatTuPage }) => {
+    await prepareGoodsConversionGrid(vatTuPage); await vatTuPage.openFirstConversionUnitDropdown(); const before = await vatTuPage.activeConversionUnitLabel();
+    await vatTuPage.pressFirstConversionUnitKey('ArrowDown'); const down = await vatTuPage.activeConversionUnitLabel(); await vatTuPage.pressFirstConversionUnitKey('ArrowUp'); const up = await vatTuPage.activeConversionUnitLabel();
+    expect(down).not.toBe(before); expect(up).not.toBe(down); await expect(vatTuPage.conversionRowControls('combobox').first()).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  test('TC_PMKT-U-00106-287 - ESC đóng dropdown Đơn vị tính quy đổi không đổi giá trị', async ({ vatTuPage }) => {
+    await prepareGoodsConversionGrid(vatTuPage); await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.pressFirstConversionUnitKey('Escape');
+    await expect(vatTuPage.mainUnitDropdown()).toBeHidden(); await expect(vatTuPage.conversionRowControls('combobox').first()).toHaveValue('');
+  });
+
+  test('TC_PMKT-U-00106-288 - icon X xóa nhanh Đơn vị tính quy đổi', async ({ vatTuPage }) => {
+    const { units } = await prepareGoodsConversionGrid(vatTuPage); const active = units.find((u) => u.status === 'HoatDong'); test.skip(!active, 'DB không có Đơn vị tính Hoạt động'); if (!active) return;
+    await vatTuPage.selectFirstConversionUnit(active); await vatTuPage.clearFirstConversionUnit(); await expect(vatTuPage.selectedFirstConversionUnit(active.label)).toBeHidden();
+  });
+
+  test('TC_PMKT-U-00106-289 - hiển thị nút Thêm nhanh Đơn vị tính quy đổi theo quyền', async ({ vatTuPage }) => {
+    await prepareGoodsConversionGrid(vatTuPage);
+    await vatTuPage.openFirstConversionUnitDropdown();
+    await expect(
+      vatTuPage.conversionUnitQuickAddButton(),
+      'BUG: tài khoản full quyền phải hiển thị nút (+) Thêm nhanh Đơn vị tính trên dòng quy đổi',
+    ).toBeVisible();
+  });
+
+  test('TC_PMKT-U-00106-290 - giao diện form Thêm nhanh Đơn vị tính quy đổi', async () => {
+    test.skip(true, 'BLOCK: bị chặn bởi TC289 - tài khoản full quyền không hiển thị nút (+) Thêm nhanh Đơn vị tính');
+  });
+
+  test('TC_PMKT-U-00106-291 - validate bắt buộc form Thêm nhanh Đơn vị tính quy đổi', async () => {
+    test.skip(true, 'BLOCK: bị chặn bởi TC289 - không thể mở form Thêm nhanh Đơn vị tính');
+  });
+
+  test('TC_PMKT-U-00106-292 - validate trùng Mã form Thêm nhanh Đơn vị tính quy đổi', async () => {
+    test.skip(true, 'BLOCK: bị chặn bởi TC289 - không thể mở form Thêm nhanh Đơn vị tính');
+  });
+
+  test('TC_PMKT-U-00106-293 - boundary Mã form Thêm nhanh Đơn vị tính quy đổi', async () => {
+    test.skip(true, 'BLOCK: bị chặn bởi TC289 - không thể mở form Thêm nhanh Đơn vị tính');
+  });
+
+  test('TC_PMKT-U-00106-294 - boundary Tên form Thêm nhanh Đơn vị tính quy đổi', async () => {
+    test.skip(true, 'BLOCK: bị chặn bởi TC289 - không thể mở form Thêm nhanh Đơn vị tính');
+  });
+
+  test('TC_PMKT-U-00106-295 - lưu Thêm nhanh Đơn vị tính quy đổi và tự động điền', async () => {
+    test.skip(true, 'BLOCK: bị chặn bởi TC289 - không thể mở form Thêm nhanh Đơn vị tính');
+  });
+
+  test('TC_PMKT-U-00106-296 - hủy form Thêm nhanh Đơn vị tính quy đổi', async () => {
+    test.skip(true, 'BLOCK: bị chặn bởi TC289 - không thể mở form Thêm nhanh Đơn vị tính');
+  });
+
+  test('TC_PMKT-U-00106-297 - control Numeric Tỷ lệ quy đổi mặc định trống', async ({ vatTuPage }) => {
+    await prepareGoodsConversionGrid(vatTuPage);
+    const ratio = vatTuPage.conversionRowControls('spinbutton').first();
+    await expect(ratio).toBeVisible();
+    await expect(ratio).toHaveValue('');
+  });
+
+  test('TC_PMKT-U-00106-298 - validate Đơn vị quy đổi trùng Đơn vị tính chính', async ({ vatTuPage }) => {
+    const { units } = await openVatTuWithCatalogues(vatTuPage);
+    const mainUnit = units.find((unit) => unit.status === 'HoatDong');
+    test.skip(!mainUnit, 'DB không có Đơn vị tính Hoạt động'); if (!mainUnit) return;
+    const generator = new TestDataGenerator();
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa');
+    await vatTuPage.fillRequiredInventoryMaterialFields(generator.uniqueCode('TC298'), generator.uniqueKeyword('TC298'), mainUnit);
+    await vatTuPage.openFormTab('Đơn vị quy đổi'); await vatTuPage.addConversionRow();
+    await vatTuPage.selectConversionUnit(0, mainUnit); await vatTuPage.fillConversionRatio(0, '5'); await vatTuPage.saveMaterial();
+    await expect(vatTuPage.conversionMessage('Đơn vị tính không được trùng với đơn vị tính chính')).toBeVisible();
+  });
+
+  test('TC_PMKT-U-00106-299 - validate hai dòng chọn trùng Đơn vị tính quy đổi', async ({ vatTuPage }) => {
+    const { units } = await openVatTuWithCatalogues(vatTuPage);
+    const activeUnits = units.filter((unit) => unit.status === 'HoatDong');
+    test.skip(activeUnits.length < 2, 'DB cần tối thiểu hai Đơn vị tính Hoạt động');
+    const generator = new TestDataGenerator(); const mainUnit = activeUnits[0]!; const conversionUnit = activeUnits[1]!;
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa');
+    await vatTuPage.fillRequiredInventoryMaterialFields(generator.uniqueCode('TC299'), generator.uniqueKeyword('TC299'), mainUnit);
+    await vatTuPage.openFormTab('Đơn vị quy đổi'); await vatTuPage.addConversionRow(); await vatTuPage.addConversionRow();
+    await vatTuPage.selectConversionUnit(0, conversionUnit); await vatTuPage.fillConversionRatio(0, '2');
+    await vatTuPage.selectConversionUnit(1, conversionUnit); await vatTuPage.fillConversionRatio(1, '3'); await vatTuPage.saveMaterial();
+    await expect(vatTuPage.conversionMessage('Không được chọn trùng đơn vị tính')).toBeVisible();
+  });
+
+  test('TC_PMKT-U-00106-300 - validate Tỷ lệ quy đổi bằng 0', async ({ vatTuPage }) => {
+    const { units } = await openVatTuWithCatalogues(vatTuPage); const activeUnits = units.filter((unit) => unit.status === 'HoatDong');
+    test.skip(activeUnits.length < 2, 'DB cần tối thiểu hai Đơn vị tính Hoạt động');
+    const generator = new TestDataGenerator(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa');
+    await vatTuPage.fillRequiredInventoryMaterialFields(generator.uniqueCode('TC300'), generator.uniqueKeyword('TC300'), activeUnits[0]!);
+    await vatTuPage.openFormTab('Đơn vị quy đổi'); await vatTuPage.addConversionRow(); await vatTuPage.selectConversionUnit(0, activeUnits[1]!);
+    await vatTuPage.fillConversionRatio(0, '0'); await vatTuPage.saveMaterial();
+    await expect(vatTuPage.conversionMessage('Tỷ lệ quy đổi phải là số dương')).toBeVisible();
+  });
+
+  test('TC_PMKT-U-00106-301 - validate Tỷ lệ quy đổi nhỏ hơn 0', async ({ vatTuPage }) => {
+    const { units } = await openVatTuWithCatalogues(vatTuPage); const activeUnits = units.filter((unit) => unit.status === 'HoatDong');
+    test.skip(activeUnits.length < 2, 'DB cần tối thiểu hai Đơn vị tính Hoạt động');
+    const generator = new TestDataGenerator(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa');
+    await vatTuPage.fillRequiredInventoryMaterialFields(generator.uniqueCode('TC301'), generator.uniqueKeyword('TC301'), activeUnits[0]!);
+    await vatTuPage.openFormTab('Đơn vị quy đổi'); await vatTuPage.addConversionRow(); await vatTuPage.selectConversionUnit(0, activeUnits[1]!);
+    await vatTuPage.fillConversionRatio(0, '-5'); await vatTuPage.saveMaterial();
+    await expect(vatTuPage.conversionMessage('Tỷ lệ quy đổi phải là số dương')).toBeVisible();
+  });
+
+  test('TC_PMKT-U-00106-302 - Phép tính mặc định Nhân và chỉ có Nhân Chia', async ({ vatTuPage }) => {
+    await prepareGoodsConversionGrid(vatTuPage);
+    await expect(vatTuPage.conversionOperationCell('Nhân')).toBeVisible();
+    await vatTuPage.openConversionOperation();
+    await expect(vatTuPage.conversionUnitOptions()).toHaveText(['Nhân', 'Chia']);
+  });
+
+  test('TC_PMKT-U-00106-303 - chọn Phép tính Chia thành công', async ({ vatTuPage }) => {
+    await prepareGoodsConversionGrid(vatTuPage); await vatTuPage.selectConversionOperation('Chia');
+    await expect(vatTuPage.conversionOperationCell('Chia')).toBeVisible();
+  });
+
+  test('TC_PMKT-U-00106-304 - Mô tả là Textbox read-only', async ({ vatTuPage }) => {
+    await prepareGoodsConversionGrid(vatTuPage); const description = vatTuPage.conversionDescription();
+    await expect(description).toBeVisible(); await expect(description).toHaveAttribute('readonly', '');
+  });
+
+  test('TC_PMKT-U-00106-305 - Mô tả tự tính đúng với phép Nhân', async ({ vatTuPage }) => {
+    const { units } = await openVatTuWithCatalogues(vatTuPage); const activeUnits = units.filter((unit) => unit.status === 'HoatDong');
+    test.skip(activeUnits.length < 2, 'DB cần tối thiểu hai Đơn vị tính Hoạt động'); const mainUnit = activeUnits[0]!; const conversionUnit = activeUnits[1]!;
+    const ratio = 12;
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa'); await vatTuPage.openMainUnitDropdown(); await vatTuPage.selectMainUnit(mainUnit);
+    await vatTuPage.openFormTab('Đơn vị quy đổi'); await vatTuPage.addConversionRow(); await vatTuPage.selectConversionUnit(0, conversionUnit); await vatTuPage.fillConversionRatio(0, String(ratio));
+    await expect(vatTuPage.conversionDescription()).toHaveValue(`1 ${conversionUnit.name} = ${ratio} ${mainUnit.name}`);
+  });
+
+  test('TC_PMKT-U-00106-306 - Mô tả tự tính đúng với phép Chia', async ({ vatTuPage }) => {
+    const { units } = await openVatTuWithCatalogues(vatTuPage); const activeUnits = units.filter((unit) => unit.status === 'HoatDong');
+    test.skip(activeUnits.length < 2, 'DB cần tối thiểu hai Đơn vị tính Hoạt động'); const mainUnit = activeUnits[0]!; const conversionUnit = activeUnits[1]!;
+    const ratio = 12;
+    const reciprocalRatio = Number((1 / ratio).toFixed(6));
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa'); await vatTuPage.openMainUnitDropdown(); await vatTuPage.selectMainUnit(mainUnit);
+    await vatTuPage.openFormTab('Đơn vị quy đổi'); await vatTuPage.addConversionRow(); await vatTuPage.selectConversionUnit(0, conversionUnit); await vatTuPage.fillConversionRatio(0, String(ratio)); await vatTuPage.selectConversionOperation('Chia');
+    await expect(vatTuPage.conversionDescription()).toHaveValue(`1 ${conversionUnit.name} = ${reciprocalRatio} ${mainUnit.name}`);
+  });
+
+  test('TC_PMKT-U-00106-307 - xóa dòng Đơn vị quy đổi không cảnh báo', async ({ vatTuPage }) => {
+    await prepareGoodsConversionGrid(vatTuPage); await expect(vatTuPage.conversionRowControls('spinbutton')).toHaveCount(1);
+    await vatTuPage.deleteConversionRow();
+    await expect(vatTuPage.conversionRowControls('spinbutton')).toHaveCount(0);
+    await expect(vatTuPage.mainUnitConfirmationDialog()).toBeHidden();
+  });
+
+  test('TC_PMKT-U-00106-308 - xóa dòng quy đổi cuối cùng rồi Lưu và kiểm tra DB', async ({ vatTuPage, db }, testInfo) => {
+    const credentials = requireCredentials(); const { groups, units } = await openVatTuWithCatalogues(vatTuPage);
+    const group = groups.find((item) => item.status === 'HoatDong'); const mainUnit = units.find((item) => item.status === 'HoatDong');
+    test.skip(!group || !mainUnit, 'DB cần Nhóm vật tư và Đơn vị tính Hoạt động'); if (!group || !mainUnit) return;
+    const material = fullGoodsData('TC308', group, mainUnit);
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa');
+    const selection = await vatTuPage.fillFullGoodsMaterial(material);
+    await vatTuPage.openFormTab('Thông tin thuế');
+    await testInfo.attach('BUG-VTHH-14-tax-ui-values', {
+      body: await vatTuPage.createMaterialDialog.screenshot(),
+      contentType: 'image/png',
+    });
+    await vatTuPage.openFormTab('Đơn vị quy đổi'); await vatTuPage.deleteConversionRow();
+    await expect(vatTuPage.conversionRowControls('spinbutton')).toHaveCount(0); await vatTuPage.saveMaterial();
+    await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công'); await vatTuPage.searchMaterial(material.code);
+    await expect(vatTuPage.materialRow(material.code)).toBeVisible();
+    await verifyFullGoodsSavedInDatabase(db, credentials.username, material, selection, true, 0);
+  });
+
+  test('TC_PMKT-U-00106-309 - Lưu Hàng hóa đầy đủ trạng thái Hoạt động và kiểm tra DB', async ({ vatTuPage, db }) => {
+    const credentials = requireCredentials(); const { groups, units } = await openVatTuWithCatalogues(vatTuPage);
+    const group = groups.find((item) => item.status === 'HoatDong'); const mainUnit = units.find((item) => item.status === 'HoatDong');
+    test.skip(!group || !mainUnit, 'DB cần Nhóm vật tư và Đơn vị tính Hoạt động'); if (!group || !mainUnit) return;
+    const material = fullGoodsData('TC309', group, mainUnit);
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa'); const selection = await vatTuPage.fillFullGoodsMaterial(material);
+    await vatTuPage.saveMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công');
+    await vatTuPage.searchMaterial(material.code); await expect(vatTuPage.materialRow(material.code)).toBeVisible();
+    await verifyFullGoodsSavedInDatabase(db, credentials.username, material, selection, true);
+  });
+
+  test('TC_PMKT-U-00106-310 - Lưu Hàng hóa chỉ với trường bắt buộc và kiểm tra mặc định DB', async ({ vatTuPage, db }) => {
+    const credentials = requireCredentials(); const { units } = await openVatTuWithCatalogues(vatTuPage);
+    const mainUnit = units.find((item) => item.status === 'HoatDong'); test.skip(!mainUnit, 'DB cần Đơn vị tính Hoạt động'); if (!mainUnit) return;
+    const generator = new TestDataGenerator(); const code = generator.uniqueCode('TC310'); const name = generator.uniqueKeyword('TC310');
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa');
+    await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit); const defaults = await vatTuPage.readRequiredGoodsUiDefaults();
+    await vatTuPage.saveMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công');
+    await vatTuPage.searchMaterial(code); await expect(vatTuPage.materialRow(code)).toBeVisible();
+    await verifyRequiredGoodsSavedInDatabase(db, credentials.username, { code, name, mainUnit, active: true, defaults });
+  });
+
+  test('TC_PMKT-U-00106-311 - Lưu Hàng hóa đầy đủ trạng thái Ngừng hoạt động và kiểm tra DB', async ({ vatTuPage, db }) => {
+    const credentials = requireCredentials(); const { groups, units } = await openVatTuWithCatalogues(vatTuPage);
+    const group = groups.find((item) => item.status === 'HoatDong'); const mainUnit = units.find((item) => item.status === 'HoatDong');
+    test.skip(!group || !mainUnit, 'DB cần Nhóm vật tư và Đơn vị tính Hoạt động'); if (!group || !mainUnit) return;
+    const material = fullGoodsData('TC311', group, mainUnit);
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa'); const selection = await vatTuPage.fillFullGoodsMaterial(material);
+    await vatTuPage.setMaterialStatus(false); await vatTuPage.saveMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công');
+    await vatTuPage.searchMaterial(material.code); await expect(vatTuPage.materialRow(material.code)).toContainText('Ngừng hoạt động');
+    await verifyFullGoodsSavedInDatabase(db, credentials.username, material, selection, false);
+  });
+
+  test('TC_PMKT-U-00106-312 - Lưu và Thêm mới reset form, hiển thị danh sách và kiểm tra DB', async ({ vatTuPage, db }) => {
+    const credentials = requireCredentials(); const { groups, units } = await openVatTuWithCatalogues(vatTuPage);
+    const group = groups.find((item) => item.status === 'HoatDong'); const mainUnit = units.find((item) => item.status === 'HoatDong');
+    test.skip(!group || !mainUnit, 'DB cần Nhóm vật tư và Đơn vị tính Hoạt động'); if (!group || !mainUnit) return;
+    const material = fullGoodsData('TC312', group, mainUnit);
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa'); const selection = await vatTuPage.fillFullGoodsMaterial(material);
+    await vatTuPage.saveAndAddMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công');
+    await expect(vatTuPage.createMaterialDialog).toBeVisible(); await expect(vatTuPage.materialCodeInput()).toHaveValue(''); await expect(vatTuPage.materialNameInput()).toHaveValue('');
+    await vatTuPage.discardMaterialFormIfOpen(); await vatTuPage.searchMaterial(material.code); await expect(vatTuPage.materialRow(material.code)).toBeVisible();
+    await verifyFullGoodsSavedInDatabase(db, credentials.username, material, selection, true);
+  });
+
+  test('TC_PMKT-U-00106-313 - icon X đóng form ngay sau khi Lưu và Thêm mới reset', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Tạo Hàng hóa chỉ với trường bắt buộc và đưa form về trạng thái reset sau Lưu và Thêm mới.
+    const { units } = await openVatTuWithCatalogues(vatTuPage); const mainUnit = units.find((item) => item.status === 'HoatDong');
+    test.skip(!mainUnit, 'DB cần Đơn vị tính Hoạt động'); if (!mainUnit) return;
+    const generator = new TestDataGenerator(); const code = generator.uniqueCode('TC313'); const name = generator.uniqueKeyword('TC313');
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa'); await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit);
+    await vatTuPage.saveAndAddMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công'); await expect(vatTuPage.materialCodeInput()).toHaveValue('');
+    // Hành động: Nhấn icon X khi form reset chưa có thay đổi mới.
+    await vatTuPage.closeCreatingMaterial();
+    // Xác nhận UI: Form đóng, quay về danh sách và không hiển thị cảnh báo.
+    await expect(vatTuPage.createMaterialDialog).toBeHidden(); await expect(vatTuPage.closeConfirmationDialog).toBeHidden(); await expect(vatTuPage.materialSearchInput()).toBeVisible();
+  });
+
+  test('TC_PMKT-U-00106-314 - icon X hiển thị cảnh báo sau khi thay đổi form reset', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Lưu Hàng hóa tối thiểu, reset form rồi nhập lại Tên vật tư unique.
+    const { units } = await openVatTuWithCatalogues(vatTuPage); const mainUnit = units.find((item) => item.status === 'HoatDong');
+    test.skip(!mainUnit, 'DB cần Đơn vị tính Hoạt động'); if (!mainUnit) return;
+    const generator = new TestDataGenerator(); const code = generator.uniqueCode('TC314'); const name = generator.uniqueKeyword('TC314'); const changedName = generator.uniqueKeyword('TC314_CHANGED');
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa'); await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit);
+    await vatTuPage.saveAndAddMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công'); await vatTuPage.materialNameInput().fill(changedName);
+    // Hành động: Nhấn icon X sau khi thay đổi dữ liệu trên form reset.
+    await vatTuPage.closeCreatingMaterial();
+    // Xác nhận UI: Hiển thị đúng cảnh báo và đủ hai hành động Xác nhận/Hủy.
+    await expect(vatTuPage.closeConfirmationDialog).toBeVisible(); await expect(vatTuPage.closeConfirmationMessage()).toContainText('Dữ liệu đã có thay đổi. Bạn có chắc chắn muốn đóng? Thay đổi sẽ không được lưu.');
+    await expect(vatTuPage.closeConfirmationButton('Xác nhận')).toBeVisible(); await expect(vatTuPage.closeConfirmationButton('Hủy')).toBeVisible();
+  });
+
+  test('TC_PMKT-U-00106-315 - Hủy cảnh báo icon X giữ nguyên dữ liệu sau reset', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Lưu Hàng hóa tối thiểu, reset form, nhập lại Tên và mở cảnh báo bằng icon X.
+    const { units } = await openVatTuWithCatalogues(vatTuPage); const mainUnit = units.find((item) => item.status === 'HoatDong');
+    test.skip(!mainUnit, 'DB cần Đơn vị tính Hoạt động'); if (!mainUnit) return;
+    const generator = new TestDataGenerator(); const code = generator.uniqueCode('TC315'); const name = generator.uniqueKeyword('TC315'); const changedName = generator.uniqueKeyword('TC315_CHANGED');
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa'); await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit);
+    await vatTuPage.saveAndAddMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công'); await vatTuPage.materialNameInput().fill(changedName); await vatTuPage.closeCreatingMaterial();
+    // Hành động: Nhấn Hủy trên popup xác nhận đóng.
+    await vatTuPage.dismissCloseConfirmation();
+    // Xác nhận UI: Popup đóng, form còn mở và dữ liệu vừa nhập được giữ nguyên.
+    await expect(vatTuPage.closeConfirmationDialog).toBeHidden(); await expect(vatTuPage.createMaterialDialog).toBeVisible(); await expect(vatTuPage.materialNameInput()).toHaveValue(changedName);
+  });
+
+  test('TC_PMKT-U-00106-316 - Xác nhận cảnh báo icon X đóng form sau reset', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Lưu Hàng hóa tối thiểu, reset form, nhập lại dữ liệu và mở cảnh báo bằng icon X.
+    const { units } = await openVatTuWithCatalogues(vatTuPage); const mainUnit = units.find((item) => item.status === 'HoatDong');
+    test.skip(!mainUnit, 'DB cần Đơn vị tính Hoạt động'); if (!mainUnit) return;
+    const generator = new TestDataGenerator(); const code = generator.uniqueCode('TC316'); const name = generator.uniqueKeyword('TC316'); const changedName = generator.uniqueKeyword('TC316_CHANGED');
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa'); await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit);
+    await vatTuPage.saveAndAddMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công'); await vatTuPage.materialNameInput().fill(changedName); await vatTuPage.closeCreatingMaterial();
+    // Hành động: Nhấn Xác nhận bỏ thay đổi.
+    await vatTuPage.confirmClose();
+    // Xác nhận UI: Popup và form đóng, màn danh sách hiển thị.
+    await expect(vatTuPage.closeConfirmationDialog).toBeHidden(); await expect(vatTuPage.createMaterialDialog).toBeHidden(); await expect(vatTuPage.materialSearchInput()).toBeVisible();
+  });
+
+  test('TC_PMKT-U-00106-317 - nút Hủy đóng form ngay sau khi Lưu và Thêm mới reset', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Tạo Hàng hóa tối thiểu và giữ form reset không có thay đổi mới.
+    const { units } = await openVatTuWithCatalogues(vatTuPage); const mainUnit = units.find((item) => item.status === 'HoatDong');
+    test.skip(!mainUnit, 'DB cần Đơn vị tính Hoạt động'); if (!mainUnit) return;
+    const generator = new TestDataGenerator(); const code = generator.uniqueCode('TC317'); const name = generator.uniqueKeyword('TC317');
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa'); await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit);
+    await vatTuPage.saveAndAddMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công'); await expect(vatTuPage.materialCodeInput()).toHaveValue('');
+    // Hành động: Nhấn nút Hủy ở cuối form.
+    await vatTuPage.cancelCreatingMaterial();
+    // Xác nhận UI: Form đóng, quay về danh sách và không hiển thị cảnh báo.
+    await expect(vatTuPage.createMaterialDialog).toBeHidden(); await expect(vatTuPage.closeConfirmationDialog).toBeHidden(); await expect(vatTuPage.materialSearchInput()).toBeVisible();
+  });
+
+  test('TC_PMKT-U-00106-318 - nút Hủy hiển thị cảnh báo sau khi thay đổi form reset', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Lưu Hàng hóa tối thiểu, reset form rồi nhập lại Tên vật tư unique.
+    const { units } = await openVatTuWithCatalogues(vatTuPage); const mainUnit = units.find((item) => item.status === 'HoatDong');
+    test.skip(!mainUnit, 'DB cần Đơn vị tính Hoạt động'); if (!mainUnit) return;
+    const generator = new TestDataGenerator(); const code = generator.uniqueCode('TC318'); const name = generator.uniqueKeyword('TC318'); const changedName = generator.uniqueKeyword('TC318_CHANGED');
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa'); await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit);
+    await vatTuPage.saveAndAddMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công'); await vatTuPage.materialNameInput().fill(changedName);
+    // Hành động: Nhấn nút Hủy sau khi thay đổi dữ liệu trên form reset.
+    await vatTuPage.cancelCreatingMaterial();
+    // Xác nhận UI: Hiển thị đúng cảnh báo và đủ hai hành động Xác nhận/Hủy.
+    await expect(vatTuPage.closeConfirmationDialog).toBeVisible(); await expect(vatTuPage.closeConfirmationMessage()).toContainText('Dữ liệu đã có thay đổi. Bạn có chắc chắn muốn đóng? Thay đổi sẽ không được lưu.');
+    await expect(vatTuPage.closeConfirmationButton('Xác nhận')).toBeVisible(); await expect(vatTuPage.closeConfirmationButton('Hủy')).toBeVisible();
+  });
+
+  test('TC_PMKT-U-00106-319 - Hủy cảnh báo nút Hủy giữ nguyên dữ liệu sau reset', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Lưu Hàng hóa tối thiểu, reset form, nhập lại Tên và mở cảnh báo bằng nút Hủy.
+    const { units } = await openVatTuWithCatalogues(vatTuPage); const mainUnit = units.find((item) => item.status === 'HoatDong');
+    test.skip(!mainUnit, 'DB cần Đơn vị tính Hoạt động'); if (!mainUnit) return;
+    const generator = new TestDataGenerator(); const code = generator.uniqueCode('TC319'); const name = generator.uniqueKeyword('TC319'); const changedName = generator.uniqueKeyword('TC319_CHANGED');
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa'); await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit);
+    await vatTuPage.saveAndAddMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công'); await vatTuPage.materialNameInput().fill(changedName); await vatTuPage.cancelCreatingMaterial();
+    // Hành động: Nhấn Hủy trên popup xác nhận đóng.
+    await vatTuPage.dismissCloseConfirmation();
+    // Xác nhận UI: Popup đóng, form còn mở và dữ liệu vừa nhập được giữ nguyên.
+    await expect(vatTuPage.closeConfirmationDialog).toBeHidden(); await expect(vatTuPage.createMaterialDialog).toBeVisible(); await expect(vatTuPage.materialNameInput()).toHaveValue(changedName);
+  });
+
+  test('TC_PMKT-U-00106-320 - Xác nhận cảnh báo nút Hủy đóng form sau reset', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Lưu Hàng hóa tối thiểu, reset form, nhập lại dữ liệu và mở cảnh báo bằng nút Hủy.
+    const { units } = await openVatTuWithCatalogues(vatTuPage); const mainUnit = units.find((item) => item.status === 'HoatDong');
+    test.skip(!mainUnit, 'DB cần Đơn vị tính Hoạt động'); if (!mainUnit) return;
+    const generator = new TestDataGenerator(); const code = generator.uniqueCode('TC320'); const name = generator.uniqueKeyword('TC320'); const changedName = generator.uniqueKeyword('TC320_CHANGED');
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa'); await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit);
+    await vatTuPage.saveAndAddMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công'); await vatTuPage.materialNameInput().fill(changedName); await vatTuPage.cancelCreatingMaterial();
+    // Hành động: Nhấn Xác nhận bỏ thay đổi.
+    await vatTuPage.confirmClose();
+    // Xác nhận UI: Popup và form đóng, màn danh sách hiển thị.
+    await expect(vatTuPage.closeConfirmationDialog).toBeHidden(); await expect(vatTuPage.createMaterialDialog).toBeHidden(); await expect(vatTuPage.materialSearchInput()).toBeVisible();
+  });
+
+  test('TC_PMKT-U-00106-321 - icon X đóng form chưa thay đổi mà không cảnh báo', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Hàng hóa mới và không thay đổi bất kỳ trường nào.
+    await vatTuPage.openFromDanhMuc(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa');
+    // Hành động: Nhấn icon X ở góc form.
+    await vatTuPage.closeCreatingMaterial();
+    // Xác nhận UI: Form đóng, danh sách hiển thị và không có popup xác nhận.
+    await expect(vatTuPage.createMaterialDialog).toBeHidden(); await expect(vatTuPage.closeConfirmationDialog).toBeHidden(); await expect(vatTuPage.materialSearchInput()).toBeVisible();
+  });
+
+  test('TC_PMKT-U-00106-322 - icon X hiển thị cảnh báo khi form có thay đổi', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Hàng hóa và nhập Tên vật tư unique nhưng chưa lưu.
+    const changedName = new TestDataGenerator().uniqueKeyword('TC322');
+    await vatTuPage.openFromDanhMuc(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa'); await vatTuPage.materialNameInput().fill(changedName);
+    // Hành động: Nhấn icon X.
+    await vatTuPage.closeCreatingMaterial();
+    // Xác nhận UI: Popup hiển thị đúng nội dung và đủ hai nút hành động.
+    await expect(vatTuPage.closeConfirmationDialog).toBeVisible(); await expect(vatTuPage.closeConfirmationMessage()).toContainText('Dữ liệu đã có thay đổi. Bạn có chắc chắn muốn đóng? Thay đổi sẽ không được lưu.');
+    await expect(vatTuPage.closeConfirmationButton('Xác nhận')).toBeVisible(); await expect(vatTuPage.closeConfirmationButton('Hủy')).toBeVisible();
+  });
+
+  test('TC_PMKT-U-00106-323 - Hủy cảnh báo icon X giữ nguyên dữ liệu chưa lưu', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Nhập Tên vật tư unique rồi mở popup xác nhận bằng icon X.
+    const changedName = new TestDataGenerator().uniqueKeyword('TC323');
+    await vatTuPage.openFromDanhMuc(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa'); await vatTuPage.materialNameInput().fill(changedName); await vatTuPage.closeCreatingMaterial();
+    // Hành động: Nhấn Hủy trên popup xác nhận.
+    await vatTuPage.dismissCloseConfirmation();
+    // Xác nhận UI: Popup đóng, form còn mở và Tên vật tư giữ nguyên.
+    await expect(vatTuPage.closeConfirmationDialog).toBeHidden(); await expect(vatTuPage.createMaterialDialog).toBeVisible(); await expect(vatTuPage.materialNameInput()).toHaveValue(changedName);
+  });
+
+  test('TC_PMKT-U-00106-324 - Xác nhận cảnh báo icon X đóng form chưa lưu', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Nhập Tên vật tư unique rồi mở popup xác nhận bằng icon X.
+    const changedName = new TestDataGenerator().uniqueKeyword('TC324');
+    await vatTuPage.openFromDanhMuc(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa'); await vatTuPage.materialNameInput().fill(changedName); await vatTuPage.closeCreatingMaterial();
+    // Hành động: Nhấn Xác nhận bỏ thay đổi.
+    await vatTuPage.confirmClose();
+    // Xác nhận UI: Popup và form đóng, màn danh sách hiển thị.
+    await expect(vatTuPage.closeConfirmationDialog).toBeHidden(); await expect(vatTuPage.createMaterialDialog).toBeHidden(); await expect(vatTuPage.materialSearchInput()).toBeVisible();
+  });
+
+  test('TC_PMKT-U-00106-325 - nút Hủy đóng form chưa thay đổi mà không cảnh báo', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Hàng hóa mới và không thay đổi bất kỳ trường nào.
+    await vatTuPage.openFromDanhMuc(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa');
+    // Hành động: Nhấn nút Hủy ở cuối form.
+    await vatTuPage.cancelCreatingMaterial();
+    // Xác nhận UI: Form đóng, danh sách hiển thị và không có popup xác nhận.
+    await expect(vatTuPage.createMaterialDialog).toBeHidden(); await expect(vatTuPage.closeConfirmationDialog).toBeHidden(); await expect(vatTuPage.materialSearchInput()).toBeVisible();
+  });
+
+  test('TC_PMKT-U-00106-326 - nút Hủy hiển thị cảnh báo khi form có thay đổi', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Hàng hóa và nhập Tên vật tư unique nhưng chưa lưu.
+    const changedName = new TestDataGenerator().uniqueKeyword('TC326');
+    await vatTuPage.openFromDanhMuc(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa'); await vatTuPage.materialNameInput().fill(changedName);
+    // Hành động: Nhấn nút Hủy ở cuối form.
+    await vatTuPage.cancelCreatingMaterial();
+    // Xác nhận UI: Popup hiển thị đúng nội dung và đủ hai nút hành động.
+    await expect(vatTuPage.closeConfirmationDialog).toBeVisible(); await expect(vatTuPage.closeConfirmationMessage()).toContainText('Dữ liệu đã có thay đổi. Bạn có chắc chắn muốn đóng? Thay đổi sẽ không được lưu.');
+    await expect(vatTuPage.closeConfirmationButton('Xác nhận')).toBeVisible(); await expect(vatTuPage.closeConfirmationButton('Hủy')).toBeVisible();
+  });
+
+  test('TC_PMKT-U-00106-327 - Hủy cảnh báo nút Hủy giữ nguyên dữ liệu chưa lưu', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Nhập Tên vật tư unique rồi mở popup xác nhận bằng nút Hủy.
+    const changedName = new TestDataGenerator().uniqueKeyword('TC327');
+    await vatTuPage.openFromDanhMuc(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa'); await vatTuPage.materialNameInput().fill(changedName); await vatTuPage.cancelCreatingMaterial();
+    // Hành động: Nhấn Hủy trên popup xác nhận.
+    await vatTuPage.dismissCloseConfirmation();
+    // Xác nhận UI: Popup đóng, form còn mở và Tên vật tư giữ nguyên.
+    await expect(vatTuPage.closeConfirmationDialog).toBeHidden(); await expect(vatTuPage.createMaterialDialog).toBeVisible(); await expect(vatTuPage.materialNameInput()).toHaveValue(changedName);
+  });
+
+  test('TC_PMKT-U-00106-328 - Xác nhận cảnh báo nút Hủy đóng form chưa lưu', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Nhập Tên vật tư unique rồi mở popup xác nhận bằng nút Hủy.
+    const changedName = new TestDataGenerator().uniqueKeyword('TC328');
+    await vatTuPage.openFromDanhMuc(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa'); await vatTuPage.materialNameInput().fill(changedName); await vatTuPage.cancelCreatingMaterial();
+    // Hành động: Nhấn Xác nhận bỏ thay đổi.
+    await vatTuPage.confirmClose();
+    // Xác nhận UI: Popup và form đóng, màn danh sách hiển thị.
+    await expect(vatTuPage.closeConfirmationDialog).toBeHidden(); await expect(vatTuPage.createMaterialDialog).toBeHidden(); await expect(vatTuPage.materialSearchInput()).toBeVisible();
+  });
+
+  test('TC_PMKT-U-00106-329 - chặn lưu khi bỏ trống toàn bộ trường bắt buộc', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Hàng hóa và giữ trống toàn bộ trường bắt buộc.
+    await vatTuPage.openFromDanhMuc(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Hàng hóa');
+    // Hành động: Nhấn Lưu ở cuối form.
+    await vatTuPage.saveMaterial();
+    // Xác nhận UI: Hệ thống chặn lưu và hiển thị đúng lỗi dưới ba trường bắt buộc.
+    await expect(vatTuPage.createMaterialDialog).toBeVisible();
+    await expect.soft(vatTuPage.validationMessage('Mã vật tư', 'Mã không được để trống')).toBeVisible();
+    await expect.soft(vatTuPage.validationMessage('Tên vật tư', 'Tên không được để trống')).toBeVisible();
+    await expect.soft(vatTuPage.validationMessage('Đơn vị tính chính', 'Đơn vị tính không được để trống')).toBeVisible();
   });
 
 
