@@ -51,15 +51,16 @@ E. EVIDENCE
    giá trị Actual và đúng triệu chứng bug.
 2. Ưu tiên ảnh chụp đúng thời điểm mismatch. Không dùng screenshot cuối testcase
    nếu UI đã thay đổi và ảnh không còn thể hiện bug; khi cần phải lấy đúng frame trace/video.
-3. Chỉ liên kết evidence lâu dài bằng đường dẫn tương đối dưới ./evidence/...; mọi
+3. Evidence trong Markdown phải được nhúng để hiển thị ảnh trực tiếp bằng cú pháp
+   `![Bằng chứng BUG-ID](./evidence/...)`; dùng đường dẫn tương đối dưới ./evidence/...; mọi
    file phải tồn tại và không bị .gitignore loại bỏ.
 4. Không liên kết tới test-results/, playwright-report/ hoặc allure-results/ vì đây
    là artifacts tạm thời.
 5. Tên ảnh phải ổn định, có nghĩa và gắn được với Bug ID/testcase đại diện.
 
 F. CẤU TRÚC RIÊNG CỦA MARKDOWN
-1. Chỉ gồm: tiêu đề, Tổng quan kết quả, Tổng hợp Bugs và Chi tiết Bug.
-2. Không sinh các section: Kết luận, Thông tin lần chạy, Điều hướng nhanh, Kết quả
+1. Chỉ gồm: tiêu đề, Thông tin kiểm thử, Tổng quan kết quả, Tổng hợp Bugs và Chi tiết Bug.
+2. Không sinh các section: Kết luận, Điều hướng nhanh, Kết quả
    chi tiết từng testcase, Thông tin kỹ thuật hoặc Tester Review.
 3. Mỗi bug có đúng bảng bảy dòng theo template và link Lên đầu sau section.
 4. Link Bug ID phải trỏ tới heading Markdown tự sinh từ heading chỉ chứa Bug ID;
@@ -67,6 +68,18 @@ F. CẤU TRÚC RIÊNG CỦA MARKDOWN
 5. Không có dữ liệu phải ghi N/A. Không ghi credentials hoặc thông tin cá nhân thật.
 6. Bảo toàn mọi chỉnh sửa thủ công ngoài phạm vi được người dùng yêu cầu.
 -->
+
+## Thông tin kiểm thử
+
+| Hạng mục | Giá trị |
+|---|---|
+| **Môi trường** | {{RUN_ENVIRONMENT}} |
+| **Tài khoản test** | {{TEST_ACCOUNT}} |
+| **Ngày** | {{RUN_DATE}} |
+| **Tổng TCs** | {{TOTAL_COUNT}} |
+| **Tổng thời gian** | {{TOTAL_DURATION}} |
+
+> `RUN_DATE` chỉ ghi ngày chạy theo định dạng `DD/MM/YYYY`, không ghi giờ.
 
 ## Tổng quan kết quả
 
@@ -126,7 +139,7 @@ Mỗi bug bắt buộc có đúng bảy dòng thông tin trong bảng chi tiết
 | **Data test** | {{ACTUAL_TEST_DATA_OR_NA}} |
 | **Kết quả mong đợi** | 1. {{EXPECTED_1_FROM_REPRESENTATIVE_TESTCASE}}<br>2. {{EXPECTED_2_IF_ANY}} |
 | **Kết quả thực tế** | 1. {{ACTUAL_1_CORRESPONDING_TO_EXPECTED_1}}<br>2. {{ACTUAL_2_CORRESPONDING_TO_EXPECTED_2}} |
-| **Bằng chứng** | [Xem ảnh evidence](./evidence/{{FEATURE_OR_RUN_ID}}/{{BUG_ID_01}}-{{REPRESENTATIVE_TC_ID}}.webp) |
+| **Bằng chứng** | ![Bằng chứng {{BUG_ID_01}}](./evidence/{{FEATURE_OR_RUN_ID}}/{{BUG_ID_01}}-{{REPRESENTATIVE_TC_ID}}.webp) |
 
 <!--
 Quy tắc bảy dòng Chi tiết Bug:
@@ -166,7 +179,7 @@ CHECKLIST TRƯỚC KHI BÀN GIAO
 [ ] Expected và Actual cụ thể, tương ứng từng mục; không suy đoán dữ liệu.
 [ ] Tần suất và số case ảnh hưởng lấy từ kết quả thật.
 [ ] Từng ảnh đã được mở kiểm tra trực quan và thể hiện đúng bug.
-[ ] Mọi link ./evidence/... tồn tại, dùng đường dẫn tương đối và không bị .gitignore.
+[ ] Mọi ảnh evidence được nhúng trực tiếp, tồn tại, dùng đường dẫn tương đối ./evidence/... và không bị .gitignore.
 [ ] Không còn link tới artifacts tạm hoặc credentials/PII.
 [ ] Có link Lên đầu sau Tổng hợp Bugs và sau từng Chi tiết Bug.
 [ ] Giữ nguyên chỉnh sửa thủ công ngoài phạm vi được yêu cầu.

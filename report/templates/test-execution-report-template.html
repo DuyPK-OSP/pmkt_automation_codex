@@ -23,14 +23,23 @@
     a{color:#d70018}.review-btn.primary{border-color:#e60012;background:#e60012}.review-btn.primary:hover{border-color:#c90010;background:#c90010}.review-toolbar{border-top:3px solid #e60012}.source-badge.auto{background:#fee2e2;color:#b91c1c}.source-badge.tester{background:#ffe4e6;color:#be123c}.tester-review{border-color:#fecdd3;background:#fffafa}.tester-review h4{color:#b91c1c}.tester-bug{border-color:#fecdd3}.tester-review-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:0}.tester-review-head-actions{display:flex;align-items:center;gap:8px}.tester-review-head h4{margin:0}.collapse-btn{white-space:nowrap}.section-heading-actions{display:flex;align-items:center;justify-content:space-between;gap:12px}.section-heading-actions h2{flex:1}.bug-evidence-form{grid-column:1/-1;border:1px dashed #fda4af;border-radius:9px;padding:13px;background:#fff7f7}.bug-evidence-preview{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-top:10px}.bug-evidence-preview .added-evidence img{height:125px}.tester-bug-evidence{margin:15px 0}.tester-bug-evidence h4{color:#b91c1c}.review-dialog input[type=file]{padding:7px;background:#fff}.review-dialog input[type=file]::file-selector-button{border:1px solid #e60012;border-radius:6px;padding:6px 10px;background:#fff1f2;color:#b91c1c;font-weight:700;cursor:pointer}
 
     .summary-layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(310px,.65fr);gap:18px;align-items:stretch}.summary-layout .result-charts{grid-template-columns:minmax(220px,320px) 1fr;margin:0}.review-summary{display:grid;align-content:start;gap:16px;padding:20px;border:1px solid var(--line);border-top:3px solid #e60012;border-radius:14px;background:#fff}.bug-count-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.bug-count-card{padding:16px;border:1px solid #fecdd3;border-radius:11px;background:#fff7f7}.bug-count-card.tester{border-color:#ddd6fe;background:#faf9ff}.bug-count-card span{display:block;color:var(--muted);font-size:12px;font-weight:700}.bug-count-card strong{display:block;margin-top:3px;font-size:28px;color:#b91c1c}.bug-count-card.tester strong{color:#6d28d9}.review-progress-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.review-progress-head h3{margin:0;font-size:16px}.review-progress-track{height:13px;overflow:hidden;border-radius:999px;background:#e2e8f0}.review-progress-value{height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,#e60012,#ff5b67);transition:width .35s ease}.review-progress-meta{display:flex;justify-content:space-between;color:var(--muted);font-size:12px}.review-mark{border-color:#fda4af;color:#b91c1c;background:#fff}.review-mark.reviewed{border-color:#16a34a;color:#166534;background:#dcfce7}.quick-nav-tester-label{margin-top:8px;color:#6d28d9;font-weight:800}
-    .required-mark{margin-left:3px;color:#e60012;font-weight:900}.top{z-index:90}.affected-count{display:grid;grid-template-columns:34px minmax(90px,1fr);align-items:center;gap:9px}.affected-count strong{font-variant-numeric:tabular-nums}.affected-track{height:8px;overflow:hidden;border-radius:999px;background:#fee2e2}.affected-value{display:block;height:100%;border-radius:inherit;background:#e60012}.affected-cases{position:relative;max-width:440px;white-space:normal}.affected-case-list{line-height:1.55}.affected-case-list.collapsed{overflow:hidden;padding-right:92px;white-space:nowrap;text-overflow:ellipsis}.case-list-toggle{display:inline;padding:0;border:0;background:transparent;color:#d70018;font:inherit;font-weight:700;cursor:pointer}.case-list-toggle.collapsed-toggle{position:absolute;right:10px;top:9px;padding-left:7px;background:#fff}.case-list-toggle:hover{text-decoration:underline}.bug-section-toggle{float:right;margin:-3px 0 10px 12px}.bug-collapsed>:not(h3):not(.source-badge):not(.bug-section-toggle){display:none!important}#bug-summary-table th,#bug-summary-table td{border-right:1px solid var(--line)}#bug-summary-table th:last-child,#bug-summary-table td:last-child{border-right:0}body{padding-bottom:92px}
-    @media(max-width:980px){.summary-layout{grid-template-columns:1fr}.summary-layout .result-charts{grid-template-columns:1fr}.bug-count-grid{grid-template-columns:1fr 1fr}}@media(max-width:560px){.bug-count-grid{grid-template-columns:1fr}}
+    .required-mark{margin-left:3px;color:#e60012;font-weight:900}.top{z-index:90}.run-info{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:28px}.run-info-item{padding:14px;border:1px solid var(--line);border-radius:12px;background:#f8fafc}.run-info-item span{display:block;margin-bottom:6px;color:#e60012;font-size:12px;font-weight:700}.run-info-item strong{overflow-wrap:anywhere}.affected-count{display:grid;grid-template-columns:34px minmax(90px,1fr);align-items:center;gap:9px}.affected-count strong{font-variant-numeric:tabular-nums}.affected-track{height:8px;overflow:hidden;border-radius:999px;background:#fee2e2}.affected-value{display:block;height:100%;border-radius:inherit;background:#e60012}.affected-cases{position:relative;max-width:440px;white-space:normal}.affected-case-list{line-height:1.55}.affected-case-list.collapsed{overflow:hidden;padding-right:92px;white-space:nowrap;text-overflow:ellipsis}.case-list-toggle{display:inline;padding:0;border:0;background:transparent;color:#d70018;font:inherit;font-weight:700;cursor:pointer}.case-list-toggle.collapsed-toggle{position:absolute;right:10px;top:9px;padding-left:7px;background:#fff}.case-list-toggle:hover{text-decoration:underline}.bug-section-toggle{float:right;margin:-3px 0 10px 12px}.bug-collapsed>:not(h3):not(.source-badge):not(.bug-section-toggle){display:none!important}#bug-summary-table th,#bug-summary-table td{border-right:1px solid var(--line)}#bug-summary-table th:last-child,#bug-summary-table td:last-child{border-right:0}body{padding-bottom:92px}
+    @media(max-width:980px){.run-info{grid-template-columns:repeat(2,minmax(0,1fr))}.summary-layout{grid-template-columns:1fr}.summary-layout .result-charts{grid-template-columns:1fr}.bug-count-grid{grid-template-columns:1fr 1fr}}@media(max-width:560px){.run-info,.bug-count-grid{grid-template-columns:1fr}}
     .review-toolbar{top:auto;right:20px;bottom:76px;left:auto;width:115px;flex-direction:column;align-items:stretch;transform:none}.review-toolbar .spacer{display:none}.review-toolbar .review-btn{width:100%}.review-toolbar .draft-indicator{justify-content:center;text-align:center}.top{right:22px;bottom:22px}body{padding-bottom:0}.toast-review{top:22px;right:22px;bottom:auto;background:#16a34a;color:#fff}.bug-detail-table{table-layout:auto;min-width:720px}.bug-detail-table th{position:static;width:220px;border-right:1px solid var(--line);background:#f8fafc}.bug-detail-table td{width:auto}.bug-detail-table ol,.bug-detail-table ul{margin:0;padding-left:20px}.bug-detail-table p{margin:0;white-space:pre-wrap}.bug-detail-table mark{padding:0;background:transparent;color:#d70018;font-weight:750}.bug-detail-evidence{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}.bug-detail-evidence .evidence{margin:0}.bug-detail-evidence img{width:100%;max-height:320px;object-fit:contain}.bug-detail-empty{color:var(--muted);font-style:italic}.bar-row:after{max-width:520px}@media(max-width:760px){.review-toolbar{top:auto;right:14px;bottom:72px;left:auto;width:min(115px,calc(100vw - 28px));transform:none}.top{right:16px;bottom:18px}.toast-review{top:14px;right:14px;bottom:auto;left:14px;max-width:none}}
   </style>
 </head>
 <body>
   <div class="shell"><main class="report">
     <h1 id="top">{{REPORT_TITLE}}</h1>
+
+    <h2>Thông tin kiểm thử</h2>
+    <section class="run-info" aria-label="Thông tin kiểm thử">
+      <div class="run-info-item"><span>Môi trường</span><strong>{{RUN_ENVIRONMENT}}</strong></div>
+      <div class="run-info-item"><span>Tài khoản test</span><strong>{{TEST_ACCOUNT}}</strong></div>
+      <div class="run-info-item"><span>Ngày</span><strong>{{RUN_DATE}}</strong></div>
+      <div class="run-info-item"><span>Tổng TCs</span><strong>{{TOTAL_COUNT}}</strong></div>
+      <div class="run-info-item"><span>Tổng thời gian</span><strong>{{TOTAL_DURATION}}</strong></div>
+    </section>
 
     <!--
       ========================================================================
@@ -48,6 +57,13 @@
       - Không suy đoán dữ liệu còn thiếu. Giá trị không phát sinh phải ghi "N/A".
       - Không làm mất nội dung tester đã nhập khi cập nhật report hiện có.
 
+      THÔNG TIN LẦN CHẠY
+      - {{RUN_ENVIRONMENT}}: URL hoặc tên môi trường thực tế đã chạy.
+      - {{TEST_ACCOUNT}}: tài khoản test thực tế; không ghi mật khẩu hoặc credential khác.
+      - {{RUN_DATE}}: chỉ ghi ngày theo định dạng DD/MM/YYYY, không ghi giờ.
+      - {{TOTAL_COUNT}}: tổng testcase của lần chạy.
+      - {{TOTAL_DURATION}}: thời gian từ testcase bắt đầu sớm nhất đến testcase kết thúc muộn nhất.
+
       2. TỔNG QUAN KẾT QUẢ
       Các placeholder bắt buộc:
       - {{TOTAL_COUNT}}: tổng số testcase đã được runner ghi nhận.
@@ -62,7 +78,7 @@
       - Tooltip của thanh SKIP/BLOCK phải hiển thị count, tỷ lệ và phần tóm tắt lý
         do tương ứng khi hover hoặc focus bằng bàn phím.
       - Automation Bugs: số bug automation duy nhất trong BUG_DETAIL_SECTIONS.
-      - Tester Reported Bugs: số bug do tester tạo trong report.
+      - Manual Bugs: số bug do tester tạo thủ công trong report.
       - Tester Review Progress: số bug đã đánh dấu Done / tổng automation bug và
         tester bug. Khi Done, section bug tự thu gọn nhưng dữ liệu không bị xóa.
 
@@ -133,7 +149,7 @@
       - Save chỉ enable khi có thay đổi chưa lưu.
       - Restore chỉ enable khi localStorage có draft khác trạng thái hiện tại.
       - Export tạo <original_name>_REVIEWED.html, gồm Automation Result, Tester
-        Review, Tester Reported Bugs và toàn bộ ảnh đã nhúng.
+        Review, Manual Bugs và toàn bộ ảnh đã nhúng.
       - Sau khi thêm tester bug, tự cuộn tới section bug vừa tạo.
       ========================================================================
     -->
@@ -167,18 +183,11 @@
       </div>
     </div>
     <aside class="review-summary" aria-label="Tóm tắt bug và tiến độ review">
-      <div class="bug-count-grid"><div class="bug-count-card"><span>🤖 AUTOMATION BUGS</span><strong id="automation-bug-count">0</strong></div><div class="bug-count-card tester"><span>👤 TESTER REPORTED BUGS</span><strong id="tester-bug-count">0</strong></div></div>
+      <div class="bug-count-grid"><div class="bug-count-card"><span>🤖 AUTOMATION BUGS</span><strong id="automation-bug-count">0</strong></div><div class="bug-count-card tester"><span>👤 MANUAL BUGS</span><strong id="tester-bug-count">0</strong></div></div>
       <div class="review-progress-head"><h3>Tester Review Progress</h3><strong id="review-progress-percent">0%</strong></div>
       <div class="review-progress-track" role="progressbar" aria-label="Tiến độ tester review" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="review-progress-value" id="review-progress-value"></div></div>
       <div class="review-progress-meta"><span id="review-progress-count">0/0 bug đã review</span><span>Automation + Tester bugs</span></div>
     </aside></section>
-
-    <h2 id="test-results">Kết quả chi tiết</h2>
-    <div class="table-wrap"><table id="detail-results"><thead><tr><th>TC ID</th><th>Kết quả</th><th>Nội dung chính</th></tr></thead><tbody>
-      {{TEST_RESULT_ROWS}}
-      
-      <!-- Ví dụ: <tr><td><code>TC-001</code></td><td>❌ FAIL</td><td>Nội dung — BUG-01</td></tr> -->
-    </tbody></table></div>
 
     <h2 id="bug-summary">Tổng hợp Bugs</h2>
     <div class="table-wrap"><table id="bug-summary-table"><thead><tr><th>Bug ID</th><th>Mức độ</th><th>Số case ảnh hưởng</th><th>Tên case ảnh hưởng</th><th>Tóm tắt bug</th></tr></thead><tbody>{{BUG_SUMMARY_ROWS}}</tbody></table></div>
@@ -199,8 +208,6 @@
     function openEvidence(image){const box=document.getElementById('lightbox');const target=document.getElementById('lightbox-image');target.src=image.src;target.alt=image.alt;box.classList.add('open');document.body.style.overflow='hidden'}
     function closeEvidence(){document.getElementById('lightbox').classList.remove('open');document.getElementById('lightbox-image').src='';document.body.style.overflow=''}
     addEventListener('keydown',event=>{if(event.key==='Escape')closeEvidence()});
-    function setupDetailFilters(){const table=document.getElementById('detail-results');if(!table)return;const headers=[...table.tHead.rows[0].cells];const filterRow=table.tHead.insertRow();filterRow.className='column-filters';const filters=headers.map((header,index)=>{const cell=document.createElement('th');const label=header.textContent.trim();const control=label==='Kết quả'?document.createElement('select'):document.createElement('input');control.className='column-filter';if(label==='Kết quả'){for(const [value,text] of [['','Tất cả'],['PASS','PASS'],['FAIL','FAIL'],['SKIP','SKIP'],['BLOCK','BLOCK']]){const option=document.createElement('option');option.value=value;option.textContent=text;control.appendChild(option)}}else{control.type='search';control.placeholder='Lọc '+label}cell.appendChild(control);filterRow.appendChild(cell);return control});const bar=document.createElement('div');bar.className='detail-filter-bar';const count=document.createElement('span');count.className='detail-filter-count';const reset=document.createElement('button');reset.type='button';reset.textContent='Xóa bộ lọc';bar.append(count,reset);table.closest('.table-wrap').before(bar);const normalize=value=>value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();const apply=()=>{let visible=0;for(const row of table.tBodies[0].rows){const matched=filters.every((filter,index)=>!normalize(filter.value)||normalize(row.cells[index]?.textContent||'').includes(normalize(filter.value)));row.classList.toggle('filtered-out',!matched);if(matched)visible+=1}count.textContent='Hiển thị '+visible+' / '+table.tBodies[0].rows.length+' testcase'};filters.forEach(filter=>{filter.addEventListener('input',apply);filter.addEventListener('change',apply)});reset.addEventListener('click',()=>{filters.forEach(filter=>filter.value='');apply()});apply()}
-    setupDetailFilters();
   </script>
 
   <dialog class="review-dialog" id="new-bug-dialog">
@@ -237,8 +244,8 @@
     const priorityOptions=['Critical','High','Medium','Low'];
     const statusOptions=['Open','Confirmed','In Progress','Fixed','Retest','Rejected','Deferred'];
     const autoSections=[...document.querySelectorAll('section[data-automation-bug],section[id^="bug-"]')];
-    const detailTable=document.getElementById('detail-results'),bugSummaryTable=document.getElementById('bug-summary-table');
-    const automationSummarySeed=[...(bugSummaryTable?.tBodies[0]?.rows||[])].map(row=>{const cells=row.cells,id=cells[0]?.textContent.trim()||'';const section=autoSections.find(item=>item.querySelector('h3')?.textContent.trim().startsWith(id));const targetId=section?.id||'';const cases=[...(detailTable?.tBodies[0]?.rows||[])].filter(item=>item.querySelector('a[href="#'+targetId+'"]')).map(item=>item.cells[0]?.textContent.trim()||'').filter(Boolean);return{id,severity:cells[1]?.textContent.trim()||'—',count:Number(cells[2]?.textContent.trim())||cases.length,cases,summary:cells[4]?.textContent.trim()||section?.querySelector('h3')?.textContent.split('—').slice(1).join('—').trim()||'',targetId}});
+    const bugSummaryTable=document.getElementById('bug-summary-table');
+    const automationSummarySeed=[...(bugSummaryTable?.tBodies[0]?.rows||[])].map(row=>{const cells=row.cells,id=cells[0]?.textContent.trim()||'';const section=autoSections.find(item=>item.querySelector('h3')?.textContent.trim().startsWith(id));const targetId=section?.id||'';const cases=cells[3]?.textContent.match(/TC[\w-]*\d+/g)||[];return{id,severity:cells[1]?.textContent.trim()||'—',count:Number(cells[2]?.textContent.trim())||cases.length,cases,summary:cells[4]?.textContent.trim()||section?.querySelector('h3')?.textContent.split('—').slice(1).join('—').trim()||'',targetId}});
     const seedElement=document.getElementById('review-seed');
     const emptyState=()=>({version:VERSION,reviews:{},testerBugs:[],savedAt:null});
     let state=emptyState(),editingBugId=null,evidenceTarget=null,bugDialogEvidence=[],dirty=false;
@@ -260,7 +267,7 @@
     function listContent(items,ordered=false){if(!items?.length)return text('p','N/A','bug-detail-empty');const list=document.createElement(ordered?'ol':'ul');items.forEach(item=>list.append(text('li',item)));return list}
     function bugDetailTable(data){const wrap=document.createElement('div');wrap.className='table-wrap bug-detail-wrap';const table=document.createElement('table');table.className='bug-detail-table';const body=document.createElement('tbody'),evidence=document.createElement('div');evidence.className='bug-detail-evidence';(data.evidence||[]).forEach(item=>evidence.append(item.cloneNode(true)));if(!evidence.children.length)evidence.append(text('span','N/A','bug-detail-empty'));const rows=[['Tiêu đề bug',data.title],['Điều kiện tiên quyết',listContent(data.preconditions)],['Các bước tái hiện',listContent(data.steps,true)],['Data test',data.testData||'N/A'],['Kết quả mong đợi',outcomeContent(data.expected)],['Kết quả thực tế',outcomeContent(data.actual)],['Bằng chứng',evidence]];for(const [label,content] of rows){const row=document.createElement('tr');row.append(text('th',label),detailCell(content));body.append(row)}table.append(body);wrap.append(table);return wrap}
     function extractAutomationDetail(section){const headingElement=prefix=>[...section.querySelectorAll('h4')].find(item=>item.textContent.trim().startsWith(prefix)),after=prefix=>headingElement(prefix)?.nextElementSibling,comparisonHeading=headingElement('4.'),comparison=after('4.'),cells=comparison?.querySelector('tbody tr')?.cells||[];let expected=cells[1]?.textContent.trim()||'',actual=cells[2]?.textContent.trim()||'';if(!expected||!actual){for(let node=comparisonHeading?.nextElementSibling;node&&node.tagName!=='H4';node=node.nextElementSibling){const value=node.textContent.trim();if(/^Expected:/i.test(value))expected=value.replace(/^Expected:\s*/i,'');if(/^Actual:/i.test(value))actual=value.replace(/^Actual:\s*/i,'')}}const fullTitle=section.querySelector('h3')?.textContent.trim()||'';return{title:fullTitle.split('—').slice(1).join('—').trim()||fullTitle||'N/A',preconditions:listItems(after('2.')),steps:listItems(after('3.')),testData:after('6.')?.textContent.trim()||'N/A',expected:expected||'N/A',actual:actual||'N/A',evidence:[...section.querySelectorAll('.evidence')]}}
-    function restructureAutomationDetails(){for(const section of autoSections){if(section.querySelector(':scope > .bug-detail-wrap'))continue;const data=extractAutomationDetail(section),heading=section.querySelector('h3');[...section.children].forEach(child=>{if(child!==heading)child.remove()});section.append(bugDetailTable(data))}}
+    function restructureAutomationDetails(){for(const section of autoSections){if(section.querySelector(':scope > .bug-detail-wrap, :scope > .bug-detail-table'))continue;const data=extractAutomationDetail(section),heading=section.querySelector('h3');[...section.children].forEach(child=>{if(child!==heading)child.remove()});section.append(bugDetailTable(data))}}
     function saveLocal(){state.savedAt=new Date().toISOString();try{localStorage.setItem(storageKey,JSON.stringify(state));markSaved();updateRestoreState();toast('Đã lưu draft trên browser này')}catch(error){toast('Không thể lưu draft: dung lượng localStorage đã đầy');console.error(error)}}
     function restoreLocal(){const raw=localStorage.getItem(storageKey);if(!raw){toast('Chưa có draft để khôi phục');return}try{state={...emptyState(),...JSON.parse(raw)};renderAll();markSaved();updateRestoreState();toast('Đã khôi phục draft')}catch{toast('Draft không hợp lệ')}}
     function reviewDefaults(){return{testerComment:'',impact:'',rootCause:'',priority:'Medium',bugStatus:'Open',additionalNote:'',reviewed:false,evidence:[]}}
@@ -325,10 +332,9 @@
     updateRestoreState()
     document.querySelectorAll('a[href="#top"]').forEach(link=>link.remove());
     document.getElementById('back-to-top').onclick=()=>{const scroller=document.scrollingElement||document.documentElement;scroller.scrollTo({top:0,behavior:'smooth'})};
-    document.getElementById('obsolete-quick-navigation')?.nextElementSibling?.remove();document.getElementById('obsolete-quick-navigation')?.remove();document.querySelectorAll('.detail-filter-bar').forEach(item=>item.remove());document.getElementById('test-results')?.remove();detailTable?.closest('.table-wrap')?.remove();
-    function setupCollapsibleResults(){const table=document.getElementById('detail-results');if(!table)return;const filterRows=[...table.tHead.querySelectorAll('.column-filters')];filterRows.slice(0,-1).forEach(row=>row.remove());const wrap=table.closest('.table-wrap');const bars=[...document.querySelectorAll('.detail-filter-bar')];bars.slice(0,-1).forEach(bar=>bar.remove());const bar=bars.at(-1);const heading=document.getElementById('test-results');if(heading&&!heading.parentElement.classList.contains('section-heading-actions')){wrap.hidden=true;if(bar)bar.hidden=true;const holder=document.createElement('div');holder.className='section-heading-actions';heading.before(holder);holder.append(heading);const toggle=text('button','Mở rộng bảng','review-btn collapse-btn');toggle.type='button';toggle.setAttribute('aria-expanded','false');toggle.onclick=()=>{const hidden=!wrap.hidden;wrap.hidden=hidden;if(bar)bar.hidden=hidden;toggle.textContent=hidden?'Mở rộng bảng':'Thu gọn bảng';toggle.setAttribute('aria-expanded',String(!hidden))};holder.append(toggle)}}
+    document.getElementById('obsolete-quick-navigation')?.nextElementSibling?.remove();document.getElementById('obsolete-quick-navigation')?.remove();
     function setupCollapsibleBugSummary(){const heading=document.getElementById('bug-summary');if(!heading||heading.parentElement.classList.contains('section-heading-actions'))return;const tableWrap=heading.nextElementSibling;if(!tableWrap?.classList.contains('table-wrap'))return;tableWrap.hidden=false;const holder=document.createElement('div');holder.className='section-heading-actions';heading.before(holder);holder.append(heading);const toggle=text('button','Thu gọn','review-btn collapse-btn');toggle.type='button';toggle.setAttribute('aria-expanded','true');toggle.onclick=()=>{tableWrap.hidden=!tableWrap.hidden;toggle.textContent=tableWrap.hidden?'Mở rộng':'Thu gọn';toggle.setAttribute('aria-expanded',String(!tableWrap.hidden))};holder.append(toggle)}
-    restructureAutomationDetails();setupCollapsibleResults();setupCollapsibleBugSummary();renderAll();markSaved();
+    restructureAutomationDetails();setupCollapsibleBugSummary();renderAll();markSaved();
   })();
   </script>
 

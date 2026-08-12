@@ -1,4 +1,4 @@
-import type { Locator, Page, Response } from '@playwright/test';
+import { expect, type Locator, type Page, type Response } from '@playwright/test';
 import { BasePage } from '@pages/common/base.page';
 import type { Logger } from '@utils/logger';
 import { collectVirtualDropdownItems } from '@utils/virtual-dropdown.util';
@@ -488,10 +488,17 @@ export class VatTuPage extends BasePage {
 
   /** Chọn giá trị hợp lệ đầu tiên của trường và trả về nội dung đã chọn. */
   async selectFirstFormOption(label: string): Promise<string> {
+    const control = this.formFieldControl(label, 'combobox');
     await this.click(
-      this.formFieldControl(label, 'combobox'),
+      control,
       `Mở danh sách ${label}`,
     );
+    await expect(control, `${label} phải mở đúng popup lựa chọn`).toHaveAttribute('aria-expanded', 'true');
+    // Chờ portal của dropdown trước hoàn tất animation đóng để value và click cùng trỏ vào popup hiện tại.
+    await expect.poll(
+      () => this.page.locator('.ant-select-dropdown:visible').count(),
+      { message: `${label} phải chỉ có một popup đang hiển thị` },
+    ).toBe(1);
     const option = this.firstEnabledDropdownOption();
     const value = (await option.innerText()).trim();
     await this.click(option, `Chọn giá trị hợp lệ đầu tiên của ${label}`);
@@ -1117,6 +1124,13 @@ export class VatTuPage extends BasePage {
     });
   }
 
+  /** Đọc các option thuế đang render sau khi lọc, không giả định dropdown có kết quả. */
+  async currentTaxLabels(): Promise<readonly string[]> {
+    return this.locators.taxOptions().evaluateAll((elements) => elements
+      .map((option) => (option.textContent ?? '').trim().replace(/\s*\(Ngừng hoạt động\)\s*$/u, ''))
+      .filter(Boolean));
+  }
+
   /** Tìm kiếm Kho theo mã hoặc tên. */
   async searchWarehouse(query: string): Promise<void> {
     await this.type(this.warehouseCombobox(), query, 'Tìm kiếm Kho mặc định');
@@ -1266,9 +1280,54 @@ export class VatTuPage extends BasePage {
     return this.locators.dropdownOption(label);
   }
 
+  /** Trả về dropdown thuế đang mở để testcase xác nhận trạng thái đóng/mở. */
+  taxDropdown(): Locator {
+    return this.locators.visibleDropdown;
+  }
+
+  /** Đọc màu và độ mờ của một option thuế đã được render sau khi tìm theo mã. */
+  async taxOptionStyle(label: string): Promise<Readonly<{ color: string; opacity: string }>> {
+    return this.taxOption(label).evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { color: style.color, opacity: style.opacity };
+    });
+  }
+
+  /** Trả về popup cảnh báo khi chọn bản ghi thuế Ngừng hoạt động. */
+  taxConfirmationDialog(): Locator {
+    return this.locators.taxConfirmationDialog();
+  }
+
+  /** Trả về nút hành động trong popup cảnh báo bản ghi thuế Ngừng hoạt động. */
+  taxConfirmationButton(name: 'Xác nhận' | 'Hủy'): Locator {
+    return this.locators.taxConfirmationButton(name);
+  }
+
+  /** Xác nhận hoặc hủy sử dụng bản ghi thuế Ngừng hoạt động. */
+  async resolveInactiveTax(useTax: boolean): Promise<void> {
+    const action = useTax ? 'Xác nhận' : 'Hủy';
+    await this.click(this.taxConfirmationButton(action), `${action} sử dụng bản ghi thuế Ngừng hoạt động`);
+  }
+
   /** Tìm kiếm giá trị trong dropdown Thuế theo label trường. */
   async searchTax(label: string, query: string): Promise<void> {
     await this.type(this.formFieldControl(label, 'combobox'), query, `Tìm kiếm ${label}`);
+  }
+
+  /** Gửi phím điều hướng vào dropdown thuế đang mở. */
+  async pressTaxKey(label: string, key: 'Enter' | 'Escape' | 'ArrowDown' | 'ArrowUp'): Promise<void> {
+    await this.formFieldControl(label, 'combobox').press(key);
+  }
+
+  /** Đọc option thuế đang được Ant Select đánh dấu active cho thao tác bàn phím. */
+  async activeTaxLabel(): Promise<string> {
+    return (await this.locators.taxActiveOption().innerText()).trim();
+  }
+
+  /** Xóa nhanh giá trị thuế đã chọn bằng nút Clear của đúng form item. */
+  async clearTax(label: string): Promise<void> {
+    await this.formField(label).hover();
+    await this.click(this.locators.clearTaxButton(label), `Xóa nhanh ${label}`);
   }
 
   /** Tìm và chọn giá trị Thuế theo dữ liệu danh mục thực tế. */

@@ -63,7 +63,8 @@ export class VatTuLocators {
       name: 'Hạch toán ngầm định',
       exact: true,
     });
-    this.visibleDropdown = page.locator('.ant-select-dropdown:visible');
+    // Ant Design giữ portal cũ trong DOM khi chạy animation đóng; portal mở sau cùng mới thuộc control đang active.
+    this.visibleDropdown = page.locator('.ant-select-dropdown:visible').last();
     this.accountingAccountColumnHeaders = this.visibleDropdown.locator('[role="columnheader"], th');
   }
 
@@ -80,6 +81,10 @@ export class VatTuLocators {
   removeSelectedGroupButton = (label: string): Locator => this.selectedGroup(label).locator('.ant-select-selection-item-remove');
   clearAllGroupsButton = (): Locator => this.formField('Nhóm vật tư').getByRole('img', { name: 'close-circle', exact: true });
   dropdownOption = (label: string): Locator => this.visibleDropdown.getByText(label, { exact: true });
+  /** Trả về các dòng dữ liệu của combogrid, loại trừ dòng tiêu đề chỉ chứa columnheader. */
+  dropdownDataRows = (): Locator => this.visibleDropdown
+    .getByRole('row')
+    .filter({ has: this.page.getByRole('cell') });
   /** Xác định dòng Đơn vị tính theo hai cell Mã và Tên lấy từ DB. */
   mainUnitOption = (label: string): Locator => {
     const [code, name] = label.split(' — ');
@@ -93,12 +98,13 @@ export class VatTuLocators {
     });
   };
   mainUnitColumnHeader = (name: string): Locator => this.visibleDropdown.getByRole('columnheader', { name, exact: true });
-  mainUnitRows = (): Locator => this.visibleDropdown.locator('tbody tr.ant-table-row');
+  mainUnitRows = (): Locator => this.dropdownDataRows();
   mainUnitStatusCells = (): Locator => this.visibleDropdown.getByRole('cell', { name: /^(Hoạt động|Ngừng hoạt động)$/ });
-  mainUnitOptions = (): Locator => this.visibleDropdown.locator('.ant-select-item-option:not(.ant-select-item-option-disabled)');
-  mainUnitActiveOption = (): Locator => this.visibleDropdown.locator('.ant-select-item-option-active');
+  mainUnitOptions = (): Locator => this.dropdownDataRows();
+  mainUnitActiveOption = (): Locator => this.dropdownDataRows()
+    .and(this.page.locator('[aria-selected="true"], .ant-table-row-selected'));
   clearMainUnitButton = (): Locator => this.formField('Đơn vị tính chính').locator('.ant-select-clear');
-  mainUnitQuickAddButton = (): Locator => this.formField('Đơn vị tính chính').getByRole('button', { name: /thêm nhanh|thêm mới|\+/i });
+  mainUnitQuickAddButton = (): Locator => this.visibleDropdown.getByRole('button', { name: 'Thêm nhanh', exact: true });
   mainUnitConfirmationDialog = (): Locator => this.page.getByRole('dialog').filter({ hasText: 'Bản ghi đang ở trạng thái Ngừng hoạt động. Bạn có chắc chắn muốn sử dụng?' });
   mainUnitConfirmationMessage = (): Locator => this.mainUnitConfirmationDialog().getByText('Bản ghi đang ở trạng thái Ngừng hoạt động. Bạn có chắc chắn muốn sử dụng?', { exact: true });
   mainUnitConfirmationButton = (name: 'Xác nhận' | 'Hủy'): Locator => this.mainUnitConfirmationDialog().getByRole('button', { name, exact: true });
@@ -118,14 +124,16 @@ export class VatTuLocators {
   };
   textarea = (label: string): Locator => this.formField(label).locator('textarea');
   selectedFormValue = (label: string): Locator => this.formField(label).locator('.ant-select-selection-item').first();
-  firstEnabledDropdownOption = (): Locator => this.visibleDropdown.locator('.ant-select-item-option:not(.ant-select-item-option-disabled)').first();
+  firstEnabledDropdownOption = (): Locator => this.dropdownDataRows()
+    .or(this.enabledDropdownOptions())
+    .first();
   checkbox = (name: string): Locator => this.createMaterialDialog.getByRole('checkbox', { name, exact: true });
   checkboxLabel = (name: string): Locator => this.createMaterialDialog.getByText(name, { exact: true });
   uploadInput = (): Locator => this.createMaterialDialog.locator('input[type="file"]');
   alternativeUnitCombobox = (): Locator => this.createMaterialDialog.getByRole('tabpanel', { name: 'Đơn vị tính khác', exact: true }).getByRole('combobox').first();
   alternativeUnitOption = (mainUnit: string): Locator => this.visibleDropdown.locator('.ant-select-item-option:not(.ant-select-item-option-disabled)').filter({ hasNotText: mainUnit }).first();
   materialImagePreview = (): Locator => this.createMaterialDialog.getByRole('button', { name: 'Xóa', exact: true });
-  materialImageSection = (): Locator => this.createMaterialDialog.getByText('Hình ảnh hàng hóa', { exact: true });
+  materialImageSection = (): Locator => this.createMaterialDialog.getByText('Ảnh', { exact: true });
   materialImageLabel = (): Locator => this.createMaterialDialog.getByText('Ảnh', { exact: true });
   materialImageSizeError = (): Locator => this.page.getByRole('alert').filter({ hasText: /dung lượng|2\s*MB/i });
   materialImageFormatError = (): Locator => this.page.getByRole('alert').filter({ hasText: /định dạng|JPG|PNG|WEBP/i });
@@ -141,7 +149,7 @@ export class VatTuLocators {
   };
   statusRequiredLabel = (): Locator => this.createMaterialDialog.getByText(/^Trạng thái:\s*\*$/).last();
   dialogControl = (role: AriaRole, name: string): Locator => this.createMaterialDialog.getByRole(role, { name, exact: true });
-  warrantyUnitCombobox = (): Locator => this.createMaterialDialog.getByText('Ngày', { exact: true }).locator('..').getByRole('combobox');
+  warrantyUnitCombobox = (): Locator => this.createMaterialDialog.locator('#donViThoiGian');
   inventoryWarrantyUnitCombobox = (): Locator => this.createMaterialDialog.locator('#donViThoiGian');
   namedDropdownOption = (name: string): Locator => this.visibleDropdown.locator('.ant-select-item-option-content').filter({ hasText: new RegExp(`^${name}$`) });
   defaultVatRateOption = (value: string): Locator => {
@@ -165,12 +173,19 @@ export class VatTuLocators {
   warehouseColumnHeaders = (): Locator => this.visibleDropdown.locator('[role="columnheader"], th');
   taxColumnHeaders = (): Locator => this.visibleDropdown.locator('[role="columnheader"], th');
   taxOptions = (): Locator => this.visibleDropdown.locator('.ant-select-item-option:not(.ant-select-item-option-disabled)');
+  taxActiveOption = (): Locator => this.visibleDropdown.locator('.ant-select-item-option-active');
+  clearTaxButton = (label: string): Locator => this.formField(label).locator('.ant-select-clear');
+  taxConfirmationDialog = (): Locator => this.page.getByRole('dialog').filter({
+    hasText: 'Bản ghi đang ở trạng thái Ngừng hoạt động. Bạn có chắc chắn muốn sử dụng?',
+  });
+  taxConfirmationButton = (name: 'Xác nhận' | 'Hủy'): Locator =>
+    this.taxConfirmationDialog().getByRole('button', { name, exact: true });
   warehouseOptionRow = (label: string): Locator => {
     const [code = ''] = label.split(' — ');
     return this.warehouseOptions()
       .filter({ has: this.page.getByRole('cell', { name: code, exact: true }) });
   };
-  warehouseOptions = (): Locator => this.visibleDropdown.locator('tbody tr.ant-table-row');
+  warehouseOptions = (): Locator => this.dropdownDataRows();
   warehouseActiveOption = (): Locator =>
     this.visibleDropdown.locator('tr.ant-table-row[aria-selected="true"], tr.ant-table-row-selected');
   clearWarehouseButton = (): Locator => this.formField('Kho mặc định').locator('.ant-select-clear');
@@ -225,8 +240,9 @@ export class VatTuLocators {
       .filter({ has: this.page.getByRole('cell', { name: code, exact: true }) })
       .filter({ has: this.page.getByRole('cell', { name, exact: true }) });
   };
-  accountingAccountOptions = (): Locator => this.visibleDropdown.locator('tbody tr.ant-table-row');
-  accountingAccountActiveOption = (): Locator => this.visibleDropdown.locator('.ant-select-item-option-active');
+  accountingAccountOptions = (): Locator => this.dropdownDataRows();
+  accountingAccountActiveOption = (): Locator => this.dropdownDataRows()
+    .and(this.page.locator('[aria-selected="true"], .ant-table-row-selected'));
   accountClearButton = (fieldLabel: string): Locator => this.formField(fieldLabel).locator('.ant-select-clear');
   accountConfirmationDialog = (): Locator => this.page.getByRole('dialog').filter({ hasText: 'Bản ghi đang ở trạng thái Ngừng hoạt động. Bạn có chắc chắn muốn sử dụng?' });
   accountConfirmationButton = (name: 'Xác nhận' | 'Hủy'): Locator => this.accountConfirmationDialog().getByRole('button', { name, exact: true });
