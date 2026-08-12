@@ -17,9 +17,10 @@ export class LoaiVatTuRepository {
   /** Khởi tạo repository bằng PostgreSQL client dùng chung. */
   constructor(private readonly client: PostgresClient) {}
 
-  /** Lấy cấu hình tài khoản của Hàng hóa bằng mã HH trong đúng tenant của tài khoản test. */
-  async findGoodsDefaultAccountsForDefaultTenant(
+  /** Lấy cấu hình tài khoản của một Loại vật tư bằng mã nghiệp vụ trong đúng tenant của tài khoản test. */
+  async findDefaultAccountsForDefaultTenant(
     username: string,
+    materialTypeCode: string,
   ): Promise<LoaiVatTuDefaultAccountsRecord | undefined> {
     const rows = await this.client.query<LoaiVatTuDefaultAccountsRecord>(
       `
@@ -50,11 +51,18 @@ export class LoaiVatTuRepository {
         LEFT JOIN public.mst_he_thong_tai_khoan expense_account ON expense_account.id = material_type.tai_khoan_chi_phi_id
         LEFT JOIN public.mst_he_thong_tai_khoan discount_account ON discount_account.id = material_type.tai_khoan_chiet_khau_id
         LEFT JOIN public.mst_he_thong_tai_khoan reduction_account ON reduction_account.id = material_type.tai_khoan_giam_gia_id
-        WHERE material_type.code = 'HH' AND material_type.da_xoa = FALSE
+        WHERE material_type.code = $2 AND material_type.da_xoa = FALSE
         LIMIT 1
       `,
-      [username],
+      [username, materialTypeCode],
     );
     return rows[0];
+  }
+
+  /** Giữ contract cũ cho các testcase Hàng hóa đang sử dụng mã HH. */
+  async findGoodsDefaultAccountsForDefaultTenant(
+    username: string,
+  ): Promise<LoaiVatTuDefaultAccountsRecord | undefined> {
+    return this.findDefaultAccountsForDefaultTenant(username, 'HH');
   }
 }

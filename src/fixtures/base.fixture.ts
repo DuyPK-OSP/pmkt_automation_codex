@@ -19,10 +19,9 @@ import { expect, runWithEvidenceContext } from '@utils/evidence-expect';
 import { KhoPage } from '@pages/danh-muc/kho.page';
 import { QuickAddCleanupRegistry } from '@cleanup/quick-add.cleanup';
 
-/** Danh sách Page Object, database context, logger và cleanup tracker dùng chung cho test. */
+/** Danh sách Page Object, logger và cleanup tracker được khởi tạo riêng cho từng testcase. */
 interface FrameworkFixtures {
   readonly evidenceContext: void;
-  readonly db: DatabaseContext;
   readonly logger: Logger;
   readonly loginPage: LoginPage;
   readonly dashboardPage: DashboardPage;
@@ -41,18 +40,23 @@ interface FrameworkFixtures {
   readonly quickAddCleanup: QuickAddCleanupRegistry;
 }
 
+/** Database context được tái sử dụng trong một worker để tránh mở pool theo từng testcase. */
+interface FrameworkWorkerFixtures {
+  readonly db: DatabaseContext;
+}
+
 /** Mở rộng Playwright test bằng các fixture của framework và lifecycle setup/teardown tương ứng. */
-export const test = base.extend<FrameworkFixtures>({
+export const test = base.extend<FrameworkFixtures, FrameworkWorkerFixtures>({
   // Fixture auto bao toàn bộ testcase để expect.soft() chụp evidence ngay tại thời điểm mismatch.
   evidenceContext: [async ({ page }, use, testInfo) => {
     await runWithEvidenceContext(page, testInfo, use);
   }, { auto: true }],
-  db: async ({ }, use) => {
+  db: [async ({ }, use) => {
     const database = new DatabaseContext();
     await use(database);
-    // Teardown chỉ đóng pool sau khi testcase đã hoàn tất mọi truy vấn DB.
+    // Teardown đóng pool một lần sau khi toàn bộ testcase của worker hoàn tất truy vấn DB.
     await database.close();
-  },
+  }, { scope: 'worker' }],
   logger: async ({ }, use) => { await use(new Logger()); },
   loginPage: async ({ page, logger }, use) => { await use(new LoginPage(page, logger)); },
   dashboardPage: async ({ page, logger }, use) => { await use(new DashboardPage(page, logger)); },

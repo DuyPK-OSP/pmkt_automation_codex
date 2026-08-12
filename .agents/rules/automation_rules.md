@@ -171,3 +171,22 @@ industryCleanup.register(data.code);
 - Cleanup chỉ được xóa đúng bản ghi đã được testcase hiện tại tạo thành công; không tìm kiếm hoặc xóa hàng loạt theo tiền tố.
 - Việc chụp evidence và thu thập log lỗi phải hoàn tất trước cleanup để không làm mất trạng thái phục vụ điều tra.
 - Cleanup không điều hướng hoặc tải lại trang nếu có thể hoàn thành trên màn hình hiện tại. Chỉ mở màn hình khác khi quy tắc nghiệp vụ của dự án hoặc testcase yêu cầu; không cần redirect trở lại màn hình ban đầu sau khi cleanup hoàn tất.
+
+## 8. Quy Tắc Report PMKT
+
+- Khi tạo report, bắt buộc đọc và tuân thủ đầy đủ comment **HỢP ĐỒ DỮ LIỆU VÀ QUY TẮC REPORT** ở đầu hai template:
+  - `report/templates/test-execution-report-template.md`
+  - `report/templates/test-execution-report-template.html`
+- Mỗi lần `Chạy và report` phải xuất cả Markdown và HTML từ cùng kết quả chạy thật. Hai file phải thống nhất tổng số test, PASS/FAIL/SKIP/BLOCK, Bug ID, testcase ảnh hưởng, Expected, Actual và evidence.
+- Markdown chỉ gồm tiêu đề, Tổng quan kết quả, Tổng hợp Bugs và Chi tiết Bug; không có Kết luận, Thông tin lần chạy, Điều hướng nhanh, Kết quả chi tiết từng testcase, Thông tin kỹ thuật hoặc Tester Review.
+- HTML giữ cơ chế Tester Review, draft, thêm evidence, Tester Reported Bug và Export Reviewed Report; Automation Result luôn read-only.
+- Bảng Tổng hợp Bugs gồm đúng các cột: `Bug ID`, `Mức độ`, `Số case ảnh hưởng`, `Tên case ảnh hưởng`, `Tóm tắt bug`. Tên case ảnh hưởng chỉ ghi TC ID.
+- Mỗi Chi tiết Bug gồm đúng bảy hạng mục: `Tiêu đề bug`, `Điều kiện tiên quyết`, `Các bước tái hiện`, `Data test`, `Kết quả mong đợi`, `Kết quả thực tế`, `Bằng chứng`.
+- Nếu nhiều testcase cùng một bug, dùng testcase đầu tiên làm case đại diện. Lấy nhất quán Pre-Condition, Steps, Test Data và Expected của case đại diện; vẫn giữ đầy đủ TC ID ảnh hưởng trong bảng Tổng hợp Bugs.
+- Pre-Condition và Steps phải khớp manual testcase, đúng thứ tự thao tác và tên control thực tế. Không dùng mô tả chung như `chạy TC`, `thực hiện theo testcase` hoặc `quan sát assertion`.
+- Expected và Actual phải cụ thể, tương ứng từng mục 1/2/3 nếu có nhiều kết quả. Actual là giá trị/hành vi quan sát thật; không tô đỏ hoặc highlight trong report.
+- Khi có đối chiếu DB, report phải phản ánh đúng `giá trị UI → bảng.cột DB`; không suy diễn và không coi `NULL`, rỗng, `0`, `false` là tương đương. Khác biệt biểu diễn tương đương như `5` và `5.0000` không phải bug.
+- FAIL là Actual không khớp testcase sau khi thực hiện được luồng; BLOCK chỉ dùng khi không thể thực hiện/đánh giá do tiền điều kiện hoặc case phụ thuộc và phải ghi rõ nguyên nhân. Lỗi locator/wait/script/test data là lỗi automation, không phải bug sản phẩm; sau khi sửa và rerun PASS phải loại khỏi report.
+- Evidence phải được mở kiểm tra trực quan trước khi bàn giao, thể hiện rõ Actual và triệu chứng bug. Markdown chỉ dùng link tương đối dưới `./evidence/`; không liên kết artifacts tạm.
+- Link Bug ID trong Markdown phải trỏ tới heading tự sinh từ heading chỉ chứa Bug ID, ví dụ `### BUG-VTHH-01`; không dùng `<a id>` thủ công cho bug vì Markdown Preview có thể mở file source.
+- Bảo toàn chỉnh sửa thủ công trong report hiện có; chỉ cập nhật phần người dùng yêu cầu.

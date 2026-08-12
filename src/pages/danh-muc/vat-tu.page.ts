@@ -433,6 +433,14 @@ export class VatTuPage extends BasePage {
     return this.locators.formFieldControl(label, role);
   }
 
+  /** Trả về control riêng của Nguyên vật liệu bằng ID ổn định đã xác minh trên DOM. */
+  inventoryMaterialFormFieldControl(
+    label: string,
+    role: Parameters<Locator['getByRole']>[0],
+  ): Locator {
+    return this.locators.inventoryMaterialFormFieldControl(label, role);
+  }
+
   /** Đọc nội dung và màu của dấu bắt buộc được render cạnh label trường. */
   async requiredIndicatorStyle(label: string): Promise<Readonly<{ content: string; color: string }>> {
     return this.locators.requiredIndicator(label).evaluate((element) => {
@@ -661,17 +669,20 @@ export class VatTuPage extends BasePage {
   /** Nhập đầy đủ dữ liệu cho loại Vật tư có quản lý kho và trả về các giá trị đã chọn từ UI. */
   async fillFullGoodsMaterial(
     input: FullGoodsMaterialInput,
+    locatorProfile: 'goods' | 'inventory-material' = 'goods',
   ): Promise<FullGoodsMaterialSelection> {
     await this.fillRequiredMaterialFields(input.code, input.name, input.mainUnit);
     await this.openGroupDropdown();
     await this.selectGroup(input.group);
     await this.closeDropdown();
     await this.setCheckbox('Giảm thuế theo quy định', true);
-    const specialGoodsType = await this.specialGoodsTypeCombobox().isVisible()
-      ? await this.selectFirstFormOption('Loại hàng hóa đặc trưng')
-      : '';
+    const specialGoodsType = await this.selectFirstFormOption('Loại hàng hóa đặc trưng');
     await this.fillFormField('Thời hạn bảo hành', '12');
-    await this.selectWarrantyUnit('Ngày');
+    if (locatorProfile === 'inventory-material') {
+      await this.selectInventoryWarrantyUnit('Ngày');
+    } else {
+      await this.selectWarrantyUnit('Ngày');
+    }
     await this.fillFormField('Tên vật tư khi mua', input.purchaseName);
     await this.fillFormField('Tên vật tư khi bán', input.saleName);
     await this.fillFormField('Mô tả', input.description);
@@ -847,9 +858,29 @@ export class VatTuPage extends BasePage {
     await this.click(option, `Chọn Đơn vị bảo hành ${name}`);
   }
 
+  /** Chọn Đơn vị bảo hành của Nguyên vật liệu bằng control ID ổn định, tách khỏi locator Hàng hóa. */
+  async selectInventoryWarrantyUnit(name: string): Promise<void> {
+    if (await this.inventorySelectedWarrantyUnit(name).count()) return;
+    await this.click(this.locators.inventoryWarrantyUnitCombobox(), 'Mở Đơn vị thời hạn bảo hành Nguyên vật liệu');
+    await this.locators.visibleDropdown.waitFor({ state: 'visible' });
+    const option = this.warrantyUnitOption(name);
+    await option.waitFor({ state: 'visible' });
+    await this.click(option, `Chọn Đơn vị bảo hành Nguyên vật liệu ${name}`);
+  }
+
   /** Trả về Đơn vị thời hạn bảo hành đang được chọn. */
   selectedWarrantyUnit(name: string): Locator {
     return this.locators.selectedDialogValue(name);
+  }
+
+  /** Trả về giá trị Đơn vị bảo hành đang chọn trên riêng form Nguyên vật liệu. */
+  inventorySelectedWarrantyUnit(name: string): Locator {
+    return this.locators.inventorySelectedWarrantyUnit(name);
+  }
+
+  /** Trả về combobox Đơn vị bảo hành riêng của form Nguyên vật liệu. */
+  inventoryWarrantyUnitCombobox(): Locator {
+    return this.locators.inventoryWarrantyUnitCombobox();
   }
 
   /** Trả về combobox Loại hàng hóa đặc trưng. */

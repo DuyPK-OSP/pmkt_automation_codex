@@ -7,6 +7,7 @@ import type {
   CatalogueOption,
   FullGoodsMaterialInput,
   FullGoodsMaterialSelection,
+  MaterialType,
   RequiredGoodsUiDefaults,
   TaxOption,
   VatTuPage,
@@ -45,10 +46,13 @@ export function boundaryText(testCaseId: string, length: number): string {
 }
 
 /** Lấy danh mục từ DB đúng tenant rồi mở form Hàng hóa tại tab Đơn vị quy đổi và thêm dòng đầu tiên. */
-export async function prepareGoodsConversionGrid(vatTuPage: VatTuPage): Promise<VatTuCatalogues> {
+export async function prepareGoodsConversionGrid(
+  vatTuPage: VatTuPage,
+  materialType: MaterialType = 'Hàng hóa',
+): Promise<VatTuCatalogues> {
   const catalogues = await openVatTuWithCatalogues(vatTuPage);
   await vatTuPage.openMaterialTypePopup();
-  await vatTuPage.selectMaterialType('Hàng hóa');
+  await vatTuPage.selectMaterialType(materialType);
   await vatTuPage.openFormTab('Đơn vị quy đổi');
   await vatTuPage.addConversionRow();
   return catalogues;
@@ -59,11 +63,12 @@ export function fullGoodsData(
   testCaseId: string,
   group: CatalogueOption,
   mainUnit: CatalogueOption,
+  materialType: MaterialType = 'Hàng hóa',
 ): FullGoodsMaterialInput {
   const code = new TestDataGenerator().uniqueCode(testCaseId);
   return {
     code,
-    name: `Hàng hóa ${testCaseId} ${code}`,
+    name: `${materialType} ${testCaseId} ${code}`,
     description: `Mô tả nghiệp vụ ${testCaseId} ${code}`,
     purchaseName: `Tên mua ${testCaseId} ${code}`,
     saleName: `Tên bán ${testCaseId} ${code}`,
@@ -81,6 +86,7 @@ export async function verifyFullGoodsSavedInDatabase(
   selection: FullGoodsMaterialSelection,
   active: boolean,
   expectedConversionCount = 1,
+  materialType: MaterialType = 'Hàng hóa',
 ): Promise<void> {
   await expect.poll(
     async () => (await db.vatTu.findByCodeForDefaultTenant(username, material.code)).length,
@@ -97,10 +103,10 @@ export async function verifyFullGoodsSavedInDatabase(
   expect(actual.name).toBe(material.name);
   expect(actual.purchaseName).toBe(material.purchaseName);
   expect(actual.saleName).toBe(material.saleName);
-  expect(actual.materialType).toBe('Hàng hóa');
+  expect(actual.materialType).toBe(materialType);
   expect(actual.mainUnit).toBe(material.mainUnit.label);
   expect(actual.imageId).toBeTruthy();
-  expect(actual.specialGoodsType).toBe(selection.specialGoodsType);
+  expect(actual.specialGoodsType).toBe(selection.specialGoodsType || null);
   expect(actual.warrantyPeriod).toBe(12);
   expect(actual.warrantyUnit).toBe(selection.warrantyUnit);
   expect(actual.active).toBe(active);
@@ -149,6 +155,7 @@ export async function verifyRequiredGoodsSavedInDatabase(
     active: boolean;
     defaults: RequiredGoodsUiDefaults;
   }>,
+  materialType: MaterialType = 'Hàng hóa',
 ): Promise<void> {
   await expect.poll(
     async () => (await db.vatTu.findByCodeForDefaultTenant(username, expected.code)).length,
@@ -163,7 +170,7 @@ export async function verifyRequiredGoodsSavedInDatabase(
   expect(actual.tenantId).toBeTruthy();
   expect(actual.code).toBe(expected.code);
   expect(actual.name).toBe(expected.name);
-  expect(actual.materialType).toBe('Hàng hóa');
+  expect(actual.materialType).toBe(materialType);
   expect(actual.mainUnit).toBe(expected.mainUnit.label);
   expect(actual.active).toBe(expected.active);
   const defaults = expected.defaults;
@@ -203,35 +210,38 @@ export async function verifyRequiredGoodsSavedInDatabase(
 }
 
 /** Mở form Hàng hóa tại tab Hạch toán và trả về danh mục Tài khoản từ DB. */
-export async function prepareGoodsAccounting(vatTuPage: VatTuPage): Promise<readonly AccountOption[]> {
+export async function prepareGoodsAccounting(
+  vatTuPage: VatTuPage,
+  materialType: MaterialType = 'Hàng hóa',
+): Promise<readonly AccountOption[]> {
   const accounts = await openVatTuWithAccounts(vatTuPage);
   await vatTuPage.openMaterialTypePopup();
-  await vatTuPage.selectMaterialType('Hàng hóa');
+  await vatTuPage.selectMaterialType(materialType);
   await vatTuPage.openDefaultAccountingTab();
   return accounts;
 }
 
 /** Mở form Hàng hóa tại tab Thông tin kho, không tương tác với trường nào. */
-export async function openGoodsInventoryTab(vatTuPage: VatTuPage): Promise<void> {
+export async function openGoodsInventoryTab(vatTuPage: VatTuPage, materialType: MaterialType = 'Hàng hóa'): Promise<void> {
   await vatTuPage.openFromDanhMuc();
   await vatTuPage.openMaterialTypePopup();
-  await vatTuPage.selectMaterialType('Hàng hóa');
+  await vatTuPage.selectMaterialType(materialType);
   await vatTuPage.openFormTab('Thông tin kho');
 }
 
 /** Mở form Hàng hóa tại tab Thông tin thuế, không tương tác với trường nào. */
-export async function openGoodsTaxTab(vatTuPage: VatTuPage): Promise<void> {
+export async function openGoodsTaxTab(vatTuPage: VatTuPage, materialType: MaterialType = 'Hàng hóa'): Promise<void> {
   await vatTuPage.openFromDanhMuc();
   await vatTuPage.openMaterialTypePopup();
-  await vatTuPage.selectMaterialType('Hàng hóa');
+  await vatTuPage.selectMaterialType(materialType);
   await vatTuPage.openFormTab('Thông tin thuế');
 }
 
 /** Mở form Hàng hóa tại combogrid Kho mặc định. */
-export async function openGoodsWarehouse(vatTuPage: VatTuPage): Promise<void> {
+export async function openGoodsWarehouse(vatTuPage: VatTuPage, materialType: MaterialType = 'Hàng hóa'): Promise<void> {
   await vatTuPage.openFromDanhMuc();
   await vatTuPage.openMaterialTypePopup();
-  await vatTuPage.selectMaterialType('Hàng hóa');
+  await vatTuPage.selectMaterialType(materialType);
   await vatTuPage.openWarehouseDropdown();
 }
 
@@ -239,10 +249,11 @@ export async function openGoodsWarehouse(vatTuPage: VatTuPage): Promise<void> {
 export async function prepareGoodsWarehouses(
   vatTuPage: VatTuPage,
   db: DatabaseContext,
+  materialType: MaterialType = 'Hàng hóa',
 ): Promise<readonly CatalogueOption[]> {
   const credentials = requireCredentials();
   const records = await db.kho.listForDefaultTenant(credentials.username);
-  await openGoodsWarehouse(vatTuPage);
+  await openGoodsWarehouse(vatTuPage, materialType);
   return records.map((record) => ({
     code: record.code,
     name: record.name,
@@ -255,10 +266,11 @@ export async function prepareGoodsWarehouses(
 export async function prepareGoodsResourceTaxes(
   vatTuPage: VatTuPage,
   db: DatabaseContext,
+  materialType: MaterialType = 'Hàng hóa',
 ): Promise<readonly TaxOption[]> {
   const credentials = requireCredentials();
   const records = await db.thueTaiNguyen.listForDefaultTenant(credentials.username);
-  await openGoodsTaxTab(vatTuPage);
+  await openGoodsTaxTab(vatTuPage, materialType);
   await vatTuPage.openTaxDropdown('Thuế Tài nguyên');
   return records.map((record) => ({
     code: record.code,
@@ -273,10 +285,11 @@ export async function prepareGoodsResourceTaxes(
 export async function prepareGoodsExciseTaxes(
   vatTuPage: VatTuPage,
   db: DatabaseContext,
+  materialType: MaterialType = 'Hàng hóa',
 ): Promise<readonly TaxOption[]> {
   const credentials = requireCredentials();
   const records = await db.thueTieuThuDacBiet.listForDefaultTenant(credentials.username);
-  await openGoodsTaxTab(vatTuPage);
+  await openGoodsTaxTab(vatTuPage, materialType);
   await vatTuPage.openTaxDropdown('Thuế tiêu thụ đặc biệt');
   return records.map((record) => ({
     code: record.code,

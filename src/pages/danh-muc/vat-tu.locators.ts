@@ -2,6 +2,27 @@ import type { Locator, Page } from '@playwright/test';
 
 type AriaRole = Parameters<Locator['getByRole']>[0];
 
+/** Ánh xạ các control có ID nghiệp vụ ổn định đã được xác minh trực tiếp trên DOM form Vật tư. */
+const STABLE_FORM_CONTROL_IDS: Readonly<Record<string, string>> = {
+  'Mã vật tư': 'ma',
+  'Tên vật tư': 'ten',
+  'Nhóm vật tư': 'nhomVatTuIds',
+  'Thời hạn bảo hành': 'thoiHanBaoHanh',
+  'Tên vật tư khi mua': 'tenMua',
+  'Tên vật tư khi bán': 'tenBan',
+  'Mô tả': 'moTa',
+  'Phương pháp tính giá': 'phuongPhapTinhGia',
+  'Tồn tối thiểu': 'tonToiThieu',
+  'Tồn tối đa': 'tonToiDa',
+  'Thuế suất GTGT mặc định': 'thueSuatGtgtMacDinh',
+  'Giá trị thuế suất GTGT': 'giaTriThueSuatGtgt',
+  'Thuế nhập khẩu': 'thueNhapKhau',
+  'Thuế xuất khẩu': 'thueXuatKhau',
+  'Thuế tiêu thụ đặc biệt': 'thueTtdbId',
+  'Thuế Tài nguyên': 'thueTnId',
+  'Thuế tài nguyên': 'thueTnId',
+};
+
 /** Tập trung toàn bộ locator của màn hình Danh mục Vật tư. */
 export class VatTuLocators {
   readonly catalogueButton: Locator;
@@ -89,6 +110,12 @@ export class VatTuLocators {
   formTab = (name: string): Locator => this.createMaterialDialog.getByRole('tab', { name, exact: true });
   formField = (label: string): Locator => this.createMaterialDialog.locator('.ant-form-item').filter({ hasText: label });
   formFieldControl = (label: string, role: AriaRole): Locator => this.formField(label).getByRole(role).first();
+  inventoryMaterialFormFieldControl = (label: string, role: AriaRole): Locator => {
+    const stableId = STABLE_FORM_CONTROL_IDS[label];
+    return stableId
+      ? this.createMaterialDialog.locator(`#${stableId}`)
+      : this.formField(label).getByRole(role).first();
+  };
   textarea = (label: string): Locator => this.formField(label).locator('textarea');
   selectedFormValue = (label: string): Locator => this.formField(label).locator('.ant-select-selection-item').first();
   firstEnabledDropdownOption = (): Locator => this.visibleDropdown.locator('.ant-select-item-option:not(.ant-select-item-option-disabled)').first();
@@ -115,6 +142,7 @@ export class VatTuLocators {
   statusRequiredLabel = (): Locator => this.createMaterialDialog.getByText(/^Trạng thái:\s*\*$/).last();
   dialogControl = (role: AriaRole, name: string): Locator => this.createMaterialDialog.getByRole(role, { name, exact: true });
   warrantyUnitCombobox = (): Locator => this.createMaterialDialog.getByText('Ngày', { exact: true }).locator('..').getByRole('combobox');
+  inventoryWarrantyUnitCombobox = (): Locator => this.createMaterialDialog.locator('#donViThoiGian');
   namedDropdownOption = (name: string): Locator => this.visibleDropdown.locator('.ant-select-item-option-content').filter({ hasText: new RegExp(`^${name}$`) });
   defaultVatRateOption = (value: string): Locator => {
     const displayedValue = value === 'KHAC' ? 'KHÁC' : value;
@@ -124,7 +152,10 @@ export class VatTuLocators {
     });
   };
   enabledDropdownOptions = (): Locator => this.visibleDropdown.locator('.ant-select-item-option:not(.ant-select-item-option-disabled)');
-  selectedDialogValue = (name: string): Locator => this.createMaterialDialog.getByTitle(name, { exact: true }).last();
+  selectedDialogValue = (name: string): Locator => this.createMaterialDialog.getByText(name, { exact: true }).last();
+  inventorySelectedWarrantyUnit = (name: string): Locator => this.createMaterialDialog
+    .locator('.ant-form-item:has(#donViThoiGian)')
+    .getByTitle(name, { exact: true });
   selectedFieldValue = (field: string, value: string): Locator => this.formField(field).getByTitle(value, { exact: true });
   materialTypeValue = (type: string): Locator => this.createMaterialDialog.getByText(type, { exact: true }).first();
   statusSwitch = (): Locator => this.createMaterialDialog.getByRole('switch');

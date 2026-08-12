@@ -5,7 +5,7 @@ import { requireDatabaseConfig } from '@utils/env.config';
 export class PostgresClient {
   private readonly pool: Pool;
 
-  /** Tạo pool PostgreSQL từ cấu hình môi trường và áp dụng timeout truy vấn/kết nối. */
+  /** Tạo pool một connection cho mỗi worker và áp dụng timeout truy vấn/kết nối. */
   constructor() {
     const config = requireDatabaseConfig();
     this.pool = new Pool({
@@ -15,7 +15,7 @@ export class PostgresClient {
       user: config.username,
       password: config.password,
       ssl: config.ssl,
-      max: 5,
+      max: 1,
       connectionTimeoutMillis: config.connectionTimeoutMs,
       statement_timeout: config.queryTimeoutMs,
       query_timeout: config.queryTimeoutMs,

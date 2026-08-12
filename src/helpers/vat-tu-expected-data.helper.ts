@@ -94,8 +94,15 @@ export async function openVatTuWithResourceTaxes(vatTuPage: VatTuPage): Promise<
 
 /** Lấy bảy tài khoản mặc định của Loại vật tư Hàng hóa từ DB đúng tenant làm expected. */
 export async function goodsDefaultAccountsFromDatabase(): Promise<Readonly<Record<string, string | null>> | undefined> {
+  return materialTypeDefaultAccountsFromDatabase('HH');
+}
+
+/** Lấy bảy tài khoản mặc định của Loại vật tư theo mã nghiệp vụ từ DB đúng tenant làm expected. */
+export async function materialTypeDefaultAccountsFromDatabase(
+  materialTypeCode: string,
+): Promise<Readonly<Record<string, string | null>> | undefined> {
   const defaults = await readExpectedFromDatabase((db, username) =>
-    db.loaiVatTu.findGoodsDefaultAccountsForDefaultTenant(username),
+    db.loaiVatTu.findDefaultAccountsForDefaultTenant(username, materialTypeCode),
   );
   if (!defaults) return undefined;
   return {
