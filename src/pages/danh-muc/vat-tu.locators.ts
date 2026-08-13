@@ -166,6 +166,18 @@ export class VatTuLocators {
     .getByTitle(name, { exact: true });
   selectedFieldValue = (field: string, value: string): Locator => this.formField(field).getByTitle(value, { exact: true });
   materialTypeValue = (type: string): Locator => this.createMaterialDialog.getByText(type, { exact: true }).first();
+  /** Giá trị read-only riêng của CCDC; scope trong dialog để loại menu cùng tên ở thanh bên. */
+  ccdcMaterialTypeField = (): Locator => this.createMaterialDialog
+    .getByText('Công cụ dụng cụ', { exact: false })
+    .first();
+  /** Giá trị read-only của Thành phẩm; scope trong dialog để loại menu cùng tên ở thanh bên. */
+  finishedProductMaterialTypeField = (): Locator => this.createMaterialDialog
+    .getByText('Thành phẩm', { exact: true })
+    .first();
+  /** Giá trị read-only của Bán thành phẩm; scope trong dialog để loại menu cùng tên ở thanh bên. */
+  semiFinishedProductMaterialTypeField = (): Locator => this.createMaterialDialog
+    .getByText('Bán thành phẩm', { exact: true })
+    .first();
   statusSwitch = (): Locator => this.createMaterialDialog.getByRole('switch');
   saveButton = (): Locator => this.createMaterialDialog.getByRole('button', { name: 'Lưu', exact: true });
   saveAndAddButton = (): Locator => this.createMaterialDialog.getByRole('button', { name: 'Lưu và Thêm mới', exact: true });

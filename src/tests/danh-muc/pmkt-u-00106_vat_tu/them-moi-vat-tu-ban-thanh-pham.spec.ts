@@ -20,21 +20,21 @@ import { requireCredentials } from '@utils/env.config';
 import { TestDataGenerator } from '@utils/test-data';
 import { discriminatingSearchKeyword, isGrayCssColor, sharedSearchKeyword, statusPair } from '@utils/vat-tu-test.util';
 
-test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-TC839', () => {
+test.describe('PMKT-U-00106 - Thêm mới Vật tư Bán thành phẩm TC1484-TC1809', () => {
   test.beforeEach(async ({ loginPage }) => {
     const credentials = requireCredentials();
     await loginPage.open();
     await loginPage.login(credentials.username, credentials.password);
   });
 
-  test('TC_PMKT-U-00106-518 - chọn Nguyên vật liệu và hiển thị form thông tin tương ứng', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1484 - chọn Bán thành phẩm và hiển thị form thông tin tương ứng', async ({ vatTuPage }) => {
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
 
-    await expect(vatTuPage.materialTypeDialog, 'Popup Chọn tính chất phải đóng sau khi chọn Nguyên vật liệu').toBeHidden();
+    await expect(vatTuPage.materialTypeDialog, 'Popup Chọn tính chất phải đóng sau khi chọn Bán thành phẩm').toBeHidden();
     await expect(vatTuPage.createMaterialDialog, 'Phải hiển thị popup Thêm mới vật tư').toBeVisible();
-    await expect(vatTuPage.materialTypeValue('Nguyên vật liệu'), 'Tính chất phải hiển thị Nguyên vật liệu ở trạng thái chỉ đọc').toBeVisible();
+    await expect(vatTuPage.semiFinishedProductMaterialTypeField(), 'Tính chất phải hiển thị Bán thành phẩm ở trạng thái chỉ đọc').toContainText('Bán thành phẩm');
     for (const field of [
       { label: 'Mã vật tư', role: 'textbox' as const },
       { label: 'Tên vật tư', role: 'textbox' as const },
@@ -60,35 +60,35 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     }
   });
 
-  test('TC_PMKT-U-00106-519 - Thay đổi tính chất hiển thị lại popup đủ 6 lựa chọn', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1485 - Thay đổi tính chất hiển thị lại popup đủ 6 lựa chọn', async ({ vatTuPage }) => {
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.changeMaterialType();
 
     await expect(vatTuPage.materialTypeDialog, 'Phải hiển thị lại popup Chọn tính chất').toBeVisible();
     await verifyMaterialTypeCards(vatTuPage);
   });
 
-  test('TC_PMKT-U-00106-520 - đóng popup thay đổi và giữ nguyên Nguyên vật liệu cùng dữ liệu đang nhập', async ({ vatTuPage }) => {
-    const materialName = new TestDataGenerator().uniqueKeyword('TC_PMKT-U-00106-520');
+  test('TC_PMKT-U-00106-1486 - đóng popup thay đổi và giữ nguyên Bán thành phẩm cùng dữ liệu đang nhập', async ({ vatTuPage }) => {
+    const materialName = new TestDataGenerator().uniqueKeyword('TC_PMKT-U-00106-1486');
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.materialNameInput().fill(materialName);
     await vatTuPage.changeMaterialType();
     await vatTuPage.closeMaterialTypePopup();
 
     await expect(vatTuPage.materialTypeDialog, 'Popup Chọn tính chất phải đóng').toBeHidden();
     await expect(vatTuPage.createMaterialDialog, 'Form Thêm mới phải tiếp tục hiển thị').toBeVisible();
-    await expect(vatTuPage.materialTypeValue('Nguyên vật liệu'), 'Loại vật tư cũ phải được giữ nguyên').toBeVisible();
+    await expect(vatTuPage.semiFinishedProductMaterialTypeField(), 'Loại vật tư cũ phải được giữ nguyên').toContainText('Bán thành phẩm');
     await expect(vatTuPage.materialNameInput(), 'Dữ liệu đang nhập phải được giữ nguyên').toHaveValue(materialName);
   });
 
-  test('TC_PMKT-U-00106-521 - thay đổi tính chất từ Nguyên vật liệu sang Dịch vụ', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1487 - thay đổi tính chất từ Bán thành phẩm sang Dịch vụ', async ({ vatTuPage }) => {
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.changeMaterialType();
     await vatTuPage.selectMaterialType('Dịch vụ');
 
@@ -99,56 +99,56 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.formTab('Đơn vị quy đổi'), 'Dịch vụ không được hiển thị tab Đơn vị quy đổi').toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-522 - hiển thị TextBox Mã vật tư bắt buộc', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1488 - hiển thị TextBox Mã vật tư bắt buộc', async ({ vatTuPage }) => {
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
 
     await expect(vatTuPage.materialCodeInput(), 'Mã vật tư phải hiển thị dưới dạng TextBox').toBeVisible();
     await expect(vatTuPage.requiredFormField('Mã vật tư'), 'Label Mã vật tư phải có dấu * màu đỏ bắt buộc').toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-523 - nhập Mã vật tư dài 49 ký tự', async ({ vatTuPage }) => {
-    const code = boundaryText('TC_PMKT-U-00106-523', 49);
+  test('TC_PMKT-U-00106-1489 - nhập Mã vật tư dài 49 ký tự', async ({ vatTuPage }) => {
+    const code = boundaryText('TC_PMKT-U-00106-1489', 49);
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.materialCodeInput().fill(code);
 
     await expect(vatTuPage.materialCodeInput(), 'Mã vật tư phải giữ đầy đủ 49 ký tự').toHaveValue(code);
   });
 
-  test('TC_PMKT-U-00106-524 - nhập Mã vật tư dài tối đa 50 ký tự', async ({ vatTuPage }) => {
-    const code = boundaryText('TC_PMKT-U-00106-524', 50);
+  test('TC_PMKT-U-00106-1490 - nhập Mã vật tư dài tối đa 50 ký tự', async ({ vatTuPage }) => {
+    const code = boundaryText('TC_PMKT-U-00106-1490', 50);
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.materialCodeInput().fill(code);
 
     await expect(vatTuPage.materialCodeInput(), 'Mã vật tư phải giữ đầy đủ 50 ký tự').toHaveValue(code);
   });
 
-  test('TC_PMKT-U-00106-525 - chặn ký tự thứ 51 của Mã vật tư', async ({ vatTuPage }) => {
-    const firstFiftyCharacters = boundaryText('TC_PMKT-U-00106-525', 50);
+  test('TC_PMKT-U-00106-1491 - chặn ký tự thứ 51 của Mã vật tư', async ({ vatTuPage }) => {
+    const firstFiftyCharacters = boundaryText('TC_PMKT-U-00106-1491', 50);
     const fiftyOneCharacters = `${firstFiftyCharacters}X`;
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.materialCodeInput().fill(fiftyOneCharacters);
 
     await expect(vatTuPage.materialCodeInput(), 'Mã vật tư phải chặn cứng ký tự thứ 51').toHaveValue(firstFiftyCharacters);
   });
 
-  test('TC_PMKT-U-00106-526 - validate bỏ trống Mã vật tư khi Lưu', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1492 - validate bỏ trống Mã vật tư khi Lưu', async ({ vatTuPage }) => {
     const catalogues = await openVatTuWithCatalogues(vatTuPage);
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     const mainUnit = await firstVisibleActiveMainUnit(vatTuPage, catalogues.units);
     test.skip(!mainUnit, 'Thiếu Đơn vị tính chính Hoạt động khả dụng trên cả DB và UI');
     if (!mainUnit) return;
     await vatTuPage.fillRequiredInventoryMaterialFields(
       '',
-      new TestDataGenerator().uniqueKeyword('TC_PMKT-U-00106-526'),
+      new TestDataGenerator().uniqueKeyword('TC_PMKT-U-00106-1492'),
       mainUnit,
     );
     await vatTuPage.saveMaterial();
@@ -160,20 +160,20 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     ).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-527 - validate trùng Mã vật tư đã tồn tại', async ({ vatTuPage, db }) => {
+  test('TC_PMKT-U-00106-1493 - validate trùng Mã vật tư đã tồn tại', async ({ vatTuPage, db }) => {
     const credentials = requireCredentials();
     const existingCode = await db.vatTu.findFirstExistingCodeForDefaultTenant(credentials.username);
     test.skip(!existingCode, 'Precondition DB đúng tenant không có vật tư đang tồn tại');
     if (!existingCode) return;
     const catalogues = await openVatTuWithCatalogues(vatTuPage);
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     const mainUnit = await firstVisibleActiveMainUnit(vatTuPage, catalogues.units);
     test.skip(!mainUnit, 'Thiếu Đơn vị tính chính Hoạt động khả dụng trên cả DB và UI');
     if (!mainUnit) return;
     await vatTuPage.fillRequiredInventoryMaterialFields(
       existingCode,
-      new TestDataGenerator().uniqueKeyword('TC_PMKT-U-00106-527'),
+      new TestDataGenerator().uniqueKeyword('TC_PMKT-U-00106-1493'),
       mainUnit,
     );
     await vatTuPage.saveMaterial();
@@ -185,55 +185,55 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     ).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-528 - hiển thị TextBox Tên vật tư bắt buộc', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1494 - hiển thị TextBox Tên vật tư bắt buộc', async ({ vatTuPage }) => {
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
 
     await expect(vatTuPage.materialNameInput(), 'Tên vật tư phải hiển thị dưới dạng TextBox').toBeVisible();
     await expect(vatTuPage.requiredFormField('Tên vật tư'), 'Label Tên vật tư phải có dấu * màu đỏ bắt buộc').toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-529 - nhập Tên vật tư dài 254 ký tự', async ({ vatTuPage }) => {
-    const name = boundaryText('TC_PMKT-U-00106-529', 254);
+  test('TC_PMKT-U-00106-1495 - nhập Tên vật tư dài 254 ký tự', async ({ vatTuPage }) => {
+    const name = boundaryText('TC_PMKT-U-00106-1495', 254);
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.materialNameInput().fill(name);
 
     await expect(vatTuPage.materialNameInput(), 'Tên vật tư phải giữ đầy đủ 254 ký tự').toHaveValue(name);
   });
 
-  test('TC_PMKT-U-00106-530 - nhập Tên vật tư dài tối đa 255 ký tự', async ({ vatTuPage }) => {
-    const name = boundaryText('TC_PMKT-U-00106-530', 255);
+  test('TC_PMKT-U-00106-1496 - nhập Tên vật tư dài tối đa 255 ký tự', async ({ vatTuPage }) => {
+    const name = boundaryText('TC_PMKT-U-00106-1496', 255);
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.materialNameInput().fill(name);
 
     await expect(vatTuPage.materialNameInput(), 'Tên vật tư phải giữ đầy đủ 255 ký tự').toHaveValue(name);
   });
 
-  test('TC_PMKT-U-00106-531 - chặn ký tự thứ 256 của Tên vật tư', async ({ vatTuPage }) => {
-    const firstTwoHundredFiftyFiveCharacters = boundaryText('TC_PMKT-U-00106-531', 255);
+  test('TC_PMKT-U-00106-1497 - chặn ký tự thứ 256 của Tên vật tư', async ({ vatTuPage }) => {
+    const firstTwoHundredFiftyFiveCharacters = boundaryText('TC_PMKT-U-00106-1497', 255);
     const twoHundredFiftySixCharacters = `${firstTwoHundredFiftyFiveCharacters}X`;
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.materialNameInput().fill(twoHundredFiftySixCharacters);
 
     await expect(vatTuPage.materialNameInput(), 'Tên vật tư phải chặn cứng ký tự thứ 256').toHaveValue(firstTwoHundredFiftyFiveCharacters);
   });
 
-  test('TC_PMKT-U-00106-532 - validate bỏ trống Tên vật tư khi Lưu', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1498 - validate bỏ trống Tên vật tư khi Lưu', async ({ vatTuPage }) => {
     const catalogues = await openVatTuWithCatalogues(vatTuPage);
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     const mainUnit = await firstVisibleActiveMainUnit(vatTuPage, catalogues.units);
     test.skip(!mainUnit, 'Thiếu Đơn vị tính chính Hoạt động khả dụng trên cả DB và UI');
     if (!mainUnit) return;
     await vatTuPage.fillRequiredInventoryMaterialFields(
-      new TestDataGenerator().uniqueCode('TC_PMKT-U-00106-532'),
+      new TestDataGenerator().uniqueCode('TC_PMKT-U-00106-1498'),
       '',
       mainUnit,
     );
@@ -246,23 +246,23 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     ).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-533 - hiển thị Dropdown Nhóm vật tư không bắt buộc', async ({ vatTuPage }) => {
-    // Hành động: Mở form Thêm mới Nguyên vật liệu và quan sát control Nhóm vật tư.
+  test('TC_PMKT-U-00106-1499 - hiển thị Dropdown Nhóm vật tư không bắt buộc', async ({ vatTuPage }) => {
+    // Hành động: Mở form Thêm mới Bán thành phẩm và quan sát control Nhóm vật tư.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
 
     // Xác nhận UI: Control là dropdown và label không có dấu bắt buộc.
     await expect(vatTuPage.groupCombobox, 'Nhóm vật tư phải là Dropdown').toBeVisible();
     await expect(vatTuPage.requiredFormField('Nhóm vật tư'), 'Nhóm vật tư không được hiển thị dấu * bắt buộc').toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-534 - hiển thị đúng dữ liệu và thứ tự Dropdown Nhóm vật tư', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1500 - hiển thị đúng dữ liệu và thứ tự Dropdown Nhóm vật tư', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Lấy toàn bộ Nhóm vật tư từ DB đúng tenant làm expected.
     const catalogues = await openVatTuWithCatalogues(vatTuPage);
     test.skip(catalogues.groups.length === 0, 'Danh mục Nhóm vật tư trong DB không có dữ liệu');
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openGroupDropdown();
 
     // Xác nhận UI/DB: Từng nhóm DB tìm được trên UI và thứ tự trạng thái đúng.
@@ -276,14 +276,14 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(firstInactiveIndex === -1 || lastActiveIndex < firstInactiveIndex, 'Nhóm Hoạt động phải xếp trước Nhóm Ngừng hoạt động').toBeTruthy();
   });
 
-  test('TC_PMKT-U-00106-535 - Nhóm vật tư Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1501 - Nhóm vật tư Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Lấy một cặp Nhóm vật tư Hoạt động/Ngừng hoạt động từ DB đúng tenant.
     const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const pair = statusPair(catalogues.groups);
     test.skip(!pair, 'DB thiếu đồng thời Nhóm vật tư Hoạt động và Ngừng hoạt động');
     if (!pair) return;
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openGroupDropdown();
 
     // Xác nhận UI: Style chữ của nhóm Ngừng hoạt động khác nhóm Hoạt động.
@@ -292,14 +292,14 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(inactiveStyle, 'Màu/độ mờ của Nhóm Ngừng hoạt động phải khác Nhóm Hoạt động').not.toEqual(activeStyle);
   });
 
-  test('TC_PMKT-U-00106-536 - chọn một Nhóm vật tư', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1502 - chọn một Nhóm vật tư', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Chọn Nhóm vật tư đầu tiên từ DB đúng tenant.
     const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const group = catalogues.groups[0];
     test.skip(!group, 'Danh mục Nhóm vật tư trong DB không có dữ liệu');
     if (!group) return;
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openGroupDropdown();
     await vatTuPage.selectGroup(group);
 
@@ -307,14 +307,14 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.selectedGroup(group.label), 'Nhóm đã chọn phải hiển thị dạng tag').toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-537 - chọn đồng thời hai Nhóm vật tư', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1503 - chọn đồng thời hai Nhóm vật tư', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Chọn hai Nhóm vật tư khác nhau từ DB đúng tenant.
     const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const [firstGroup, secondGroup] = catalogues.groups;
     test.skip(!firstGroup || !secondGroup, 'DB cần tối thiểu hai Nhóm vật tư');
     if (!firstGroup || !secondGroup) return;
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openGroupDropdown();
     await vatTuPage.selectGroup(firstGroup);
     await vatTuPage.selectGroup(secondGroup);
@@ -324,14 +324,14 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.selectedGroup(secondGroup.label), 'Tag Nhóm vật tư thứ hai phải hiển thị').toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-538 - xóa riêng tag Nhóm vật tư thứ hai', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1504 - xóa riêng tag Nhóm vật tư thứ hai', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Chọn hai Nhóm vật tư khác nhau từ DB đúng tenant.
     const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const [firstGroup, secondGroup] = catalogues.groups;
     test.skip(!firstGroup || !secondGroup, 'DB cần tối thiểu hai Nhóm vật tư');
     if (!firstGroup || !secondGroup) return;
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openGroupDropdown();
     await vatTuPage.selectGroup(firstGroup);
     await vatTuPage.selectGroup(secondGroup);
@@ -344,14 +344,14 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.selectedGroup(firstGroup.label), 'Tag Nhóm vật tư thứ nhất phải được giữ lại').toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-539 - xóa nhanh toàn bộ Nhóm vật tư đã chọn', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1505 - xóa nhanh toàn bộ Nhóm vật tư đã chọn', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Chọn hai Nhóm vật tư khác nhau từ DB đúng tenant.
     const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const [firstGroup, secondGroup] = catalogues.groups;
     test.skip(!firstGroup || !secondGroup, 'DB cần tối thiểu hai Nhóm vật tư');
     if (!firstGroup || !secondGroup) return;
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openGroupDropdown();
     await vatTuPage.selectGroup(firstGroup);
     await vatTuPage.selectGroup(secondGroup);
@@ -365,23 +365,23 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.groupCombobox, 'Nhóm vật tư phải trở về trạng thái trống').toHaveValue('');
   });
 
-  test('TC_PMKT-U-00106-540 - hiển thị Combogrid Đơn vị tính chính bắt buộc', async ({ vatTuPage }) => {
-    // Hành động: Mở form Thêm mới Nguyên vật liệu và quan sát control Đơn vị tính chính.
+  test('TC_PMKT-U-00106-1506 - hiển thị Combogrid Đơn vị tính chính bắt buộc', async ({ vatTuPage }) => {
+    // Hành động: Mở form Thêm mới Bán thành phẩm và quan sát control Đơn vị tính chính.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
 
     // Xác nhận UI: Control là combogrid và label có dấu bắt buộc.
     await expect(vatTuPage.mainUnitCombobox, 'Đơn vị tính chính phải là Combogrid').toBeVisible();
     await expect(vatTuPage.requiredFormField('Đơn vị tính chính'), 'Đơn vị tính chính phải hiển thị dấu * bắt buộc').toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-541 - hiển thị đúng cột, dữ liệu và thứ tự Đơn vị tính chính', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1507 - hiển thị đúng cột, dữ liệu và thứ tự Đơn vị tính chính', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Lấy toàn bộ Đơn vị tính từ DB đúng tenant làm expected.
     const catalogues = await openVatTuWithCatalogues(vatTuPage);
     test.skip(catalogues.units.length === 0, 'Danh mục Đơn vị tính trong DB không có dữ liệu');
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openMainUnitDropdown();
 
     // Xác nhận UI/DB: Đúng ba cột, từng bản ghi DB tìm được và thứ tự trạng thái đúng.
@@ -402,14 +402,14 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     }
   });
 
-  test('TC_PMKT-U-00106-542 - Đơn vị tính Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1508 - Đơn vị tính Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Lấy một cặp Đơn vị tính Hoạt động/Ngừng hoạt động từ DB đúng tenant.
     const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const pair = statusPair(catalogues.units);
     test.skip(!pair, 'DB thiếu đồng thời Đơn vị tính Hoạt động và Ngừng hoạt động');
     if (!pair) return;
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openMainUnitDropdown();
 
     // Xác nhận UI: Style chữ của bản ghi Ngừng hoạt động khác bản ghi Hoạt động.
@@ -420,14 +420,14 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(inactiveStyle, 'Màu/độ mờ của Đơn vị tính Ngừng hoạt động phải khác Đơn vị tính Hoạt động').not.toEqual(activeStyle);
   });
 
-  test('TC_PMKT-U-00106-543 - xác nhận sử dụng Đơn vị tính Ngừng hoạt động', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1509 - xác nhận sử dụng Đơn vị tính Ngừng hoạt động', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Lấy Đơn vị tính Ngừng hoạt động từ DB đúng tenant.
     const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const inactiveUnit = catalogues.units.find((unit) => unit.status === 'NgungHoatDong');
     test.skip(!inactiveUnit, 'DB không có Đơn vị tính Ngừng hoạt động');
     if (!inactiveUnit) return;
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openMainUnitDropdown();
     await vatTuPage.selectMainUnit(inactiveUnit);
 
@@ -444,14 +444,14 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.selectedMainUnit(inactiveUnit.label), 'Đơn vị tính Ngừng hoạt động phải được chọn thành công').toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-544 - hủy sử dụng Đơn vị tính Ngừng hoạt động', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1510 - hủy sử dụng Đơn vị tính Ngừng hoạt động', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Lấy Đơn vị tính Ngừng hoạt động từ DB; trường ban đầu để trống.
     const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const inactiveUnit = catalogues.units.find((unit) => unit.status === 'NgungHoatDong');
     test.skip(!inactiveUnit, 'DB không có Đơn vị tính Ngừng hoạt động');
     if (!inactiveUnit) return;
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openMainUnitDropdown();
     await vatTuPage.selectMainUnit(inactiveUnit);
 
@@ -469,14 +469,14 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.mainUnitCombobox, 'Đơn vị tính chính phải giữ trạng thái trống ban đầu').toHaveValue('');
   });
 
-  test('TC_PMKT-U-00106-545 - chọn Đơn vị tính chính Hoạt động không hiển thị cảnh báo', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1511 - chọn Đơn vị tính chính Hoạt động không hiển thị cảnh báo', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Lấy Đơn vị tính Hoạt động đầu tiên từ DB đúng tenant.
     const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const activeUnit = catalogues.units.find((unit) => unit.status === 'HoatDong');
     test.skip(!activeUnit, 'DB không có Đơn vị tính Hoạt động');
     if (!activeUnit) return;
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openMainUnitDropdown();
 
     // Hành động: Chọn một bản ghi Đơn vị tính Hoạt động.
@@ -487,7 +487,7 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.mainUnitConfirmationDialog(), 'Không được hiển thị cảnh báo khi chọn Đơn vị tính Hoạt động').toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-546 - tìm kiếm Đơn vị tính chính theo Mã', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1512 - tìm kiếm Đơn vị tính chính theo Mã', async ({ vatTuPage }) => {
     const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const keyword = discriminatingSearchKeyword(
       catalogues.units.map(({ code }) => code),
@@ -497,7 +497,7 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     if (!keyword) return;
     const expected = catalogues.units.filter(({ code }) => code.toLocaleLowerCase('vi').includes(keyword.toLocaleLowerCase('vi')));
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openMainUnitDropdown();
     await vatTuPage.searchMainUnit(keyword);
 
@@ -507,7 +507,7 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     }
   });
 
-  test('TC_PMKT-U-00106-547 - tìm kiếm Đơn vị tính chính theo Tên', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1513 - tìm kiếm Đơn vị tính chính theo Tên', async ({ vatTuPage }) => {
     const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const keyword = discriminatingSearchKeyword(
       catalogues.units.map(({ name }) => name),
@@ -517,7 +517,7 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     if (!keyword) return;
     const expected = catalogues.units.filter(({ name }) => name.toLocaleLowerCase('vi').includes(keyword.toLocaleLowerCase('vi')));
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openMainUnitDropdown();
     await vatTuPage.searchMainUnit(keyword);
 
@@ -527,12 +527,12 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     }
   });
 
-  test('TC_PMKT-U-00106-548 - tìm kiếm Đơn vị tính chính theo Trạng thái', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1514 - tìm kiếm Đơn vị tính chính theo Trạng thái', async ({ vatTuPage }) => {
     const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const expected = catalogues.units.filter(({ status }) => status === 'NgungHoatDong');
     test.skip(expected.length === 0, 'DB không có Đơn vị tính Ngừng hoạt động');
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openMainUnitDropdown();
     await vatTuPage.searchMainUnit('Ngừng hoạt động');
 
@@ -541,13 +541,13 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(actualStatuses, 'Mọi kết quả phải có trạng thái Ngừng hoạt động').toEqual(expected.map(() => 'NgungHoatDong'));
   });
 
-  test('TC_PMKT-U-00106-549 - phím Enter chọn dòng đầu tiên của kết quả tìm kiếm', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1515 - phím Enter chọn dòng đầu tiên của kết quả tìm kiếm', async ({ vatTuPage }) => {
     const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const keyword = sharedSearchKeyword(catalogues.units.map(({ code }) => code));
     test.skip(!keyword, 'DB không có từ khóa Mã chung cho ít nhất hai Đơn vị tính');
     if (!keyword) return;
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openMainUnitDropdown();
     await vatTuPage.searchMainUnit(keyword);
     const [firstResult] = await vatTuPage.visibleMainUnitLabels();
@@ -558,10 +558,10 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.selectedMainUnit(firstResult ?? ''), 'Enter phải chọn đúng dòng đầu tiên').toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-550 - phím Up và Down di chuyển vùng chọn', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1516 - phím Up và Down di chuyển vùng chọn', async ({ vatTuPage }) => {
     await openVatTuWithCatalogues(vatTuPage);
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openMainUnitDropdown();
     const initial = await vatTuPage.mainUnitRowVisualStates();
     await vatTuPage.pressMainUnitKey('ArrowDown');
@@ -578,10 +578,10 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.mainUnitCombobox, 'ArrowUp/Down không được chọn giá trị khi chưa nhấn Enter').toHaveValue('');
   });
 
-  test('TC_PMKT-U-00106-551 - phím ESC đóng dropdown và giữ nguyên giá trị', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1517 - phím ESC đóng dropdown và giữ nguyên giá trị', async ({ vatTuPage }) => {
     await openVatTuWithCatalogues(vatTuPage);
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openMainUnitDropdown();
     await vatTuPage.pressMainUnitKey('Escape');
 
@@ -589,13 +589,13 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.mainUnitCombobox, 'ESC không được thay đổi giá trị hiện tại').toHaveValue('');
   });
 
-  test('TC_PMKT-U-00106-552 - icon X xóa nhanh Đơn vị tính chính đã chọn', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1518 - icon X xóa nhanh Đơn vị tính chính đã chọn', async ({ vatTuPage }) => {
     const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const activeUnit = catalogues.units.find(({ status }) => status === 'HoatDong');
     test.skip(!activeUnit, 'DB không có Đơn vị tính Hoạt động để kiểm tra xóa nhanh');
     if (!activeUnit) return;
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openMainUnitDropdown();
     await vatTuPage.selectMainUnit(activeUnit);
     await vatTuPage.clearMainUnit();
@@ -604,10 +604,10 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.mainUnitCombobox, 'Đơn vị tính chính phải quay về trạng thái trống').toHaveValue('');
   });
 
-  test('TC_PMKT-U-00106-553 - hiển thị nút thêm nhanh Đơn vị tính với tài khoản full quyền', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1519 - hiển thị nút thêm nhanh Đơn vị tính với tài khoản full quyền', async ({ vatTuPage }) => {
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openMainUnitDropdown();
 
     await expect(
@@ -616,39 +616,39 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     ).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-554 - giao diện form thêm nhanh Đơn vị tính rút gọn', async () => {
-    test.skip(true, 'BLOCK: bị chặn bởi TC553 - tài khoản full quyền không hiển thị nút (+) Thêm nhanh Đơn vị tính');
+  test('TC_PMKT-U-00106-1520 - giao diện form thêm nhanh Đơn vị tính rút gọn', async () => {
+    test.skip(true, 'BLOCK: bị chặn bởi TC1519 - tài khoản full quyền không hiển thị nút (+) Thêm nhanh Đơn vị tính');
   });
 
-  test('TC_PMKT-U-00106-555 - validate bắt buộc form thêm nhanh Đơn vị tính', async () => {
-    test.skip(true, 'BLOCK: bị chặn bởi TC553');
+  test('TC_PMKT-U-00106-1521 - validate bắt buộc form thêm nhanh Đơn vị tính', async () => {
+    test.skip(true, 'BLOCK: bị chặn bởi TC1519');
   });
 
-  test('TC_PMKT-U-00106-556 - validate trùng Mã form thêm nhanh Đơn vị tính', async () => {
-    test.skip(true, 'BLOCK: bị chặn bởi TC553');
+  test('TC_PMKT-U-00106-1522 - validate trùng Mã form thêm nhanh Đơn vị tính', async () => {
+    test.skip(true, 'BLOCK: bị chặn bởi TC1519');
   });
 
-  test('TC_PMKT-U-00106-557 - boundary Mã form thêm nhanh Đơn vị tính', async () => {
-    test.skip(true, 'BLOCK: bị chặn bởi TC553');
+  test('TC_PMKT-U-00106-1523 - boundary Mã form thêm nhanh Đơn vị tính', async () => {
+    test.skip(true, 'BLOCK: bị chặn bởi TC1519');
   });
 
-  test('TC_PMKT-U-00106-558 - boundary Tên form thêm nhanh Đơn vị tính', async () => {
-    test.skip(true, 'BLOCK: bị chặn bởi TC553');
+  test('TC_PMKT-U-00106-1524 - boundary Tên form thêm nhanh Đơn vị tính', async () => {
+    test.skip(true, 'BLOCK: bị chặn bởi TC1519');
   });
 
-  test('TC_PMKT-U-00106-559 - lưu thêm nhanh Đơn vị tính và tự động điền', async () => {
-    test.skip(true, 'BLOCK: bị chặn bởi TC553');
+  test('TC_PMKT-U-00106-1525 - lưu thêm nhanh Đơn vị tính và tự động điền', async () => {
+    test.skip(true, 'BLOCK: bị chặn bởi TC1519');
   });
 
-  test('TC_PMKT-U-00106-560 - hủy form thêm nhanh Đơn vị tính', async () => {
-    test.skip(true, 'BLOCK: bị chặn bởi TC553');
+  test('TC_PMKT-U-00106-1526 - hủy form thêm nhanh Đơn vị tính', async () => {
+    test.skip(true, 'BLOCK: bị chặn bởi TC1519');
   });
 
-  test('TC_PMKT-U-00106-561 - validate bắt buộc Đơn vị tính chính', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1527 - validate bắt buộc Đơn vị tính chính', async ({ vatTuPage }) => {
     const data = new TestDataGenerator();
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.fillFormField('Mã vật tư', data.uniqueCode('TC051'));
     await vatTuPage.fillFormField('Tên vật tư', data.uniqueKeyword('TC051'));
     await vatTuPage.openFormTab('Thông tin kho');
@@ -662,19 +662,19 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     ).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-562 - hiển thị checkbox Giảm thuế theo quy định không bắt buộc', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1528 - hiển thị checkbox Giảm thuế theo quy định không bắt buộc', async ({ vatTuPage }) => {
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
 
     await expect(vatTuPage.checkbox('Giảm thuế theo quy định'), 'Phải hiển thị checkbox Giảm thuế theo quy định').toBeVisible();
     await expect(vatTuPage.requiredFormField('Giảm thuế theo quy định'), 'Checkbox không được hiển thị dấu *').toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-563 - checkbox Giảm thuế mặc định false và thay đổi được', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1529 - checkbox Giảm thuế mặc định false và thay đổi được', async ({ vatTuPage }) => {
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     const reducedTax = vatTuPage.checkbox('Giảm thuế theo quy định');
 
     await expect(reducedTax, 'Checkbox Giảm thuế phải mặc định false').not.toBeChecked();
@@ -684,19 +684,19 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(reducedTax, 'Checkbox phải trở lại trạng thái không tích').not.toBeChecked();
   });
 
-  test('TC_PMKT-U-00106-564 - hiển thị Numeric Thời hạn bảo hành không bắt buộc', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1530 - hiển thị Numeric Thời hạn bảo hành không bắt buộc', async ({ vatTuPage }) => {
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
 
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Thời hạn bảo hành', 'spinbutton'), 'Phải hiển thị Numeric Thời hạn bảo hành').toBeVisible();
     await expect(vatTuPage.requiredFormField('Thời hạn bảo hành'), 'Thời hạn bảo hành không được hiển thị dấu *').toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-565 - nhập thời hạn bảo hành nguyên dương và chọn Tháng', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1531 - nhập thời hạn bảo hành nguyên dương và chọn Tháng', async ({ vatTuPage }) => {
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.fillFormField('Thời hạn bảo hành', '12');
     await vatTuPage.selectInventoryWarrantyUnit('Tháng');
 
@@ -704,14 +704,14 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.inventorySelectedWarrantyUnit('Tháng'), 'Phải chọn thành công đơn vị thời gian Tháng').toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-566 - validate thời hạn bảo hành với số âm, số 0 và số thập phân', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1532 - validate thời hạn bảo hành với số âm, số 0 và số thập phân', async ({ vatTuPage }) => {
     const data = new TestDataGenerator();
     const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const activeUnit = catalogues.units.find(({ status }) => status === 'HoatDong');
     test.skip(!activeUnit, 'DB không có Đơn vị tính Hoạt động để nhập đủ dữ liệu hợp lệ');
     if (!activeUnit) return;
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.fillRequiredInventoryMaterialFields(
       data.uniqueCode('TC056'),
       data.uniqueKeyword('TC056'),
@@ -742,167 +742,167 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(warrantyValidation, 'Phải hiển thị lỗi khi thời hạn là 1.5').toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-567 - ẩn thời hạn bảo hành khi đổi sang Dịch vụ', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1533 - ẩn thời hạn bảo hành khi đổi sang Dịch vụ', async ({ vatTuPage }) => {
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.changeMaterialType();
     await vatTuPage.selectMaterialType('Dịch vụ');
 
     await expect(vatTuPage.formField('Thời hạn bảo hành'), 'Form Dịch vụ phải ẩn hoàn toàn trường Thời hạn bảo hành').toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-568 - reset thời hạn bảo hành khi đổi sang loại vật tư khác', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1534 - reset thời hạn bảo hành khi đổi sang loại vật tư khác', async ({ vatTuPage }) => {
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.fillFormField('Thời hạn bảo hành', '12');
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Thời hạn bảo hành', 'spinbutton')).toHaveValue('12');
     await vatTuPage.changeMaterialType();
-    await vatTuPage.selectMaterialType('Công cụ, dụng cụ');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
 
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Thời hạn bảo hành', 'spinbutton'), 'Form mới phải reset Thời hạn bảo hành về trống').toHaveValue('');
   });
 
-  test('TC_PMKT-U-00106-569 - hiển thị TextArea Mô tả không bắt buộc', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1535 - hiển thị TextArea Mô tả không bắt buộc', async ({ vatTuPage }) => {
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
 
     await expect(vatTuPage.textarea('Mô tả'), 'Phải hiển thị control TextArea Mô tả').toBeVisible();
     await expect(vatTuPage.requiredFormField('Mô tả'), 'Mô tả không được hiển thị dấu *').toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-570 - boundary Mô tả 499 ký tự', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1536 - boundary Mô tả 499 ký tự', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Sinh Mô tả traceable dài 499 ký tự theo cận testcase.
-    const input = boundaryText('TC_PMKT-U-00106-570', 499);
-    // Hành động: Mở form Nguyên vật liệu > nhập Mô tả.
+    const input = boundaryText('TC_PMKT-U-00106-1536', 499);
+    // Hành động: Mở form Bán thành phẩm > nhập Mô tả.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.fillFormField('Mô tả', input);
     // Xác nhận UI: Trường chỉ giữ tối đa 499 ký tự theo Expected Result.
     await expect(vatTuPage.textarea('Mô tả'), 'Mô tả phải giữ đúng 499 ký tự').toHaveValue(input.slice(0, 499));
   });
 
-  test('TC_PMKT-U-00106-571 - boundary Mô tả 500 ký tự', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1537 - boundary Mô tả 500 ký tự', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Sinh Mô tả traceable dài 500 ký tự theo cận testcase.
-    const input = boundaryText('TC_PMKT-U-00106-571', 500);
-    // Hành động: Mở form Nguyên vật liệu > nhập Mô tả.
+    const input = boundaryText('TC_PMKT-U-00106-1537', 500);
+    // Hành động: Mở form Bán thành phẩm > nhập Mô tả.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.fillFormField('Mô tả', input);
     // Xác nhận UI: Trường chỉ giữ tối đa 500 ký tự theo Expected Result.
     await expect(vatTuPage.textarea('Mô tả'), 'Mô tả phải giữ đúng 500 ký tự').toHaveValue(input.slice(0, 500));
   });
 
-  test('TC_PMKT-U-00106-572 - boundary Mô tả 501 ký tự', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1538 - boundary Mô tả 501 ký tự', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Sinh Mô tả traceable dài 501 ký tự theo cận testcase.
-    const input = boundaryText('TC_PMKT-U-00106-572', 501);
-    // Hành động: Mở form Nguyên vật liệu > nhập Mô tả.
+    const input = boundaryText('TC_PMKT-U-00106-1538', 501);
+    // Hành động: Mở form Bán thành phẩm > nhập Mô tả.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.fillFormField('Mô tả', input);
     // Xác nhận UI: Trường chỉ giữ tối đa 500 ký tự theo Expected Result.
     await expect(vatTuPage.textarea('Mô tả'), 'Mô tả phải giữ đúng 500 ký tự').toHaveValue(input.slice(0, 500));
   });
 
-  test('TC_PMKT-U-00106-573 - hiển thị TextBox Tên vật tư khi mua không bắt buộc', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1539 - hiển thị TextBox Tên vật tư khi mua không bắt buộc', async ({ vatTuPage }) => {
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
 
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Tên vật tư khi mua', 'textbox'), 'Phải hiển thị TextBox Tên vật tư khi mua').toBeVisible();
     await expect(vatTuPage.requiredFormField('Tên vật tư khi mua'), 'Tên vật tư khi mua không được hiển thị dấu *').toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-574 - boundary Tên vật tư khi mua 254 ký tự', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1540 - boundary Tên vật tư khi mua 254 ký tự', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Sinh Tên vật tư khi mua traceable dài 254 ký tự theo cận testcase.
-    const input = boundaryText('TC_PMKT-U-00106-574', 254);
-    // Hành động: Mở form Nguyên vật liệu > nhập Tên vật tư khi mua.
+    const input = boundaryText('TC_PMKT-U-00106-1540', 254);
+    // Hành động: Mở form Bán thành phẩm > nhập Tên vật tư khi mua.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.fillFormField('Tên vật tư khi mua', input);
     // Xác nhận UI: Trường chỉ giữ tối đa 254 ký tự theo Expected Result.
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Tên vật tư khi mua', 'textbox'), 'Tên vật tư khi mua phải giữ đúng 254 ký tự').toHaveValue(input.slice(0, 254));
   });
 
-  test('TC_PMKT-U-00106-575 - boundary Tên vật tư khi mua 255 ký tự', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1541 - boundary Tên vật tư khi mua 255 ký tự', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Sinh Tên vật tư khi mua traceable dài 255 ký tự theo cận testcase.
-    const input = boundaryText('TC_PMKT-U-00106-575', 255);
-    // Hành động: Mở form Nguyên vật liệu > nhập Tên vật tư khi mua.
+    const input = boundaryText('TC_PMKT-U-00106-1541', 255);
+    // Hành động: Mở form Bán thành phẩm > nhập Tên vật tư khi mua.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.fillFormField('Tên vật tư khi mua', input);
     // Xác nhận UI: Trường chỉ giữ tối đa 255 ký tự theo Expected Result.
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Tên vật tư khi mua', 'textbox'), 'Tên vật tư khi mua phải giữ đúng 255 ký tự').toHaveValue(input.slice(0, 255));
   });
 
-  test('TC_PMKT-U-00106-576 - boundary Tên vật tư khi mua 256 ký tự', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1542 - boundary Tên vật tư khi mua 256 ký tự', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Sinh Tên vật tư khi mua traceable dài 256 ký tự theo cận testcase.
-    const input = boundaryText('TC_PMKT-U-00106-576', 256);
-    // Hành động: Mở form Nguyên vật liệu > nhập Tên vật tư khi mua.
+    const input = boundaryText('TC_PMKT-U-00106-1542', 256);
+    // Hành động: Mở form Bán thành phẩm > nhập Tên vật tư khi mua.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.fillFormField('Tên vật tư khi mua', input);
     // Xác nhận UI: Trường chỉ giữ tối đa 255 ký tự theo Expected Result.
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Tên vật tư khi mua', 'textbox'), 'Tên vật tư khi mua phải giữ đúng 255 ký tự').toHaveValue(input.slice(0, 255));
   });
 
-  test('TC_PMKT-U-00106-577 - hiển thị TextBox Tên vật tư khi bán không bắt buộc', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1543 - hiển thị TextBox Tên vật tư khi bán không bắt buộc', async ({ vatTuPage }) => {
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
 
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Tên vật tư khi bán', 'textbox'), 'Phải hiển thị TextBox Tên vật tư khi bán').toBeVisible();
     await expect(vatTuPage.requiredFormField('Tên vật tư khi bán'), 'Tên vật tư khi bán không được hiển thị dấu *').toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-578 - boundary Tên vật tư khi bán 254 ký tự', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1544 - boundary Tên vật tư khi bán 254 ký tự', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Sinh Tên vật tư khi bán traceable dài 254 ký tự theo cận testcase.
-    const input = boundaryText('TC_PMKT-U-00106-578', 254);
-    // Hành động: Mở form Nguyên vật liệu > nhập Tên vật tư khi bán.
+    const input = boundaryText('TC_PMKT-U-00106-1544', 254);
+    // Hành động: Mở form Bán thành phẩm > nhập Tên vật tư khi bán.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.fillFormField('Tên vật tư khi bán', input);
     // Xác nhận UI: Trường chỉ giữ tối đa 254 ký tự theo Expected Result.
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Tên vật tư khi bán', 'textbox'), 'Tên vật tư khi bán phải giữ đúng 254 ký tự').toHaveValue(input.slice(0, 254));
   });
 
-  test('TC_PMKT-U-00106-579 - boundary Tên vật tư khi bán 255 ký tự', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1545 - boundary Tên vật tư khi bán 255 ký tự', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Sinh Tên vật tư khi bán traceable dài 255 ký tự theo cận testcase.
-    const input = boundaryText('TC_PMKT-U-00106-579', 255);
-    // Hành động: Mở form Nguyên vật liệu > nhập Tên vật tư khi bán.
+    const input = boundaryText('TC_PMKT-U-00106-1545', 255);
+    // Hành động: Mở form Bán thành phẩm > nhập Tên vật tư khi bán.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.fillFormField('Tên vật tư khi bán', input);
     // Xác nhận UI: Trường chỉ giữ tối đa 255 ký tự theo Expected Result.
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Tên vật tư khi bán', 'textbox'), 'Tên vật tư khi bán phải giữ đúng 255 ký tự').toHaveValue(input.slice(0, 255));
   });
 
-  test('TC_PMKT-U-00106-580 - boundary Tên vật tư khi bán 256 ký tự', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1546 - boundary Tên vật tư khi bán 256 ký tự', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Sinh Tên vật tư khi bán traceable dài 256 ký tự theo cận testcase.
-    const input = boundaryText('TC_PMKT-U-00106-580', 256);
-    // Hành động: Mở form Nguyên vật liệu > nhập Tên vật tư khi bán.
+    const input = boundaryText('TC_PMKT-U-00106-1546', 256);
+    // Hành động: Mở form Bán thành phẩm > nhập Tên vật tư khi bán.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.fillFormField('Tên vật tư khi bán', input);
     // Xác nhận UI: Trường chỉ giữ tối đa 255 ký tự theo Expected Result.
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Tên vật tư khi bán', 'textbox'), 'Tên vật tư khi bán phải giữ đúng 255 ký tự').toHaveValue(input.slice(0, 255));
   });
 
-  test('TC_PMKT-U-00106-581 - Tên vật tư khi mua tự điền và cho phép sửa độc lập', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1547 - Tên vật tư khi mua tự điền và cho phép sửa độc lập', async ({ vatTuPage }) => {
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.fillFormField('Tên vật tư', 'VT_TEST_001');
     const purchaseName = vatTuPage.inventoryMaterialFormFieldControl('Tên vật tư khi mua', 'textbox');
     await expect(purchaseName, 'Tên vật tư khi mua phải tự điền theo Tên vật tư').toHaveValue('VT_TEST_001');
@@ -912,10 +912,10 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Tên vật tư', 'textbox'), 'Tên vật tư gốc phải được giữ nguyên').toHaveValue('VT_TEST_001');
   });
 
-  test('TC_PMKT-U-00106-582 - Tên vật tư khi bán tự điền và cho phép sửa độc lập', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1548 - Tên vật tư khi bán tự điền và cho phép sửa độc lập', async ({ vatTuPage }) => {
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.fillFormField('Tên vật tư', 'VT_TEST_001');
     const saleName = vatTuPage.inventoryMaterialFormFieldControl('Tên vật tư khi bán', 'textbox');
     await expect(saleName, 'Tên vật tư khi bán phải tự điền theo Tên vật tư').toHaveValue('VT_TEST_001');
@@ -925,133 +925,133 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Tên vật tư', 'textbox'), 'Tên vật tư gốc phải được giữ nguyên').toHaveValue('VT_TEST_001');
   });
 
-  test('TC_PMKT-U-00106-583 - hiển thị control Ảnh không bắt buộc', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1549 - hiển thị control Ảnh không bắt buộc', async ({ vatTuPage }) => {
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
 
     await expect(vatTuPage.materialImageInput(), 'Phải tồn tại control tải file Ảnh').toBeAttached();
     await expect(vatTuPage.materialImageLabel(), 'Label phải hiển thị đúng là Ảnh').toBeVisible();
     await expect(vatTuPage.requiredFormField('Ảnh'), 'Ảnh không được hiển thị dấu *').toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-584 - tải ảnh JPG 1.5MB', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1550 - tải ảnh JPG 1.5MB', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Dùng ảnh JPG 1.5MB đúng cận dung lượng của testcase.
-    // Hành động: Mở form Nguyên vật liệu > tải ảnh.
+    // Hành động: Mở form Bán thành phẩm > tải ảnh.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.uploadMaterialImage('test-data/danh-muc/vat-tu/tc074-material-1_5mb.jpg');
     // Xác nhận UI: Ảnh hợp lệ hiển thị preview.
     await expect(vatTuPage.materialImagePreview(), 'Ảnh JPG 1.5MB phải hiển thị preview').toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-585 - tải ảnh JPG 2MB', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1551 - tải ảnh JPG 2MB', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Dùng ảnh JPG 2MB đúng cận dung lượng của testcase.
-    // Hành động: Mở form Nguyên vật liệu > tải ảnh.
+    // Hành động: Mở form Bán thành phẩm > tải ảnh.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.uploadMaterialImage('test-data/danh-muc/vat-tu/tc075-material-2mb.jpg');
     // Xác nhận UI: Ảnh hợp lệ hiển thị preview.
     await expect(vatTuPage.materialImagePreview(), 'Ảnh JPG 2MB phải hiển thị preview').toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-587 - tải ảnh PNG 1.5MB', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1553 - tải ảnh PNG 1.5MB', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Dùng ảnh PNG 1.5MB đúng cận dung lượng của testcase.
-    // Hành động: Mở form Nguyên vật liệu > tải ảnh.
+    // Hành động: Mở form Bán thành phẩm > tải ảnh.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.uploadMaterialImage('test-data/danh-muc/vat-tu/tc077-material-1_5mb.png');
     // Xác nhận UI: Ảnh hợp lệ hiển thị preview.
     await expect(vatTuPage.materialImagePreview(), 'Ảnh PNG 1.5MB phải hiển thị preview').toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-588 - tải ảnh PNG 2MB', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1554 - tải ảnh PNG 2MB', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Dùng ảnh PNG 2MB đúng cận dung lượng của testcase.
-    // Hành động: Mở form Nguyên vật liệu > tải ảnh.
+    // Hành động: Mở form Bán thành phẩm > tải ảnh.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.uploadMaterialImage('test-data/danh-muc/vat-tu/tc078-material-2mb.png');
     // Xác nhận UI: Ảnh hợp lệ hiển thị preview.
     await expect(vatTuPage.materialImagePreview(), 'Ảnh PNG 2MB phải hiển thị preview').toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-590 - tải ảnh WEBP 1.5MB', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1556 - tải ảnh WEBP 1.5MB', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Dùng ảnh WEBP 1.5MB đúng cận dung lượng của testcase.
-    // Hành động: Mở form Nguyên vật liệu > tải ảnh.
+    // Hành động: Mở form Bán thành phẩm > tải ảnh.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.uploadMaterialImage('test-data/danh-muc/vat-tu/tc080-material-1_5mb.webp');
     // Xác nhận UI: Ảnh hợp lệ hiển thị preview.
     await expect(vatTuPage.materialImagePreview(), 'Ảnh WEBP 1.5MB phải hiển thị preview').toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-591 - tải ảnh WEBP 2MB', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1557 - tải ảnh WEBP 2MB', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Dùng ảnh WEBP 2MB đúng cận dung lượng của testcase.
-    // Hành động: Mở form Nguyên vật liệu > tải ảnh.
+    // Hành động: Mở form Bán thành phẩm > tải ảnh.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.uploadMaterialImage('test-data/danh-muc/vat-tu/tc081-material-2mb.webp');
     // Xác nhận UI: Ảnh hợp lệ hiển thị preview.
     await expect(vatTuPage.materialImagePreview(), 'Ảnh WEBP 2MB phải hiển thị preview').toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-586 - chặn ảnh JPG 2.1MB', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1552 - chặn ảnh JPG 2.1MB', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Dùng ảnh JPG 2.1MB vượt giới hạn.
-    // Hành động: Mở form Nguyên vật liệu > chọn ảnh vượt dung lượng.
+    // Hành động: Mở form Bán thành phẩm > chọn ảnh vượt dung lượng.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.chooseMaterialImage('test-data/danh-muc/vat-tu/tc076-material-2_1mb.jpg');
     // Xác nhận UI: Không có preview và hiển thị cảnh báo dung lượng.
     await expect(vatTuPage.materialImagePreview(), 'Ảnh JPG vượt 2MB không được hiển thị preview').toBeHidden();
     await expect(vatTuPage.materialImageSizeError(), 'Phải cảnh báo dung lượng JPG vượt quá 2MB').toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-589 - chặn ảnh PNG 2.1MB', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1555 - chặn ảnh PNG 2.1MB', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Dùng ảnh PNG 2.1MB vượt giới hạn.
-    // Hành động: Mở form Nguyên vật liệu > chọn ảnh vượt dung lượng.
+    // Hành động: Mở form Bán thành phẩm > chọn ảnh vượt dung lượng.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.chooseMaterialImage('test-data/danh-muc/vat-tu/tc079-material-2_1mb.png');
     // Xác nhận UI: Không có preview và hiển thị cảnh báo dung lượng.
     await expect(vatTuPage.materialImagePreview(), 'Ảnh PNG vượt 2MB không được hiển thị preview').toBeHidden();
     await expect(vatTuPage.materialImageSizeError(), 'Phải cảnh báo dung lượng PNG vượt quá 2MB').toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-592 - chặn ảnh WEBP 2.1MB', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1558 - chặn ảnh WEBP 2.1MB', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Dùng ảnh WEBP 2.1MB vượt giới hạn.
-    // Hành động: Mở form Nguyên vật liệu > chọn ảnh vượt dung lượng.
+    // Hành động: Mở form Bán thành phẩm > chọn ảnh vượt dung lượng.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.chooseMaterialImage('test-data/danh-muc/vat-tu/tc082-material-2_1mb.webp');
     // Xác nhận UI: Không có preview và hiển thị cảnh báo dung lượng.
     await expect(vatTuPage.materialImagePreview(), 'Ảnh WEBP vượt 2MB không được hiển thị preview').toBeHidden();
     await expect(vatTuPage.materialImageSizeError(), 'Phải cảnh báo dung lượng WEBP vượt quá 2MB').toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-593 - chặn file PDF không phải định dạng ảnh hợp lệ', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1559 - chặn file PDF không phải định dạng ảnh hợp lệ', async ({ vatTuPage }) => {
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.chooseMaterialImage('test-data/danh-muc/vat-tu/tc083-invalid-format.pdf');
 
     await expect(vatTuPage.materialImagePreview(), 'File PDF không được hiển thị preview ảnh').toBeHidden();
     await expect(vatTuPage.materialImageFormatError(), 'Phải hiển thị cảnh báo định dạng ảnh không hợp lệ').toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-594 - ẩn trường Ảnh khi đổi sang Dịch vụ', async ({ vatTuPage }) => {
-    // Hành động: Mở form Nguyên vật liệu > Thay đổi tính chất > chọn Dịch vụ.
+  test('TC_PMKT-U-00106-1560 - ẩn trường Ảnh khi đổi sang Dịch vụ', async ({ vatTuPage }) => {
+    // Hành động: Mở form Bán thành phẩm > Thay đổi tính chất > chọn Dịch vụ.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.changeMaterialType();
     await vatTuPage.selectMaterialType('Dịch vụ');
 
@@ -1060,28 +1060,28 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.materialImageInput(), 'Form Dịch vụ không được chứa control tải ảnh').toHaveCount(0);
   });
 
-  test('TC_PMKT-U-00106-595 - reset ảnh khi đổi sang loại vật tư khác', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Mở form Nguyên vật liệu và tải một ảnh JPG hợp lệ.
+  test('TC_PMKT-U-00106-1561 - reset ảnh khi đổi sang loại vật tư khác', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Bán thành phẩm và tải một ảnh JPG hợp lệ.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.uploadMaterialImage('test-data/danh-muc/vat-tu/tc074-material-1_5mb.jpg');
     await expect(vatTuPage.materialImagePreview(), 'Ảnh đã chọn phải hiển thị trước khi đổi tính chất').toBeVisible();
 
-    // Hành động: Thay đổi tính chất > chọn Công cụ, dụng cụ.
+    // Hành động: Thay đổi tính chất > chọn Bán thành phẩm.
     await vatTuPage.changeMaterialType();
-    await vatTuPage.selectMaterialType('Công cụ, dụng cụ');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
 
     // Xác nhận UI: Control Ảnh trên form mới được reset về mặc định.
     await expect(vatTuPage.materialImagePreview(), 'Ảnh cũ phải bị xóa sau khi đổi tính chất').toBeHidden();
     await expect(vatTuPage.materialImageInput(), 'Control Ảnh phải trở về trạng thái chưa chọn file').toHaveValue('');
   });
 
-  test('TC_PMKT-U-00106-596 - hiển thị Toggle Trạng thái bắt buộc', async ({ vatTuPage }) => {
-    // Hành động: Mở form Nguyên vật liệu và quan sát trường Trạng thái.
+  test('TC_PMKT-U-00106-1562 - hiển thị Toggle Trạng thái bắt buộc', async ({ vatTuPage }) => {
+    // Hành động: Mở form Bán thành phẩm và quan sát trường Trạng thái.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
 
     // Xác nhận UI: Trạng thái là Toggle và label có dấu * bắt buộc.
     await expect(vatTuPage.statusSwitch(), 'Trạng thái phải hiển thị dưới dạng Toggle').toBeVisible();
@@ -1090,11 +1090,11 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(requiredIndicator.color, 'Dấu * bắt buộc của Trạng thái phải có màu đỏ').toBe('rgb(244, 63, 94)');
   });
 
-  test('TC_PMKT-U-00106-597 - Trạng thái mặc định Hoạt động và thay đổi được', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Mở form Nguyên vật liệu.
+  test('TC_PMKT-U-00106-1563 - Trạng thái mặc định Hoạt động và thay đổi được', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Bán thành phẩm.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     const statusSwitch = vatTuPage.statusSwitch();
 
     // Xác nhận UI: Toggle mặc định là Hoạt động.
@@ -1107,27 +1107,27 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(statusSwitch, 'Trạng thái phải chuyển sang Ngừng hoạt động').not.toBeChecked();
   });
 
-  test('TC_PMKT-U-00106-598 - tự điền 7 tài khoản theo cấu hình Nguyên vật liệu trong DB', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu DB: Lấy cấu hình tài khoản Loại vật tư Nguyên vật liệu trong đúng tenant.
+  test('TC_PMKT-U-00106-1564 - tự điền 7 tài khoản theo cấu hình Bán thành phẩm trong DB', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu DB: Lấy cấu hình tài khoản Loại vật tư Bán thành phẩm trong đúng tenant.
     const expectedAccounts = await materialTypeDefaultAccountsFromDatabase('NVL');
-    test.skip(!expectedAccounts, 'DB không có cấu hình Loại vật tư Nguyên vật liệu mã NVL trong tenant hiện tại');
+    test.skip(!expectedAccounts, 'DB không có cấu hình Loại vật tư Bán thành phẩm mã NVL trong tenant hiện tại');
     if (!expectedAccounts) return;
 
-    // Hành động: Mở form Nguyên vật liệu và chuyển sang tab Hạch toán ngầm định.
+    // Hành động: Mở form Bán thành phẩm và chuyển sang tab Hạch toán ngầm định.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     const actualAccounts = await vatTuPage.readDefaultAccountingAccounts();
 
-    // Xác nhận UI/DB: Toàn bộ bảy tài khoản tự điền khớp cấu hình Loại vật tư Nguyên vật liệu.
+    // Xác nhận UI/DB: Toàn bộ bảy tài khoản tự điền khớp cấu hình Loại vật tư Bán thành phẩm.
     expect(actualAccounts, 'Bảy tài khoản ngầm định trên UI phải khớp cấu hình mst_loai_vat_tu').toEqual(expectedAccounts);
   });
 
-  test('TC_PMKT-U-00106-599 - hiển thị Combogrid Tài khoản vật tư không bắt buộc', async ({ vatTuPage }) => {
-    // Hành động: Mở form Nguyên vật liệu và chuyển sang tab Hạch toán ngầm định.
+  test('TC_PMKT-U-00106-1565 - hiển thị Combogrid Tài khoản vật tư không bắt buộc', async ({ vatTuPage }) => {
+    // Hành động: Mở form Bán thành phẩm và chuyển sang tab Hạch toán ngầm định.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openDefaultAccountingTab();
 
     // Xác nhận UI: Đúng label, control combogrid và không có dấu bắt buộc.
@@ -1136,9 +1136,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.requiredFormField('Tài khoản vật tư'), 'Tài khoản vật tư không được hiển thị dấu *').toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-600 - hiển thị đúng cột, dữ liệu và thứ tự Tài khoản vật tư', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1566 - hiển thị đúng cột, dữ liệu và thứ tự Tài khoản vật tư', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Lấy Tài khoản Hoạt động được phép hạch toán và toàn bộ Tài khoản Ngừng hoạt động.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const expectedAccounts = accounts.filter(
       (account) => account.allowed || account.status === 'NgungHoatDong',
     );
@@ -1178,9 +1178,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     ).toBe(true);
   });
 
-  test('TC_PMKT-U-00106-601 - Tài khoản vật tư Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1567 - Tài khoản vật tư Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn một tài khoản Ngừng hoạt động, không ràng buộc Cho phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const inactiveAccount = accounts.find((account) => account.status === 'NgungHoatDong');
     test.skip(!inactiveAccount, 'BLOCK: DB tenant hiện tại không có Tài khoản Ngừng hoạt động');
     if (!inactiveAccount) return;
@@ -1198,19 +1198,19 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(isGrayCssColor(actualColor), `Màu thực tế ${actualColor} phải là màu xám`).toBe(true);
   });
 
-  test('TC_PMKT-U-00106-602 - xác nhận sử dụng Tài khoản vật tư Ngừng hoạt động', async () => {
-    // Chuẩn bị dữ liệu: BLOCK vì TC91 xác nhận combogrid hiện không hiển thị Tài khoản Ngừng hoạt động.
-    test.skip(true, 'BLOCK: bị chặn bởi TC601 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
+  test('TC_PMKT-U-00106-1568 - xác nhận sử dụng Tài khoản vật tư Ngừng hoạt động', async () => {
+    // Chuẩn bị dữ liệu: BLOCK vì TC1567 xác nhận combogrid hiện không hiển thị Tài khoản Ngừng hoạt động.
+    test.skip(true, 'BLOCK: bị chặn bởi TC1567 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
   });
 
-  test('TC_PMKT-U-00106-603 - hủy sử dụng Tài khoản vật tư Ngừng hoạt động', async () => {
-    // Chuẩn bị dữ liệu: BLOCK vì TC91 xác nhận combogrid hiện không hiển thị Tài khoản Ngừng hoạt động.
-    test.skip(true, 'BLOCK: bị chặn bởi TC601 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
+  test('TC_PMKT-U-00106-1569 - hủy sử dụng Tài khoản vật tư Ngừng hoạt động', async () => {
+    // Chuẩn bị dữ liệu: BLOCK vì TC1567 xác nhận combogrid hiện không hiển thị Tài khoản Ngừng hoạt động.
+    test.skip(true, 'BLOCK: bị chặn bởi TC1567 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
   });
 
-  test('TC_PMKT-U-00106-604 - chọn Tài khoản vật tư Hoạt động không hiển thị cảnh báo', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1570 - chọn Tài khoản vật tư Hoạt động không hiển thị cảnh báo', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn tài khoản Hoạt động được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const activeAccount = accounts.find((account) => account.allowed && account.status === 'HoatDong');
     test.skip(!activeAccount, 'DB không có Tài khoản Hoạt động được phép hạch toán');
     if (!activeAccount) return;
@@ -1224,9 +1224,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.accountConfirmationDialog(), 'Không được cảnh báo khi chọn Tài khoản Hoạt động').toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-605 - tìm Tài khoản vật tư theo Số hiệu TK', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1571 - tìm Tài khoản vật tư theo Số hiệu TK', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn từ khóa chỉ thuộc cột Số hiệu TK để phân biệt với Tên TK.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const allowedAccounts = accounts.filter((account) => account.allowed);
     const keyword = discriminatingSearchKeyword(
       allowedAccounts.map((account) => account.code),
@@ -1248,9 +1248,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(actualLabels.every((label) => expectedLabels.includes(label)), 'Mọi dòng UI phải khớp Số hiệu TK và được phép hạch toán').toBe(true);
   });
 
-  test('TC_PMKT-U-00106-606 - tìm Tài khoản vật tư theo Tên TK', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1572 - tìm Tài khoản vật tư theo Tên TK', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn từ khóa chỉ thuộc Tên TK để phân biệt với Số tài khoản.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const allowedAccounts = accounts.filter((account) => account.allowed);
     const keyword = discriminatingSearchKeyword(
       allowedAccounts.map((account) => account.name),
@@ -1272,9 +1272,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(actualLabels.every((label) => expectedLabels.includes(label)), 'Mọi dòng UI phải khớp Tên TK và được phép hạch toán').toBe(true);
   });
 
-  test('TC_PMKT-U-00106-607 - tìm Tài khoản vật tư theo Trạng thái', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1573 - tìm Tài khoản vật tư theo Trạng thái', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Lấy toàn bộ tài khoản Ngừng hoạt động đúng theo điều kiện của testcase.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const expectedLabels = accounts
       .filter((account) => account.status === 'NgungHoatDong')
       .map((account) => account.label);
@@ -1290,9 +1290,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(actualLabels.every((label) => expectedLabels.includes(label)), 'Mọi dòng UI phải có Trạng thái Ngừng hoạt động').toBe(true);
   });
 
-  test('TC_PMKT-U-00106-608 - Enter chọn dòng Tài khoản vật tư đầu tiên', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1574 - Enter chọn dòng Tài khoản vật tư đầu tiên', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn từ khóa Số tài khoản trả về nhiều kết quả được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const allowedAccounts = accounts.filter((account) => account.allowed);
     const keyword = sharedSearchKeyword(allowedAccounts.map((account) => account.code));
     test.skip(!keyword, 'DB không có từ khóa trả về nhiều Tài khoản được phép hạch toán');
@@ -1311,9 +1311,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.selectedAccountingAccount('Tài khoản vật tư', firstLabel), 'Enter phải chọn dòng đầu tiên').toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-609 - phím Up và Down di chuyển từng dòng Tài khoản vật tư', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1575 - phím Up và Down di chuyển từng dòng Tài khoản vật tư', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB/UI: Mở combogrid có tối thiểu ba tài khoản được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     test.skip(accounts.filter((account) => account.allowed).length < 3, 'DB có ít hơn ba Tài khoản được phép hạch toán');
     const accountCombobox = vatTuPage.inventoryMaterialFormFieldControl('Tài khoản vật tư', 'combobox');
     const valueBefore = await accountCombobox.inputValue();
@@ -1338,9 +1338,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(accountCombobox, 'Điều hướng không được thay đổi giá trị trường').toHaveValue(valueBefore);
   });
 
-  test('TC_PMKT-U-00106-610 - ESC đóng dropdown Tài khoản vật tư không đổi giá trị', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1576 - ESC đóng dropdown Tài khoản vật tư không đổi giá trị', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu UI: Ghi nhận giá trị hiện tại rồi mở combogrid.
-    await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const accountCombobox = vatTuPage.inventoryMaterialFormFieldControl('Tài khoản vật tư', 'combobox');
     const valueBefore = await accountCombobox.inputValue();
     await vatTuPage.openAccountingAccountDropdown('Tài khoản vật tư');
@@ -1353,9 +1353,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(accountCombobox, 'ESC không được thay đổi giá trị hiện tại').toHaveValue(valueBefore);
   });
 
-  test('TC_PMKT-U-00106-611 - icon X xóa nhanh Tài khoản vật tư', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1577 - icon X xóa nhanh Tài khoản vật tư', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB/UI: Chọn một tài khoản Hoạt động được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const activeAccount = accounts.find((account) => account.allowed && account.status === 'HoatDong');
     test.skip(!activeAccount, 'DB không có Tài khoản Hoạt động được phép hạch toán');
     if (!activeAccount) return;
@@ -1371,11 +1371,11 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Tài khoản vật tư', 'combobox'), 'Tài khoản vật tư phải trở về trống').toHaveValue('');
   });
 
-  test('TC_PMKT-U-00106-612 - ẩn Tài khoản vật tư khi đổi sang Dịch vụ', async ({ vatTuPage }) => {
-    // Hành động: Mở Nguyên vật liệu > tab Hạch toán > Thay đổi tính chất > Dịch vụ > tab Hạch toán.
+  test('TC_PMKT-U-00106-1578 - ẩn Tài khoản vật tư khi đổi sang Dịch vụ', async ({ vatTuPage }) => {
+    // Hành động: Mở Bán thành phẩm > tab Hạch toán > Thay đổi tính chất > Dịch vụ > tab Hạch toán.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openDefaultAccountingTab();
     await vatTuPage.changeMaterialType();
     await vatTuPage.selectMaterialType('Dịch vụ');
@@ -1385,9 +1385,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.formField('Tài khoản vật tư'), 'Form Dịch vụ phải ẩn Tài khoản vật tư').toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-613 - reset Tài khoản vật tư khi đổi sang loại vật tư khác', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu DB/UI: Chọn một Tài khoản vật tư hợp lệ trên form Nguyên vật liệu.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1579 - reset Tài khoản vật tư khi đổi sang loại vật tư khác', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu DB/UI: Chọn một Tài khoản vật tư hợp lệ trên form Bán thành phẩm.
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const activeAccount = accounts.find((account) => account.allowed && account.status === 'HoatDong');
     test.skip(!activeAccount, 'DB không có Tài khoản Hoạt động được phép hạch toán');
     if (!activeAccount) return;
@@ -1395,19 +1395,19 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await vatTuPage.selectAccountingAccount('Tài khoản vật tư', activeAccount);
     await expect(vatTuPage.selectedAccountingAccount('Tài khoản vật tư', activeAccount.label), 'Tài khoản phải có dữ liệu trước khi đổi tính chất').toBeVisible();
 
-    // Hành động: Thay đổi tính chất > chọn Công cụ, dụng cụ > mở Hạch toán ngầm định.
+    // Hành động: Thay đổi tính chất > chọn Bán thành phẩm > mở Hạch toán ngầm định.
     await vatTuPage.changeMaterialType();
-    await vatTuPage.selectMaterialType('Công cụ, dụng cụ');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openDefaultAccountingTab();
 
-    // Xác nhận UI: Giá trị Tài khoản vật tư đã chọn trên Nguyên vật liệu bị xóa sạch.
+    // Xác nhận UI: Giá trị Tài khoản vật tư đã chọn trên Bán thành phẩm bị xóa sạch.
     await expect(vatTuPage.selectedAccountingAccount('Tài khoản vật tư', activeAccount.label), 'Tài khoản cũ phải bị xóa sau khi đổi tính chất').toBeHidden();
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Tài khoản vật tư', 'combobox'), 'Tài khoản vật tư phải reset về trống').toHaveValue('');
   });
 
-  test('TC_PMKT-U-00106-614 - hiển thị combogrid Tài khoản giá vốn không bắt buộc', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Mở form Nguyên vật liệu tại tab Hạch toán ngầm định.
-    await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1580 - hiển thị combogrid Tài khoản giá vốn không bắt buộc', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Bán thành phẩm tại tab Hạch toán ngầm định.
+    await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
 
     // Xác nhận UI: Đúng label, control combogrid và không có dấu bắt buộc.
     await expect(vatTuPage.formField('Tài khoản giá vốn'), 'Phải hiển thị label Tài khoản giá vốn').toBeVisible();
@@ -1415,9 +1415,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.requiredFormField('Tài khoản giá vốn'), 'Tài khoản giá vốn không được hiển thị dấu *').toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-615 - hiển thị đúng cột, dữ liệu và thứ tự Tài khoản giá vốn', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1581 - hiển thị đúng cột, dữ liệu và thứ tự Tài khoản giá vốn', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Lấy Tài khoản Hoạt động được phép hạch toán và toàn bộ Tài khoản Ngừng hoạt động.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const expectedAccounts = accounts.filter(
       (account) => account.allowed || account.status === 'NgungHoatDong',
     );
@@ -1457,9 +1457,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     ).toBe(true);
   });
 
-  test('TC_PMKT-U-00106-616 - Tài khoản giá vốn Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1582 - Tài khoản giá vốn Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn một tài khoản Ngừng hoạt động, không ràng buộc Cho phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const inactiveAccount = accounts.find((account) => account.status === 'NgungHoatDong');
     test.skip(!inactiveAccount, 'BLOCK: DB tenant hiện tại không có Tài khoản Ngừng hoạt động');
     if (!inactiveAccount) return;
@@ -1477,19 +1477,19 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(isGrayCssColor(actualColor), `Màu thực tế ${actualColor} phải là màu xám`).toBe(true);
   });
 
-  test('TC_PMKT-U-00106-617 - xác nhận sử dụng Tài khoản giá vốn Ngừng hoạt động', async () => {
-    // Chuẩn bị dữ liệu: BLOCK bởi TC106 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
-    test.skip(true, 'BLOCK: bị chặn bởi TC616 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
+  test('TC_PMKT-U-00106-1583 - xác nhận sử dụng Tài khoản giá vốn Ngừng hoạt động', async () => {
+    // Chuẩn bị dữ liệu: BLOCK bởi TC1582 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
+    test.skip(true, 'BLOCK: bị chặn bởi TC1582 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
   });
 
-  test('TC_PMKT-U-00106-618 - hủy sử dụng Tài khoản giá vốn Ngừng hoạt động', async () => {
-    // Chuẩn bị dữ liệu: BLOCK bởi TC106 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
-    test.skip(true, 'BLOCK: bị chặn bởi TC616 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
+  test('TC_PMKT-U-00106-1584 - hủy sử dụng Tài khoản giá vốn Ngừng hoạt động', async () => {
+    // Chuẩn bị dữ liệu: BLOCK bởi TC1582 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
+    test.skip(true, 'BLOCK: bị chặn bởi TC1582 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
   });
 
-  test('TC_PMKT-U-00106-619 - chọn Tài khoản giá vốn Hoạt động không hiển thị cảnh báo', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1585 - chọn Tài khoản giá vốn Hoạt động không hiển thị cảnh báo', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn một tài khoản Hoạt động được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const activeAccount = accounts.find((account) => account.allowed && account.status === 'HoatDong');
     test.skip(!activeAccount, 'DB không có Tài khoản Hoạt động được phép hạch toán');
     if (!activeAccount) return;
@@ -1503,9 +1503,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.accountConfirmationDialog(), 'Không được cảnh báo khi chọn Tài khoản Hoạt động').toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-620 - tìm Tài khoản giá vốn theo Số hiệu TK', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1586 - tìm Tài khoản giá vốn theo Số hiệu TK', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn từ khóa chỉ thuộc Số hiệu TK trong tập được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const allowedAccounts = accounts.filter((account) => account.allowed);
     const keyword = discriminatingSearchKeyword(
       allowedAccounts.map((account) => account.code),
@@ -1527,9 +1527,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(actualLabels.every((label) => expectedLabels.includes(label)), 'Mọi dòng UI phải khớp Số hiệu TK và được phép hạch toán').toBe(true);
   });
 
-  test('TC_PMKT-U-00106-621 - tìm Tài khoản giá vốn theo Tên TK', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1587 - tìm Tài khoản giá vốn theo Tên TK', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn từ khóa chỉ thuộc Tên TK trong tập được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const allowedAccounts = accounts.filter((account) => account.allowed);
     const keyword = discriminatingSearchKeyword(
       allowedAccounts.map((account) => account.name),
@@ -1551,9 +1551,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(actualLabels.every((label) => expectedLabels.includes(label)), 'Mọi dòng UI phải khớp Tên TK và được phép hạch toán').toBe(true);
   });
 
-  test('TC_PMKT-U-00106-622 - tìm Tài khoản giá vốn theo Trạng thái', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1588 - tìm Tài khoản giá vốn theo Trạng thái', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Lấy Tài khoản Hoạt động được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const expectedLabels = accounts
       .filter((account) => account.allowed && account.status === 'HoatDong')
       .map((account) => account.label);
@@ -1569,9 +1569,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(actualLabels.every((label) => expectedLabels.includes(label)), 'Mọi dòng UI phải có Trạng thái Hoạt động và được phép hạch toán').toBe(true);
   });
 
-  test('TC_PMKT-U-00106-623 - Enter chọn dòng Tài khoản giá vốn đầu tiên', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1589 - Enter chọn dòng Tài khoản giá vốn đầu tiên', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn từ khóa trả về nhiều Tài khoản được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const allowedAccounts = accounts.filter((account) => account.allowed);
     const keyword = sharedSearchKeyword(allowedAccounts.map((account) => account.code));
     test.skip(!keyword, 'DB không có từ khóa trả về nhiều Tài khoản được phép hạch toán');
@@ -1590,9 +1590,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.selectedAccountingAccount('Tài khoản giá vốn', firstLabel), 'Enter phải chọn dòng đầu tiên').toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-624 - phím Up và Down di chuyển từng dòng Tài khoản giá vốn', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1590 - phím Up và Down di chuyển từng dòng Tài khoản giá vốn', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB/UI: Mở combogrid có tối thiểu ba Tài khoản được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     test.skip(accounts.filter((account) => account.allowed).length < 3, 'DB có ít hơn ba Tài khoản được phép hạch toán');
     const accountCombobox = vatTuPage.inventoryMaterialFormFieldControl('Tài khoản giá vốn', 'combobox');
     const valueBefore = await accountCombobox.inputValue();
@@ -1617,9 +1617,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(accountCombobox, 'Điều hướng không được thay đổi giá trị trường').toHaveValue(valueBefore);
   });
 
-  test('TC_PMKT-U-00106-625 - ESC đóng dropdown Tài khoản giá vốn không đổi giá trị', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1591 - ESC đóng dropdown Tài khoản giá vốn không đổi giá trị', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu UI: Ghi nhận giá trị hiện tại rồi mở combogrid.
-    await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const accountCombobox = vatTuPage.inventoryMaterialFormFieldControl('Tài khoản giá vốn', 'combobox');
     const valueBefore = await accountCombobox.inputValue();
     await vatTuPage.openAccountingAccountDropdown('Tài khoản giá vốn');
@@ -1632,9 +1632,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(accountCombobox, 'ESC không được thay đổi giá trị hiện tại').toHaveValue(valueBefore);
   });
 
-  test('TC_PMKT-U-00106-626 - icon X xóa nhanh Tài khoản giá vốn', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1592 - icon X xóa nhanh Tài khoản giá vốn', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB/UI: Chọn một Tài khoản Hoạt động được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const activeAccount = accounts.find((account) => account.allowed && account.status === 'HoatDong');
     test.skip(!activeAccount, 'DB không có Tài khoản Hoạt động được phép hạch toán');
     if (!activeAccount) return;
@@ -1650,11 +1650,11 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Tài khoản giá vốn', 'combobox'), 'Tài khoản giá vốn phải trở về trống').toHaveValue('');
   });
 
-  test('TC_PMKT-U-00106-627 - ẩn Tài khoản giá vốn khi đổi sang Dịch vụ', async ({ vatTuPage }) => {
-    // Hành động: Mở Nguyên vật liệu > Hạch toán > Thay đổi tính chất > Dịch vụ > Hạch toán.
+  test('TC_PMKT-U-00106-1593 - ẩn Tài khoản giá vốn khi đổi sang Dịch vụ', async ({ vatTuPage }) => {
+    // Hành động: Mở Bán thành phẩm > Hạch toán > Thay đổi tính chất > Dịch vụ > Hạch toán.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openDefaultAccountingTab();
     await vatTuPage.changeMaterialType();
     await vatTuPage.selectMaterialType('Dịch vụ');
@@ -1664,9 +1664,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.formField('Tài khoản giá vốn'), 'Form Dịch vụ phải ẩn Tài khoản giá vốn').toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-628 - reset Tài khoản giá vốn khi đổi sang loại vật tư khác', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu DB/UI: Chọn một Tài khoản giá vốn hợp lệ trên form Nguyên vật liệu.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1594 - reset Tài khoản giá vốn khi đổi sang loại vật tư khác', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu DB/UI: Chọn một Tài khoản giá vốn hợp lệ trên form Bán thành phẩm.
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const activeAccount = accounts.find((account) => account.allowed && account.status === 'HoatDong');
     test.skip(!activeAccount, 'DB không có Tài khoản Hoạt động được phép hạch toán');
     if (!activeAccount) return;
@@ -1674,19 +1674,19 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await vatTuPage.selectAccountingAccount('Tài khoản giá vốn', activeAccount);
     await expect(vatTuPage.selectedAccountingAccount('Tài khoản giá vốn', activeAccount.label), 'Tài khoản phải có dữ liệu trước khi đổi tính chất').toBeVisible();
 
-    // Hành động: Thay đổi tính chất > chọn Công cụ, dụng cụ > mở Hạch toán ngầm định.
+    // Hành động: Thay đổi tính chất > chọn Bán thành phẩm > mở Hạch toán ngầm định.
     await vatTuPage.changeMaterialType();
-    await vatTuPage.selectMaterialType('Công cụ, dụng cụ');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openDefaultAccountingTab();
 
-    // Xác nhận UI: Giá trị Tài khoản giá vốn đã chọn trên Nguyên vật liệu bị xóa sạch.
+    // Xác nhận UI: Giá trị Tài khoản giá vốn đã chọn trên Bán thành phẩm bị xóa sạch.
     await expect(vatTuPage.selectedAccountingAccount('Tài khoản giá vốn', activeAccount.label), 'Tài khoản cũ phải bị xóa sau khi đổi tính chất').toBeHidden();
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Tài khoản giá vốn', 'combobox'), 'Tài khoản giá vốn phải reset về trống').toHaveValue('');
   });
 
-  test('TC_PMKT-U-00106-629 - hiển thị combogrid Tài khoản doanh thu không bắt buộc', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Mở form Nguyên vật liệu tại tab Hạch toán ngầm định.
-    await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1595 - hiển thị combogrid Tài khoản doanh thu không bắt buộc', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Bán thành phẩm tại tab Hạch toán ngầm định.
+    await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
 
     // Xác nhận UI: Đúng label, control combogrid và không có dấu bắt buộc.
     await expect(vatTuPage.formField('Tài khoản doanh thu'), 'Phải hiển thị label Tài khoản doanh thu').toBeVisible();
@@ -1694,9 +1694,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.requiredFormField('Tài khoản doanh thu'), 'Tài khoản doanh thu không được hiển thị dấu *').toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-630 - hiển thị đúng cột, dữ liệu và thứ tự Tài khoản doanh thu', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1596 - hiển thị đúng cột, dữ liệu và thứ tự Tài khoản doanh thu', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Lấy Tài khoản Hoạt động được phép hạch toán và toàn bộ Tài khoản Ngừng hoạt động.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const expectedAccounts = accounts.filter(
       (account) => account.allowed || account.status === 'NgungHoatDong',
     );
@@ -1736,9 +1736,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     ).toBe(true);
   });
 
-  test('TC_PMKT-U-00106-631 - Tài khoản doanh thu Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1597 - Tài khoản doanh thu Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn một tài khoản Ngừng hoạt động, không ràng buộc Cho phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const inactiveAccount = accounts.find((account) => account.status === 'NgungHoatDong');
     test.skip(!inactiveAccount, 'BLOCK: DB tenant hiện tại không có Tài khoản Ngừng hoạt động');
     if (!inactiveAccount) return;
@@ -1756,19 +1756,19 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(isGrayCssColor(actualColor), `Màu thực tế ${actualColor} phải là màu xám`).toBe(true);
   });
 
-  test('TC_PMKT-U-00106-632 - xác nhận sử dụng Tài khoản doanh thu Ngừng hoạt động', async () => {
-    // Chuẩn bị dữ liệu: BLOCK bởi TC106 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
-    test.skip(true, 'BLOCK: bị chặn bởi TC631 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
+  test('TC_PMKT-U-00106-1598 - xác nhận sử dụng Tài khoản doanh thu Ngừng hoạt động', async () => {
+    // Chuẩn bị dữ liệu: BLOCK bởi TC1597 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
+    test.skip(true, 'BLOCK: bị chặn bởi TC1597 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
   });
 
-  test('TC_PMKT-U-00106-633 - hủy sử dụng Tài khoản doanh thu Ngừng hoạt động', async () => {
-    // Chuẩn bị dữ liệu: BLOCK bởi TC106 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
-    test.skip(true, 'BLOCK: bị chặn bởi TC631 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
+  test('TC_PMKT-U-00106-1599 - hủy sử dụng Tài khoản doanh thu Ngừng hoạt động', async () => {
+    // Chuẩn bị dữ liệu: BLOCK bởi TC1597 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
+    test.skip(true, 'BLOCK: bị chặn bởi TC1597 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
   });
 
-  test('TC_PMKT-U-00106-634 - chọn Tài khoản doanh thu Hoạt động không hiển thị cảnh báo', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1600 - chọn Tài khoản doanh thu Hoạt động không hiển thị cảnh báo', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn một tài khoản Hoạt động được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const activeAccount = accounts.find((account) => account.allowed && account.status === 'HoatDong');
     test.skip(!activeAccount, 'DB không có Tài khoản Hoạt động được phép hạch toán');
     if (!activeAccount) return;
@@ -1782,9 +1782,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.accountConfirmationDialog(), 'Không được cảnh báo khi chọn Tài khoản Hoạt động').toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-635 - tìm Tài khoản doanh thu theo Số hiệu TK', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1601 - tìm Tài khoản doanh thu theo Số hiệu TK', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn từ khóa chỉ thuộc Số hiệu TK trong tập được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const allowedAccounts = accounts.filter((account) => account.allowed);
     const keyword = discriminatingSearchKeyword(
       allowedAccounts.map((account) => account.code),
@@ -1806,9 +1806,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(actualLabels.every((label) => expectedLabels.includes(label)), 'Mọi dòng UI phải khớp Số hiệu TK và được phép hạch toán').toBe(true);
   });
 
-  test('TC_PMKT-U-00106-636 - tìm Tài khoản doanh thu theo Tên TK', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1602 - tìm Tài khoản doanh thu theo Tên TK', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn từ khóa chỉ thuộc Tên TK trong tập được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const allowedAccounts = accounts.filter((account) => account.allowed);
     const keyword = discriminatingSearchKeyword(
       allowedAccounts.map((account) => account.name),
@@ -1830,9 +1830,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(actualLabels.every((label) => expectedLabels.includes(label)), 'Mọi dòng UI phải khớp Tên TK và được phép hạch toán').toBe(true);
   });
 
-  test('TC_PMKT-U-00106-637 - tìm Tài khoản doanh thu theo Trạng thái', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1603 - tìm Tài khoản doanh thu theo Trạng thái', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Lấy Tài khoản Hoạt động được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const expectedLabels = accounts
       .filter((account) => account.allowed && account.status === 'HoatDong')
       .map((account) => account.label);
@@ -1848,9 +1848,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(actualLabels.every((label) => expectedLabels.includes(label)), 'Mọi dòng UI phải có Trạng thái Hoạt động và được phép hạch toán').toBe(true);
   });
 
-  test('TC_PMKT-U-00106-638 - Enter chọn dòng Tài khoản doanh thu đầu tiên', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1604 - Enter chọn dòng Tài khoản doanh thu đầu tiên', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn từ khóa trả về nhiều Tài khoản được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const allowedAccounts = accounts.filter((account) => account.allowed);
     const keyword = sharedSearchKeyword(allowedAccounts.map((account) => account.code));
     test.skip(!keyword, 'DB không có từ khóa trả về nhiều Tài khoản được phép hạch toán');
@@ -1869,9 +1869,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.selectedAccountingAccount('Tài khoản doanh thu', firstLabel), 'Enter phải chọn dòng đầu tiên').toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-639 - phím Up và Down di chuyển từng dòng Tài khoản doanh thu', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1605 - phím Up và Down di chuyển từng dòng Tài khoản doanh thu', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB/UI: Mở combogrid có tối thiểu ba Tài khoản được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     test.skip(accounts.filter((account) => account.allowed).length < 3, 'DB có ít hơn ba Tài khoản được phép hạch toán');
     const accountCombobox = vatTuPage.inventoryMaterialFormFieldControl('Tài khoản doanh thu', 'combobox');
     const valueBefore = await accountCombobox.inputValue();
@@ -1896,9 +1896,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(accountCombobox, 'Điều hướng không được thay đổi giá trị trường').toHaveValue(valueBefore);
   });
 
-  test('TC_PMKT-U-00106-640 - ESC đóng dropdown Tài khoản doanh thu không đổi giá trị', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1606 - ESC đóng dropdown Tài khoản doanh thu không đổi giá trị', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu UI: Ghi nhận giá trị hiện tại rồi mở combogrid.
-    await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const accountCombobox = vatTuPage.inventoryMaterialFormFieldControl('Tài khoản doanh thu', 'combobox');
     const valueBefore = await accountCombobox.inputValue();
     await vatTuPage.openAccountingAccountDropdown('Tài khoản doanh thu');
@@ -1911,9 +1911,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(accountCombobox, 'ESC không được thay đổi giá trị hiện tại').toHaveValue(valueBefore);
   });
 
-  test('TC_PMKT-U-00106-641 - icon X xóa nhanh Tài khoản doanh thu', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1607 - icon X xóa nhanh Tài khoản doanh thu', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB/UI: Chọn một Tài khoản Hoạt động được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const activeAccount = accounts.find((account) => account.allowed && account.status === 'HoatDong');
     test.skip(!activeAccount, 'DB không có Tài khoản Hoạt động được phép hạch toán');
     if (!activeAccount) return;
@@ -1929,9 +1929,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Tài khoản doanh thu', 'combobox'), 'Tài khoản doanh thu phải trở về trống').toHaveValue('');
   });
 
-  test('TC_PMKT-U-00106-642 - hiển thị combogrid Tài khoản hàng bán trả lại không bắt buộc', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Mở form Nguyên vật liệu tại tab Hạch toán ngầm định.
-    await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1608 - hiển thị combogrid Tài khoản hàng bán trả lại không bắt buộc', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Bán thành phẩm tại tab Hạch toán ngầm định.
+    await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
 
     // Xác nhận UI: Đúng label, control combogrid và không có dấu bắt buộc.
     await expect(vatTuPage.formField('Tài khoản hàng bán trả lại'), 'Phải hiển thị label Tài khoản hàng bán trả lại').toBeVisible();
@@ -1939,9 +1939,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.requiredFormField('Tài khoản hàng bán trả lại'), 'Tài khoản hàng bán trả lại không được hiển thị dấu *').toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-643 - hiển thị đúng cột, dữ liệu và thứ tự Tài khoản hàng bán trả lại', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1609 - hiển thị đúng cột, dữ liệu và thứ tự Tài khoản hàng bán trả lại', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Lấy Tài khoản Hoạt động được phép hạch toán và toàn bộ Tài khoản Ngừng hoạt động.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const expectedAccounts = accounts.filter(
       (account) => account.allowed || account.status === 'NgungHoatDong',
     );
@@ -1981,9 +1981,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     ).toBe(true);
   });
 
-  test('TC_PMKT-U-00106-644 - Tài khoản hàng bán trả lại Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1610 - Tài khoản hàng bán trả lại Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn một tài khoản Ngừng hoạt động, không ràng buộc Cho phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const inactiveAccount = accounts.find((account) => account.status === 'NgungHoatDong');
     test.skip(!inactiveAccount, 'BLOCK: DB tenant hiện tại không có Tài khoản Ngừng hoạt động');
     if (!inactiveAccount) return;
@@ -2001,19 +2001,19 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(isGrayCssColor(actualColor), `Màu thực tế ${actualColor} phải là màu xám`).toBe(true);
   });
 
-  test('TC_PMKT-U-00106-645 - xác nhận sử dụng Tài khoản hàng bán trả lại Ngừng hoạt động', async () => {
-    // Chuẩn bị dữ liệu: BLOCK bởi TC106 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
-    test.skip(true, 'BLOCK: bị chặn bởi TC644 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
+  test('TC_PMKT-U-00106-1611 - xác nhận sử dụng Tài khoản hàng bán trả lại Ngừng hoạt động', async () => {
+    // Chuẩn bị dữ liệu: BLOCK bởi TC1610 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
+    test.skip(true, 'BLOCK: bị chặn bởi TC1610 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
   });
 
-  test('TC_PMKT-U-00106-646 - hủy sử dụng Tài khoản hàng bán trả lại Ngừng hoạt động', async () => {
-    // Chuẩn bị dữ liệu: BLOCK bởi TC106 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
-    test.skip(true, 'BLOCK: bị chặn bởi TC644 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
+  test('TC_PMKT-U-00106-1612 - hủy sử dụng Tài khoản hàng bán trả lại Ngừng hoạt động', async () => {
+    // Chuẩn bị dữ liệu: BLOCK bởi TC1610 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
+    test.skip(true, 'BLOCK: bị chặn bởi TC1610 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
   });
 
-  test('TC_PMKT-U-00106-647 - chọn Tài khoản hàng bán trả lại Hoạt động không hiển thị cảnh báo', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1613 - chọn Tài khoản hàng bán trả lại Hoạt động không hiển thị cảnh báo', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn một tài khoản Hoạt động được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const activeAccount = accounts.find((account) => account.allowed && account.status === 'HoatDong');
     test.skip(!activeAccount, 'DB không có Tài khoản Hoạt động được phép hạch toán');
     if (!activeAccount) return;
@@ -2027,9 +2027,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.accountConfirmationDialog(), 'Không được cảnh báo khi chọn Tài khoản Hoạt động').toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-648 - tìm Tài khoản hàng bán trả lại theo Số hiệu TK', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1614 - tìm Tài khoản hàng bán trả lại theo Số hiệu TK', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn từ khóa chỉ thuộc Số hiệu TK trong tập được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const allowedAccounts = accounts.filter((account) => account.allowed);
     const keyword = discriminatingSearchKeyword(
       allowedAccounts.map((account) => account.code),
@@ -2051,9 +2051,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(actualLabels.every((label) => expectedLabels.includes(label)), 'Mọi dòng UI phải khớp Số hiệu TK và được phép hạch toán').toBe(true);
   });
 
-  test('TC_PMKT-U-00106-649 - tìm Tài khoản hàng bán trả lại theo Tên TK', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1615 - tìm Tài khoản hàng bán trả lại theo Tên TK', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn từ khóa chỉ thuộc Tên TK trong tập được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const allowedAccounts = accounts.filter((account) => account.allowed);
     const keyword = discriminatingSearchKeyword(
       allowedAccounts.map((account) => account.name),
@@ -2075,9 +2075,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(actualLabels.every((label) => expectedLabels.includes(label)), 'Mọi dòng UI phải khớp Tên TK và được phép hạch toán').toBe(true);
   });
 
-  test('TC_PMKT-U-00106-650 - tìm Tài khoản hàng bán trả lại theo Trạng thái', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1616 - tìm Tài khoản hàng bán trả lại theo Trạng thái', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Lấy Tài khoản Hoạt động được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const expectedLabels = accounts
       .filter((account) => account.allowed && account.status === 'HoatDong')
       .map((account) => account.label);
@@ -2093,9 +2093,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(actualLabels.every((label) => expectedLabels.includes(label)), 'Mọi dòng UI phải có Trạng thái Hoạt động và được phép hạch toán').toBe(true);
   });
 
-  test('TC_PMKT-U-00106-651 - Enter chọn dòng Tài khoản hàng bán trả lại đầu tiên', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1617 - Enter chọn dòng Tài khoản hàng bán trả lại đầu tiên', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn từ khóa trả về nhiều Tài khoản được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const allowedAccounts = accounts.filter((account) => account.allowed);
     const keyword = sharedSearchKeyword(allowedAccounts.map((account) => account.code));
     test.skip(!keyword, 'DB không có từ khóa trả về nhiều Tài khoản được phép hạch toán');
@@ -2114,9 +2114,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.selectedAccountingAccount('Tài khoản hàng bán trả lại', firstLabel), 'Enter phải chọn dòng đầu tiên').toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-652 - phím Up và Down di chuyển từng dòng Tài khoản hàng bán trả lại', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1618 - phím Up và Down di chuyển từng dòng Tài khoản hàng bán trả lại', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB/UI: Mở combogrid có tối thiểu ba Tài khoản được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     test.skip(accounts.filter((account) => account.allowed).length < 3, 'DB có ít hơn ba Tài khoản được phép hạch toán');
     const accountCombobox = vatTuPage.inventoryMaterialFormFieldControl('Tài khoản hàng bán trả lại', 'combobox');
     const valueBefore = await accountCombobox.inputValue();
@@ -2141,9 +2141,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(accountCombobox, 'Điều hướng không được thay đổi giá trị trường').toHaveValue(valueBefore);
   });
 
-  test('TC_PMKT-U-00106-653 - ESC đóng dropdown Tài khoản hàng bán trả lại không đổi giá trị', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1619 - ESC đóng dropdown Tài khoản hàng bán trả lại không đổi giá trị', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu UI: Ghi nhận giá trị hiện tại rồi mở combogrid.
-    await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const accountCombobox = vatTuPage.inventoryMaterialFormFieldControl('Tài khoản hàng bán trả lại', 'combobox');
     const valueBefore = await accountCombobox.inputValue();
     await vatTuPage.openAccountingAccountDropdown('Tài khoản hàng bán trả lại');
@@ -2156,9 +2156,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(accountCombobox, 'ESC không được thay đổi giá trị hiện tại').toHaveValue(valueBefore);
   });
 
-  test('TC_PMKT-U-00106-654 - icon X xóa nhanh Tài khoản hàng bán trả lại', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1620 - icon X xóa nhanh Tài khoản hàng bán trả lại', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB/UI: Chọn một Tài khoản Hoạt động được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const activeAccount = accounts.find((account) => account.allowed && account.status === 'HoatDong');
     test.skip(!activeAccount, 'DB không có Tài khoản Hoạt động được phép hạch toán');
     if (!activeAccount) return;
@@ -2173,9 +2173,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.selectedAccountingAccount('Tài khoản hàng bán trả lại', activeAccount.label), 'Giá trị Tài khoản phải bị xóa').toBeHidden();
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Tài khoản hàng bán trả lại', 'combobox'), 'Tài khoản hàng bán trả lại phải trở về trống').toHaveValue('');
   });
-  test('TC_PMKT-U-00106-655 - hiển thị combogrid Tài khoản chi phí không bắt buộc', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Mở form Nguyên vật liệu tại tab Hạch toán ngầm định.
-    await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1621 - hiển thị combogrid Tài khoản chi phí không bắt buộc', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Bán thành phẩm tại tab Hạch toán ngầm định.
+    await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
 
     // Xác nhận UI: Đúng label, control combogrid và không có dấu bắt buộc.
     await expect(vatTuPage.formField('Tài khoản chi phí'), 'Phải hiển thị label Tài khoản chi phí').toBeVisible();
@@ -2183,9 +2183,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.requiredFormField('Tài khoản chi phí'), 'Tài khoản chi phí không được hiển thị dấu *').toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-656 - hiển thị đúng cột, dữ liệu và thứ tự Tài khoản chi phí', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1622 - hiển thị đúng cột, dữ liệu và thứ tự Tài khoản chi phí', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Lấy Tài khoản Hoạt động được phép hạch toán và toàn bộ Tài khoản Ngừng hoạt động.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const expectedAccounts = accounts.filter(
       (account) => account.allowed || account.status === 'NgungHoatDong',
     );
@@ -2225,9 +2225,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     ).toBe(true);
   });
 
-  test('TC_PMKT-U-00106-657 - Tài khoản chi phí Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1623 - Tài khoản chi phí Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn một tài khoản Ngừng hoạt động, không ràng buộc Cho phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const inactiveAccount = accounts.find((account) => account.status === 'NgungHoatDong');
     test.skip(!inactiveAccount, 'BLOCK: DB tenant hiện tại không có Tài khoản Ngừng hoạt động');
     if (!inactiveAccount) return;
@@ -2245,19 +2245,19 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(isGrayCssColor(actualColor), `Màu thực tế ${actualColor} phải là màu xám`).toBe(true);
   });
 
-  test('TC_PMKT-U-00106-658 - xác nhận sử dụng Tài khoản chi phí Ngừng hoạt động', async () => {
-    // Chuẩn bị dữ liệu: BLOCK bởi TC147 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
-    test.skip(true, 'BLOCK: bị chặn bởi TC657 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
+  test('TC_PMKT-U-00106-1624 - xác nhận sử dụng Tài khoản chi phí Ngừng hoạt động', async () => {
+    // Chuẩn bị dữ liệu: BLOCK bởi TC1623 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
+    test.skip(true, 'BLOCK: bị chặn bởi TC1623 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
   });
 
-  test('TC_PMKT-U-00106-659 - hủy sử dụng Tài khoản chi phí Ngừng hoạt động', async () => {
-    // Chuẩn bị dữ liệu: BLOCK bởi TC147 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
-    test.skip(true, 'BLOCK: bị chặn bởi TC657 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
+  test('TC_PMKT-U-00106-1625 - hủy sử dụng Tài khoản chi phí Ngừng hoạt động', async () => {
+    // Chuẩn bị dữ liệu: BLOCK bởi TC1623 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
+    test.skip(true, 'BLOCK: bị chặn bởi TC1623 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
   });
 
-  test('TC_PMKT-U-00106-660 - chọn Tài khoản chi phí Hoạt động không hiển thị cảnh báo', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1626 - chọn Tài khoản chi phí Hoạt động không hiển thị cảnh báo', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn một tài khoản Hoạt động được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const activeAccount = accounts.find((account) => account.allowed && account.status === 'HoatDong');
     test.skip(!activeAccount, 'DB không có Tài khoản Hoạt động được phép hạch toán');
     if (!activeAccount) return;
@@ -2271,9 +2271,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.accountConfirmationDialog(), 'Không được cảnh báo khi chọn Tài khoản Hoạt động').toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-661 - tìm Tài khoản chi phí theo Số hiệu TK', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1627 - tìm Tài khoản chi phí theo Số hiệu TK', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn từ khóa chỉ thuộc Số hiệu TK trong tập được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const allowedAccounts = accounts.filter((account) => account.allowed);
     const keyword = discriminatingSearchKeyword(
       allowedAccounts.map((account) => account.code),
@@ -2295,9 +2295,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(actualLabels.every((label) => expectedLabels.includes(label)), 'Mọi dòng UI phải khớp Số hiệu TK và được phép hạch toán').toBe(true);
   });
 
-  test('TC_PMKT-U-00106-662 - tìm Tài khoản chi phí theo Tên TK', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1628 - tìm Tài khoản chi phí theo Tên TK', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn từ khóa chỉ thuộc Tên TK trong tập được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const allowedAccounts = accounts.filter((account) => account.allowed);
     const keyword = discriminatingSearchKeyword(
       allowedAccounts.map((account) => account.name),
@@ -2319,9 +2319,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(actualLabels.every((label) => expectedLabels.includes(label)), 'Mọi dòng UI phải khớp Tên TK và được phép hạch toán').toBe(true);
   });
 
-  test('TC_PMKT-U-00106-663 - tìm Tài khoản chi phí theo Trạng thái', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1629 - tìm Tài khoản chi phí theo Trạng thái', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Lấy Tài khoản Hoạt động được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const expectedLabels = accounts
       .filter((account) => account.allowed && account.status === 'HoatDong')
       .map((account) => account.label);
@@ -2337,9 +2337,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(actualLabels.every((label) => expectedLabels.includes(label)), 'Mọi dòng UI phải có Trạng thái Hoạt động và được phép hạch toán').toBe(true);
   });
 
-  test('TC_PMKT-U-00106-664 - Enter chọn dòng Tài khoản chi phí đầu tiên', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1630 - Enter chọn dòng Tài khoản chi phí đầu tiên', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn từ khóa trả về nhiều Tài khoản được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const allowedAccounts = accounts.filter((account) => account.allowed);
     const keyword = sharedSearchKeyword(allowedAccounts.map((account) => account.code));
     test.skip(!keyword, 'DB không có từ khóa trả về nhiều Tài khoản được phép hạch toán');
@@ -2358,9 +2358,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.selectedAccountingAccount('Tài khoản chi phí', firstLabel), 'Enter phải chọn dòng đầu tiên').toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-665 - phím Up và Down di chuyển từng dòng Tài khoản chi phí', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1631 - phím Up và Down di chuyển từng dòng Tài khoản chi phí', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB/UI: Mở combogrid có tối thiểu ba Tài khoản được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     test.skip(accounts.filter((account) => account.allowed).length < 3, 'DB có ít hơn ba Tài khoản được phép hạch toán');
     const accountCombobox = vatTuPage.inventoryMaterialFormFieldControl('Tài khoản chi phí', 'combobox');
     const valueBefore = await accountCombobox.inputValue();
@@ -2385,9 +2385,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(accountCombobox, 'Điều hướng không được thay đổi giá trị trường').toHaveValue(valueBefore);
   });
 
-  test('TC_PMKT-U-00106-666 - ESC đóng dropdown Tài khoản chi phí không đổi giá trị', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1632 - ESC đóng dropdown Tài khoản chi phí không đổi giá trị', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu UI: Ghi nhận giá trị hiện tại rồi mở combogrid.
-    await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const accountCombobox = vatTuPage.inventoryMaterialFormFieldControl('Tài khoản chi phí', 'combobox');
     const valueBefore = await accountCombobox.inputValue();
     await vatTuPage.openAccountingAccountDropdown('Tài khoản chi phí');
@@ -2400,9 +2400,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(accountCombobox, 'ESC không được thay đổi giá trị hiện tại').toHaveValue(valueBefore);
   });
 
-  test('TC_PMKT-U-00106-667 - icon X xóa nhanh Tài khoản chi phí', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1633 - icon X xóa nhanh Tài khoản chi phí', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB/UI: Chọn một Tài khoản Hoạt động được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const activeAccount = accounts.find((account) => account.allowed && account.status === 'HoatDong');
     test.skip(!activeAccount, 'DB không có Tài khoản Hoạt động được phép hạch toán');
     if (!activeAccount) return;
@@ -2417,9 +2417,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.selectedAccountingAccount('Tài khoản chi phí', activeAccount.label), 'Giá trị Tài khoản phải bị xóa').toBeHidden();
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Tài khoản chi phí', 'combobox'), 'Tài khoản chi phí phải trở về trống').toHaveValue('');
   });
-  test('TC_PMKT-U-00106-668 - hiển thị combogrid Tài khoản chiết khấu không bắt buộc', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Mở form Nguyên vật liệu tại tab Hạch toán ngầm định.
-    await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1634 - hiển thị combogrid Tài khoản chiết khấu không bắt buộc', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Bán thành phẩm tại tab Hạch toán ngầm định.
+    await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
 
     // Xác nhận UI: Đúng label, control combogrid và không có dấu bắt buộc.
     await expect(vatTuPage.formField('Tài khoản chiết khấu'), 'Phải hiển thị label Tài khoản chiết khấu').toBeVisible();
@@ -2427,9 +2427,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.requiredFormField('Tài khoản chiết khấu'), 'Tài khoản chiết khấu không được hiển thị dấu *').toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-669 - hiển thị đúng cột, dữ liệu và thứ tự Tài khoản chiết khấu', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1635 - hiển thị đúng cột, dữ liệu và thứ tự Tài khoản chiết khấu', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Lấy Tài khoản Hoạt động được phép hạch toán và toàn bộ Tài khoản Ngừng hoạt động.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const expectedAccounts = accounts.filter(
       (account) => account.allowed || account.status === 'NgungHoatDong',
     );
@@ -2469,9 +2469,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     ).toBe(true);
   });
 
-  test('TC_PMKT-U-00106-670 - Tài khoản chiết khấu Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1636 - Tài khoản chiết khấu Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn một tài khoản Ngừng hoạt động, không ràng buộc Cho phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const inactiveAccount = accounts.find((account) => account.status === 'NgungHoatDong');
     test.skip(!inactiveAccount, 'BLOCK: DB tenant hiện tại không có Tài khoản Ngừng hoạt động');
     if (!inactiveAccount) return;
@@ -2489,19 +2489,19 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(isGrayCssColor(actualColor), `Màu thực tế ${actualColor} phải là màu xám`).toBe(true);
   });
 
-  test('TC_PMKT-U-00106-671 - xác nhận sử dụng Tài khoản chiết khấu Ngừng hoạt động', async () => {
-    // Chuẩn bị dữ liệu: BLOCK bởi TC160 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
-    test.skip(true, 'BLOCK: bị chặn bởi TC670 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
+  test('TC_PMKT-U-00106-1637 - xác nhận sử dụng Tài khoản chiết khấu Ngừng hoạt động', async () => {
+    // Chuẩn bị dữ liệu: BLOCK bởi TC1636 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
+    test.skip(true, 'BLOCK: bị chặn bởi TC1636 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
   });
 
-  test('TC_PMKT-U-00106-672 - hủy sử dụng Tài khoản chiết khấu Ngừng hoạt động', async () => {
-    // Chuẩn bị dữ liệu: BLOCK bởi TC160 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
-    test.skip(true, 'BLOCK: bị chặn bởi TC670 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
+  test('TC_PMKT-U-00106-1638 - hủy sử dụng Tài khoản chiết khấu Ngừng hoạt động', async () => {
+    // Chuẩn bị dữ liệu: BLOCK bởi TC1636 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
+    test.skip(true, 'BLOCK: bị chặn bởi TC1636 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
   });
 
-  test('TC_PMKT-U-00106-673 - chọn Tài khoản chiết khấu Hoạt động không hiển thị cảnh báo', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1639 - chọn Tài khoản chiết khấu Hoạt động không hiển thị cảnh báo', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn một tài khoản Hoạt động được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const activeAccount = accounts.find((account) => account.allowed && account.status === 'HoatDong');
     test.skip(!activeAccount, 'DB không có Tài khoản Hoạt động được phép hạch toán');
     if (!activeAccount) return;
@@ -2515,9 +2515,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.accountConfirmationDialog(), 'Không được cảnh báo khi chọn Tài khoản Hoạt động').toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-674 - tìm Tài khoản chiết khấu theo Số hiệu TK', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1640 - tìm Tài khoản chiết khấu theo Số hiệu TK', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn từ khóa chỉ thuộc Số hiệu TK trong tập được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const allowedAccounts = accounts.filter((account) => account.allowed);
     const keyword = discriminatingSearchKeyword(
       allowedAccounts.map((account) => account.code),
@@ -2539,9 +2539,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(actualLabels.every((label) => expectedLabels.includes(label)), 'Mọi dòng UI phải khớp Số hiệu TK và được phép hạch toán').toBe(true);
   });
 
-  test('TC_PMKT-U-00106-675 - tìm Tài khoản chiết khấu theo Tên TK', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1641 - tìm Tài khoản chiết khấu theo Tên TK', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn từ khóa chỉ thuộc Tên TK trong tập được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const allowedAccounts = accounts.filter((account) => account.allowed);
     const keyword = discriminatingSearchKeyword(
       allowedAccounts.map((account) => account.name),
@@ -2563,9 +2563,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(actualLabels.every((label) => expectedLabels.includes(label)), 'Mọi dòng UI phải khớp Tên TK và được phép hạch toán').toBe(true);
   });
 
-  test('TC_PMKT-U-00106-676 - tìm Tài khoản chiết khấu theo Trạng thái', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1642 - tìm Tài khoản chiết khấu theo Trạng thái', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Lấy Tài khoản Hoạt động được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const expectedLabels = accounts
       .filter((account) => account.allowed && account.status === 'HoatDong')
       .map((account) => account.label);
@@ -2581,9 +2581,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(actualLabels.every((label) => expectedLabels.includes(label)), 'Mọi dòng UI phải có Trạng thái Hoạt động và được phép hạch toán').toBe(true);
   });
 
-  test('TC_PMKT-U-00106-677 - Enter chọn dòng Tài khoản chiết khấu đầu tiên', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1643 - Enter chọn dòng Tài khoản chiết khấu đầu tiên', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn từ khóa trả về nhiều Tài khoản được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const allowedAccounts = accounts.filter((account) => account.allowed);
     const keyword = sharedSearchKeyword(allowedAccounts.map((account) => account.code));
     test.skip(!keyword, 'DB không có từ khóa trả về nhiều Tài khoản được phép hạch toán');
@@ -2602,9 +2602,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.selectedAccountingAccount('Tài khoản chiết khấu', firstLabel), 'Enter phải chọn dòng đầu tiên').toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-678 - phím Up và Down di chuyển từng dòng Tài khoản chiết khấu', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1644 - phím Up và Down di chuyển từng dòng Tài khoản chiết khấu', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB/UI: Mở combogrid có tối thiểu ba Tài khoản được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     test.skip(accounts.filter((account) => account.allowed).length < 3, 'DB có ít hơn ba Tài khoản được phép hạch toán');
     const accountCombobox = vatTuPage.inventoryMaterialFormFieldControl('Tài khoản chiết khấu', 'combobox');
     const valueBefore = await accountCombobox.inputValue();
@@ -2629,9 +2629,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(accountCombobox, 'Điều hướng không được thay đổi giá trị trường').toHaveValue(valueBefore);
   });
 
-  test('TC_PMKT-U-00106-679 - ESC đóng dropdown Tài khoản chiết khấu không đổi giá trị', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1645 - ESC đóng dropdown Tài khoản chiết khấu không đổi giá trị', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu UI: Ghi nhận giá trị hiện tại rồi mở combogrid.
-    await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const accountCombobox = vatTuPage.inventoryMaterialFormFieldControl('Tài khoản chiết khấu', 'combobox');
     const valueBefore = await accountCombobox.inputValue();
     await vatTuPage.openAccountingAccountDropdown('Tài khoản chiết khấu');
@@ -2644,9 +2644,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(accountCombobox, 'ESC không được thay đổi giá trị hiện tại').toHaveValue(valueBefore);
   });
 
-  test('TC_PMKT-U-00106-680 - icon X xóa nhanh Tài khoản chiết khấu', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1646 - icon X xóa nhanh Tài khoản chiết khấu', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB/UI: Chọn một Tài khoản Hoạt động được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const activeAccount = accounts.find((account) => account.allowed && account.status === 'HoatDong');
     test.skip(!activeAccount, 'DB không có Tài khoản Hoạt động được phép hạch toán');
     if (!activeAccount) return;
@@ -2661,9 +2661,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.selectedAccountingAccount('Tài khoản chiết khấu', activeAccount.label), 'Giá trị Tài khoản phải bị xóa').toBeHidden();
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Tài khoản chiết khấu', 'combobox'), 'Tài khoản chiết khấu phải trở về trống').toHaveValue('');
   });
-  test('TC_PMKT-U-00106-681 - hiển thị combogrid Tài khoản giảm giá không bắt buộc', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Mở form Nguyên vật liệu tại tab Hạch toán ngầm định.
-    await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1647 - hiển thị combogrid Tài khoản giảm giá không bắt buộc', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Bán thành phẩm tại tab Hạch toán ngầm định.
+    await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
 
     // Xác nhận UI: Đúng label, control combogrid và không có dấu bắt buộc.
     await expect(vatTuPage.formField('Tài khoản giảm giá'), 'Phải hiển thị label Tài khoản giảm giá').toBeVisible();
@@ -2671,9 +2671,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.requiredFormField('Tài khoản giảm giá'), 'Tài khoản giảm giá không được hiển thị dấu *').toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-682 - hiển thị đúng cột, dữ liệu và thứ tự Tài khoản giảm giá', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1648 - hiển thị đúng cột, dữ liệu và thứ tự Tài khoản giảm giá', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Lấy Tài khoản Hoạt động được phép hạch toán và toàn bộ Tài khoản Ngừng hoạt động.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const expectedAccounts = accounts.filter(
       (account) => account.allowed || account.status === 'NgungHoatDong',
     );
@@ -2713,9 +2713,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     ).toBe(true);
   });
 
-  test('TC_PMKT-U-00106-683 - Tài khoản giảm giá Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1649 - Tài khoản giảm giá Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn một tài khoản Ngừng hoạt động, không ràng buộc Cho phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const inactiveAccount = accounts.find((account) => account.status === 'NgungHoatDong');
     test.skip(!inactiveAccount, 'BLOCK: DB tenant hiện tại không có Tài khoản Ngừng hoạt động');
     if (!inactiveAccount) return;
@@ -2733,19 +2733,19 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(isGrayCssColor(actualColor), `Màu thực tế ${actualColor} phải là màu xám`).toBe(true);
   });
 
-  test('TC_PMKT-U-00106-684 - xác nhận sử dụng Tài khoản giảm giá Ngừng hoạt động', async () => {
-    // Chuẩn bị dữ liệu: BLOCK bởi TC173 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
-    test.skip(true, 'BLOCK: bị chặn bởi TC683 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
+  test('TC_PMKT-U-00106-1650 - xác nhận sử dụng Tài khoản giảm giá Ngừng hoạt động', async () => {
+    // Chuẩn bị dữ liệu: BLOCK bởi TC1649 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
+    test.skip(true, 'BLOCK: bị chặn bởi TC1649 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
   });
 
-  test('TC_PMKT-U-00106-685 - hủy sử dụng Tài khoản giảm giá Ngừng hoạt động', async () => {
-    // Chuẩn bị dữ liệu: BLOCK bởi TC173 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
-    test.skip(true, 'BLOCK: bị chặn bởi TC683 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
+  test('TC_PMKT-U-00106-1651 - hủy sử dụng Tài khoản giảm giá Ngừng hoạt động', async () => {
+    // Chuẩn bị dữ liệu: BLOCK bởi TC1649 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
+    test.skip(true, 'BLOCK: bị chặn bởi TC1649 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
   });
 
-  test('TC_PMKT-U-00106-686 - chọn Tài khoản giảm giá Hoạt động không hiển thị cảnh báo', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1652 - chọn Tài khoản giảm giá Hoạt động không hiển thị cảnh báo', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn một tài khoản Hoạt động được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const activeAccount = accounts.find((account) => account.allowed && account.status === 'HoatDong');
     test.skip(!activeAccount, 'DB không có Tài khoản Hoạt động được phép hạch toán');
     if (!activeAccount) return;
@@ -2759,9 +2759,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.accountConfirmationDialog(), 'Không được cảnh báo khi chọn Tài khoản Hoạt động').toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-687 - tìm Tài khoản giảm giá theo Số hiệu TK', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1653 - tìm Tài khoản giảm giá theo Số hiệu TK', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn từ khóa chỉ thuộc Số hiệu TK trong tập được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const allowedAccounts = accounts.filter((account) => account.allowed);
     const keyword = discriminatingSearchKeyword(
       allowedAccounts.map((account) => account.code),
@@ -2783,9 +2783,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(actualLabels.every((label) => expectedLabels.includes(label)), 'Mọi dòng UI phải khớp Số hiệu TK và được phép hạch toán').toBe(true);
   });
 
-  test('TC_PMKT-U-00106-688 - tìm Tài khoản giảm giá theo Tên TK', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1654 - tìm Tài khoản giảm giá theo Tên TK', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn từ khóa chỉ thuộc Tên TK trong tập được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const allowedAccounts = accounts.filter((account) => account.allowed);
     const keyword = discriminatingSearchKeyword(
       allowedAccounts.map((account) => account.name),
@@ -2807,9 +2807,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(actualLabels.every((label) => expectedLabels.includes(label)), 'Mọi dòng UI phải khớp Tên TK và được phép hạch toán').toBe(true);
   });
 
-  test('TC_PMKT-U-00106-689 - tìm Tài khoản giảm giá theo Trạng thái', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1655 - tìm Tài khoản giảm giá theo Trạng thái', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Lấy Tài khoản Hoạt động được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const expectedLabels = accounts
       .filter((account) => account.allowed && account.status === 'HoatDong')
       .map((account) => account.label);
@@ -2825,9 +2825,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(actualLabels.every((label) => expectedLabels.includes(label)), 'Mọi dòng UI phải có Trạng thái Hoạt động và được phép hạch toán').toBe(true);
   });
 
-  test('TC_PMKT-U-00106-690 - Enter chọn dòng Tài khoản giảm giá đầu tiên', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1656 - Enter chọn dòng Tài khoản giảm giá đầu tiên', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB: Chọn từ khóa trả về nhiều Tài khoản được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const allowedAccounts = accounts.filter((account) => account.allowed);
     const keyword = sharedSearchKeyword(allowedAccounts.map((account) => account.code));
     test.skip(!keyword, 'DB không có từ khóa trả về nhiều Tài khoản được phép hạch toán');
@@ -2846,9 +2846,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.selectedAccountingAccount('Tài khoản giảm giá', firstLabel), 'Enter phải chọn dòng đầu tiên').toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-691 - phím Up và Down di chuyển từng dòng Tài khoản giảm giá', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1657 - phím Up và Down di chuyển từng dòng Tài khoản giảm giá', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB/UI: Mở combogrid có tối thiểu ba Tài khoản được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     test.skip(accounts.filter((account) => account.allowed).length < 3, 'DB có ít hơn ba Tài khoản được phép hạch toán');
     const accountCombobox = vatTuPage.inventoryMaterialFormFieldControl('Tài khoản giảm giá', 'combobox');
     const valueBefore = await accountCombobox.inputValue();
@@ -2873,9 +2873,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(accountCombobox, 'Điều hướng không được thay đổi giá trị trường').toHaveValue(valueBefore);
   });
 
-  test('TC_PMKT-U-00106-692 - ESC đóng dropdown Tài khoản giảm giá không đổi giá trị', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1658 - ESC đóng dropdown Tài khoản giảm giá không đổi giá trị', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu UI: Ghi nhận giá trị hiện tại rồi mở combogrid.
-    await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const accountCombobox = vatTuPage.inventoryMaterialFormFieldControl('Tài khoản giảm giá', 'combobox');
     const valueBefore = await accountCombobox.inputValue();
     await vatTuPage.openAccountingAccountDropdown('Tài khoản giảm giá');
@@ -2888,9 +2888,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(accountCombobox, 'ESC không được thay đổi giá trị hiện tại').toHaveValue(valueBefore);
   });
 
-  test('TC_PMKT-U-00106-693 - icon X xóa nhanh Tài khoản giảm giá', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1659 - icon X xóa nhanh Tài khoản giảm giá', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu DB/UI: Chọn một Tài khoản Hoạt động được phép hạch toán.
-    const accounts = await prepareGoodsAccounting(vatTuPage, 'Nguyên vật liệu');
+    const accounts = await prepareGoodsAccounting(vatTuPage, 'Bán thành phẩm');
     const activeAccount = accounts.find((account) => account.allowed && account.status === 'HoatDong');
     test.skip(!activeAccount, 'DB không có Tài khoản Hoạt động được phép hạch toán');
     if (!activeAccount) return;
@@ -2906,11 +2906,11 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Tài khoản giảm giá', 'combobox'), 'Tài khoản giảm giá phải trở về trống').toHaveValue('');
   });
 
-  test('TC_PMKT-U-00106-694 - ẩn Tab Thông tin kho khi đổi từ Nguyên vật liệu sang Dịch vụ', async ({ vatTuPage }) => {
-    // Chuẩn bị: Mở form Nguyên vật liệu tại Tab Thông tin kho.
+  test('TC_PMKT-U-00106-1660 - ẩn Tab Thông tin kho khi đổi từ Bán thành phẩm sang Dịch vụ', async ({ vatTuPage }) => {
+    // Chuẩn bị: Mở form Bán thành phẩm tại Tab Thông tin kho.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openFormTab('Thông tin kho');
 
     // Hành động: Thay đổi tính chất và chọn Dịch vụ.
@@ -2923,36 +2923,36 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.formTab('Thông tin kho'), 'Form Dịch vụ phải ẩn hoàn toàn Tab Thông tin kho').toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-695 - hiển thị lại Tab Thông tin kho khi đổi từ Dịch vụ sang Nguyên vật liệu', async ({ vatTuPage }) => {
-    // Chuẩn bị: Mở Nguyên vật liệu rồi đổi sang Dịch vụ để Tab Thông tin kho bị ẩn.
+  test('TC_PMKT-U-00106-1661 - hiển thị lại Tab Thông tin kho khi đổi từ Dịch vụ sang Bán thành phẩm', async ({ vatTuPage }) => {
+    // Chuẩn bị: Mở Bán thành phẩm rồi đổi sang Dịch vụ để Tab Thông tin kho bị ẩn.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.changeMaterialType();
     await vatTuPage.selectMaterialType('Dịch vụ');
     await expect(vatTuPage.formTab('Thông tin kho')).toBeHidden();
 
-    // Hành động: Thay đổi tính chất và chọn lại Nguyên vật liệu.
+    // Hành động: Thay đổi tính chất và chọn lại Bán thành phẩm.
     await vatTuPage.changeMaterialType();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
 
-    // Xác nhận: Popup đóng, form Nguyên vật liệu được tải và Tab Thông tin kho hiển thị lại.
-    await expect(vatTuPage.materialTypeDialog, 'Popup chọn tính chất phải đóng sau khi chọn Nguyên vật liệu').toBeHidden();
-    await expect(vatTuPage.materialTypeValue('Nguyên vật liệu'), 'Form phải hiển thị Loại vật tư Nguyên vật liệu').toBeVisible();
-    await expect(vatTuPage.formTab('Thông tin kho'), 'Form Nguyên vật liệu phải hiển thị lại Tab Thông tin kho').toBeVisible();
+    // Xác nhận: Popup đóng, form Bán thành phẩm được tải và Tab Thông tin kho hiển thị lại.
+    await expect(vatTuPage.materialTypeDialog, 'Popup chọn tính chất phải đóng sau khi chọn Bán thành phẩm').toBeHidden();
+    await expect(vatTuPage.semiFinishedProductMaterialTypeField(), 'Form phải hiển thị Loại vật tư Bán thành phẩm').toContainText('Bán thành phẩm');
+    await expect(vatTuPage.formTab('Thông tin kho'), 'Form Bán thành phẩm phải hiển thị lại Tab Thông tin kho').toBeVisible();
   });
-  test('TC_PMKT-U-00106-696 - hiển thị combogrid Kho mặc định không bắt buộc', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Mở form Nguyên vật liệu tại tab Thông tin kho.
-    await openGoodsWarehouse(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1662 - hiển thị combogrid Kho mặc định không bắt buộc', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Bán thành phẩm tại tab Thông tin kho.
+    await openGoodsWarehouse(vatTuPage, 'Bán thành phẩm');
     // Xác nhận UI: Đúng label, control combogrid và không có dấu bắt buộc.
     await expect(vatTuPage.formField('Kho mặc định'), 'Phải hiển thị label Kho mặc định').toBeVisible();
     await expect(vatTuPage.warehouseCombobox(), 'Kho mặc định phải là combogrid').toBeVisible();
     await expect(vatTuPage.requiredFormField('Kho mặc định'), 'Kho mặc định không được có dấu *').toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-697 - hiển thị đúng cột, dữ liệu và thứ tự Kho mặc định', async ({ vatTuPage, db }) => {
+  test('TC_PMKT-U-00106-1663 - hiển thị đúng cột, dữ liệu và thứ tự Kho mặc định', async ({ vatTuPage, db }) => {
     // Chuẩn bị dữ liệu: Lấy ENT_Kho và mở combogrid Kho mặc định.
-    const warehouses = await prepareGoodsWarehouses(vatTuPage, db, 'Nguyên vật liệu');
+    const warehouses = await prepareGoodsWarehouses(vatTuPage, db, 'Bán thành phẩm');
     const expectedLabels = warehouses.map((warehouse) => warehouse.label);
     const activeLabels = warehouses.filter((warehouse) => warehouse.status === 'HoatDong').map((warehouse) => warehouse.label);
     const inactiveLabels = warehouses.filter((warehouse) => warehouse.status === 'NgungHoatDong').map((warehouse) => warehouse.label);
@@ -2979,9 +2979,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     }
   });
 
-  test('TC_PMKT-U-00106-698 - Kho Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage, db }) => {
+  test('TC_PMKT-U-00106-1664 - Kho Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage, db }) => {
     // Chuẩn bị dữ liệu: Yêu cầu ENT_Kho có đủ bản ghi Hoạt động và Ngừng hoạt động.
-    const warehouses = await prepareGoodsWarehouses(vatTuPage, db, 'Nguyên vật liệu');
+    const warehouses = await prepareGoodsWarehouses(vatTuPage, db, 'Bán thành phẩm');
     const actualLabels = await vatTuPage.visibleWarehouseLabels();
     const inactive = warehouses.find(
       (warehouse) => warehouse.status === 'NgungHoatDong' && actualLabels.includes(warehouse.label),
@@ -3000,9 +3000,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(isGrayCssColor(inactiveStyle.color), `Màu thực tế ${inactiveStyle.color} phải là màu xám`).toBe(true);
   });
 
-  test('TC_PMKT-U-00106-699 - xác nhận sử dụng Kho Ngừng hoạt động', async ({ vatTuPage, db }) => {
+  test('TC_PMKT-U-00106-1665 - xác nhận sử dụng Kho Ngừng hoạt động', async ({ vatTuPage, db }) => {
     // Chuẩn bị: Chọn một Kho Ngừng hoạt động đồng thời tồn tại trong DB và hiển thị trên UI.
-    const warehouses = await prepareGoodsWarehouses(vatTuPage, db, 'Nguyên vật liệu');
+    const warehouses = await prepareGoodsWarehouses(vatTuPage, db, 'Bán thành phẩm');
     const actualLabels = await vatTuPage.visibleWarehouseLabels();
     const inactive = warehouses.find(
       (warehouse) => warehouse.status === 'NgungHoatDong' && actualLabels.includes(warehouse.label),
@@ -3022,9 +3022,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.selectedWarehouse(inactive.label), 'Kho Ngừng hoạt động phải được chọn sau xác nhận').toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-700 - hủy sử dụng Kho Ngừng hoạt động', async ({ vatTuPage, db }) => {
+  test('TC_PMKT-U-00106-1666 - hủy sử dụng Kho Ngừng hoạt động', async ({ vatTuPage, db }) => {
     // Chuẩn bị: Chọn một Kho Ngừng hoạt động đồng thời tồn tại trong DB và hiển thị trên UI.
-    const warehouses = await prepareGoodsWarehouses(vatTuPage, db, 'Nguyên vật liệu');
+    const warehouses = await prepareGoodsWarehouses(vatTuPage, db, 'Bán thành phẩm');
     const actualLabels = await vatTuPage.visibleWarehouseLabels();
     const inactive = warehouses.find(
       (warehouse) => warehouse.status === 'NgungHoatDong' && actualLabels.includes(warehouse.label),
@@ -3043,9 +3043,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.warehouseCombobox()).toHaveValue(valueBefore);
   });
 
-  test('TC_PMKT-U-00106-701 - chọn Kho Hoạt động', async ({ vatTuPage, db }) => {
+  test('TC_PMKT-U-00106-1667 - chọn Kho Hoạt động', async ({ vatTuPage, db }) => {
     // Chuẩn bị dữ liệu: Chọn Kho Hoạt động đầu tiên từ ENT_Kho thực tế.
-    const warehouses = await prepareGoodsWarehouses(vatTuPage, db, 'Nguyên vật liệu');
+    const warehouses = await prepareGoodsWarehouses(vatTuPage, db, 'Bán thành phẩm');
     const active = warehouses.find((warehouse) => warehouse.status === 'HoatDong');
     test.skip(!active, 'BLOCK: ENT_Kho chưa có Kho Hoạt động');
     if (!active) return;
@@ -3056,8 +3056,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.warehouseConfirmationDialog()).toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-702 - tìm Kho mặc định theo Mã kho', async ({ vatTuPage, db }) => {
-    const warehouses = await prepareGoodsWarehouses(vatTuPage, db, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1668 - tìm Kho mặc định theo Mã kho', async ({ vatTuPage, db }) => {
+    const warehouses = await prepareGoodsWarehouses(vatTuPage, db, 'Bán thành phẩm');
     const keyword = discriminatingSearchKeyword(warehouses.map(({ code }) => code), warehouses.map(({ name }) => name));
     test.skip(!keyword, 'BLOCK: DB không có từ khóa phân biệt riêng cột Mã kho');
     if (!keyword) return;
@@ -3068,8 +3068,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(actual.every((label) => expected.includes(label))).toBe(true);
   });
 
-  test('TC_PMKT-U-00106-703 - tìm Kho mặc định theo Tên kho', async ({ vatTuPage, db }) => {
-    const warehouses = await prepareGoodsWarehouses(vatTuPage, db, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1669 - tìm Kho mặc định theo Tên kho', async ({ vatTuPage, db }) => {
+    const warehouses = await prepareGoodsWarehouses(vatTuPage, db, 'Bán thành phẩm');
     const keyword = discriminatingSearchKeyword(warehouses.map(({ name }) => name), warehouses.map(({ code }) => code));
     test.skip(!keyword, 'BLOCK: DB không có từ khóa phân biệt riêng cột Tên kho');
     if (!keyword) return;
@@ -3080,16 +3080,16 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(actual.every((label) => expected.includes(label))).toBe(true);
   });
 
-  test('TC_PMKT-U-00106-704 - tìm Kho mặc định theo Trạng thái', async ({ vatTuPage, db }) => {
-    const warehouses = await prepareGoodsWarehouses(vatTuPage, db, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1670 - tìm Kho mặc định theo Trạng thái', async ({ vatTuPage, db }) => {
+    const warehouses = await prepareGoodsWarehouses(vatTuPage, db, 'Bán thành phẩm');
     const expected = warehouses.filter(({ status }) => status === 'HoatDong').map(({ label }) => label);
     test.skip(expected.length === 0, 'BLOCK: DB chưa có Kho Hoạt động');
     await vatTuPage.searchWarehouse('Hoạt động');
     expect([...(await vatTuPage.visibleWarehouseLabels())].sort()).toEqual([...expected].sort());
   });
 
-  test('TC_PMKT-U-00106-705 - Enter chọn dòng Kho đầu tiên', async ({ vatTuPage, db }) => {
-    const warehouses = await prepareGoodsWarehouses(vatTuPage, db, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1671 - Enter chọn dòng Kho đầu tiên', async ({ vatTuPage, db }) => {
+    const warehouses = await prepareGoodsWarehouses(vatTuPage, db, 'Bán thành phẩm');
     const keyword = sharedSearchKeyword(warehouses.map(({ code }) => code));
     test.skip(!keyword, 'BLOCK: DB không có từ khóa trả về nhiều Kho');
     if (!keyword) return;
@@ -3101,8 +3101,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     if (firstLabel) await expect(vatTuPage.selectedWarehouse(firstLabel)).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-706 - Up và Down di chuyển từng dòng Kho', async ({ vatTuPage }) => {
-    await openGoodsWarehouse(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1672 - Up và Down di chuyển từng dòng Kho', async ({ vatTuPage }) => {
+    await openGoodsWarehouse(vatTuPage, 'Bán thành phẩm');
     const valueBefore = await vatTuPage.warehouseCombobox().inputValue();
     await vatTuPage.pressWarehouseKey('ArrowDown');
     const first = await vatTuPage.activeWarehouseLabel();
@@ -3117,16 +3117,16 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.warehouseCombobox()).toHaveValue(valueBefore);
   });
 
-  test('TC_PMKT-U-00106-707 - ESC đóng dropdown Kho mặc định', async ({ vatTuPage }) => {
-    await openGoodsWarehouse(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1673 - ESC đóng dropdown Kho mặc định', async ({ vatTuPage }) => {
+    await openGoodsWarehouse(vatTuPage, 'Bán thành phẩm');
     const valueBefore = await vatTuPage.warehouseCombobox().inputValue();
     await vatTuPage.pressWarehouseKey('Escape');
     await expect(vatTuPage.warehouseDropdown()).toBeHidden();
     await expect(vatTuPage.warehouseCombobox()).toHaveValue(valueBefore);
   });
 
-  test('TC_PMKT-U-00106-708 - icon X xóa Kho mặc định', async ({ vatTuPage, db }) => {
-    const warehouses = await prepareGoodsWarehouses(vatTuPage, db, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1674 - icon X xóa Kho mặc định', async ({ vatTuPage, db }) => {
+    const warehouses = await prepareGoodsWarehouses(vatTuPage, db, 'Bán thành phẩm');
     const active = warehouses.find(({ status }) => status === 'HoatDong');
     test.skip(!active, 'BLOCK: DB chưa có Kho Hoạt động');
     if (!active) return;
@@ -3136,14 +3136,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.warehouseCombobox()).toHaveValue('');
   });
 
-  test('TC_PMKT-U-00106-709 - hiển thị nút Thêm nhanh Kho theo quyền', async ({ vatTuPage }) => {
-    await openGoodsWarehouse(vatTuPage, 'Nguyên vật liệu');
-    await expect(vatTuPage.warehouseQuickAddButton(), 'Tài khoản có quyền phải thấy nút Thêm nhanh Kho').toBeVisible();
-    test.skip(true, 'BLOCK: chưa có thông tin tài khoản không có quyền thêm mới Kho để kiểm tra bước 2');
-  });
-
-  test('TC_PMKT-U-00106-710 - giao diện form Thêm nhanh Kho', async ({ vatTuPage }) => {
-    await openGoodsWarehouse(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1676 - giao diện form Thêm nhanh Kho', async ({ vatTuPage }) => {
+    await openGoodsWarehouse(vatTuPage, 'Bán thành phẩm');
     await vatTuPage.openWarehouseQuickAdd();
     await expect(vatTuPage.warehouseQuickAddDialog()).toBeVisible();
     await expect(vatTuPage.warehouseQuickAddTextbox('Mã kho')).toBeVisible();
@@ -3151,8 +3145,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.warehouseQuickAddStatus()).toBeChecked();
   });
 
-  test('TC_PMKT-U-00106-711 - validate bắt buộc form Thêm nhanh Kho', async ({ vatTuPage }) => {
-    await openGoodsWarehouse(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1677 - validate bắt buộc form Thêm nhanh Kho', async ({ vatTuPage }) => {
+    await openGoodsWarehouse(vatTuPage, 'Bán thành phẩm');
     await vatTuPage.openWarehouseQuickAdd();
     await vatTuPage.saveWarehouseQuickAdd();
     await expect(vatTuPage.warehouseQuickAddDialog()).toBeVisible();
@@ -3160,12 +3154,12 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.warehouseQuickAddValidation('Tên kho')).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-712 - validate trùng Mã kho khi Thêm nhanh', async ({ vatTuPage, db }) => {
+  test('TC_PMKT-U-00106-1678 - validate trùng Mã kho khi Thêm nhanh', async ({ vatTuPage, db }) => {
     const credentials = requireCredentials();
     const duplicate = (await db.kho.listForDefaultTenant(credentials.username))[0];
     test.skip(!duplicate, 'BLOCK: DB đúng tenant chưa có Kho tồn tại để kiểm tra trùng mã');
     if (!duplicate) return;
-    await openGoodsWarehouse(vatTuPage, 'Nguyên vật liệu');
+    await openGoodsWarehouse(vatTuPage, 'Bán thành phẩm');
     await vatTuPage.openWarehouseQuickAdd();
     await vatTuPage.fillWarehouseQuickAdd(duplicate.code, new TestDataGenerator().uniqueKeyword('TC202'));
     await vatTuPage.saveWarehouseQuickAdd();
@@ -3173,8 +3167,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.successNotification()).toContainText(/tồn tại|trùng/i);
   });
 
-  test('TC_PMKT-U-00106-713 - boundary Mã kho tối đa 50 ký tự', async ({ vatTuPage }) => {
-    await openGoodsWarehouse(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1679 - boundary Mã kho tối đa 50 ký tự', async ({ vatTuPage }) => {
+    await openGoodsWarehouse(vatTuPage, 'Bán thành phẩm');
     await vatTuPage.openWarehouseQuickAdd();
     const input = vatTuPage.warehouseQuickAddTextbox('Mã kho');
     const value49 = boundaryText('TC203_49', 49);
@@ -3187,8 +3181,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(input).toHaveValue(value50);
   });
 
-  test('TC_PMKT-U-00106-714 - boundary Tên kho tối đa 255 ký tự', async ({ vatTuPage }) => {
-    await openGoodsWarehouse(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1680 - boundary Tên kho tối đa 255 ký tự', async ({ vatTuPage }) => {
+    await openGoodsWarehouse(vatTuPage, 'Bán thành phẩm');
     await vatTuPage.openWarehouseQuickAdd();
     const input = vatTuPage.warehouseQuickAddTextbox('Tên kho');
     const value254 = boundaryText('TC204_254', 254);
@@ -3201,12 +3195,12 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(input).toHaveValue(value255);
   });
 
-  test('TC_PMKT-U-00106-715 - lưu Thêm nhanh Kho và tự động điền', async ({ vatTuPage, db, quickAddCleanup }) => {
+  test('TC_PMKT-U-00106-1681 - lưu Thêm nhanh Kho và tự động điền', async ({ vatTuPage, db, quickAddCleanup }) => {
     const credentials = requireCredentials();
     const generator = new TestDataGenerator();
     const code = generator.uniqueCode('TC205').slice(0, 50);
     const name = generator.uniqueKeyword('TC205');
-    await openGoodsWarehouse(vatTuPage, 'Nguyên vật liệu');
+    await openGoodsWarehouse(vatTuPage, 'Bán thành phẩm');
     await vatTuPage.openWarehouseQuickAdd();
     await vatTuPage.fillWarehouseQuickAdd(code, name);
     const notificationPromise = vatTuPage.waitForSuccessNotification();
@@ -3219,10 +3213,10 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     quickAddCleanup.register('warehouse', code);
   });
 
-  test('TC_PMKT-U-00106-716 - hủy form Thêm nhanh Kho', async ({ vatTuPage, db }) => {
+  test('TC_PMKT-U-00106-1682 - hủy form Thêm nhanh Kho', async ({ vatTuPage, db }) => {
     const credentials = requireCredentials();
     const code = new TestDataGenerator().uniqueCode('TC206').slice(0, 50);
-    await openGoodsWarehouse(vatTuPage, 'Nguyên vật liệu');
+    await openGoodsWarehouse(vatTuPage, 'Bán thành phẩm');
     const valueBefore = await vatTuPage.warehouseCombobox().inputValue();
     await vatTuPage.openWarehouseQuickAdd();
     await vatTuPage.fillWarehouseQuickAdd(code, new TestDataGenerator().uniqueKeyword('TC206'));
@@ -3232,21 +3226,21 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(await db.kho.findByCodeForDefaultTenant(credentials.username, code)).toBeNull();
   });
 
-  test('TC_PMKT-U-00106-717 - hiển thị control Tồn tối thiểu', async ({ vatTuPage }) => {
-    await openGoodsInventoryTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1683 - hiển thị control Tồn tối thiểu', async ({ vatTuPage }) => {
+    await openGoodsInventoryTab(vatTuPage, 'Bán thành phẩm');
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Tồn tối thiểu', 'spinbutton')).toBeVisible();
     await expect(vatTuPage.formField('Tồn tối thiểu')).toContainText('Tồn tối thiểu');
     await expect(vatTuPage.requiredIndicator('Tồn tối thiểu')).toHaveCount(0);
   });
 
-  test('TC_PMKT-U-00106-718 - validate Tồn tối thiểu không nhận số âm', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1684 - validate Tồn tối thiểu không nhận số âm', async ({ vatTuPage }) => {
     const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const unit = catalogues.units.find(({ status }) => status === 'HoatDong');
     test.skip(!unit, 'BLOCK: DB đúng tenant chưa có Đơn vị tính Hoạt động');
     if (!unit) return;
     const generator = new TestDataGenerator();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.fillRequiredInventoryMaterialFields(generator.uniqueCode('TC208'), generator.uniqueKeyword('TC208'), unit);
     await vatTuPage.fillFormField('Tồn tối thiểu', '-10');
     await vatTuPage.saveMaterial();
@@ -3254,21 +3248,21 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.validationMessage('Tồn tối thiểu', 'Tồn tối thiểu phải ≥ 0')).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-719 - hiển thị control Tồn tối đa', async ({ vatTuPage }) => {
-    await openGoodsInventoryTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1685 - hiển thị control Tồn tối đa', async ({ vatTuPage }) => {
+    await openGoodsInventoryTab(vatTuPage, 'Bán thành phẩm');
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Tồn tối đa', 'spinbutton')).toBeVisible();
     await expect(vatTuPage.formField('Tồn tối đa')).toContainText('Tồn tối đa');
     await expect(vatTuPage.requiredIndicator('Tồn tối đa')).toHaveCount(0);
   });
 
-  test('TC_PMKT-U-00106-720 - validate Tồn tối đa không nhận số âm', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1686 - validate Tồn tối đa không nhận số âm', async ({ vatTuPage }) => {
     const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const unit = catalogues.units.find(({ status }) => status === 'HoatDong');
     test.skip(!unit, 'BLOCK: DB đúng tenant chưa có Đơn vị tính Hoạt động');
     if (!unit) return;
     const generator = new TestDataGenerator();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.fillRequiredInventoryMaterialFields(generator.uniqueCode('TC210'), generator.uniqueKeyword('TC210'), unit);
     await vatTuPage.fillFormField('Tồn tối đa', '-20');
     await vatTuPage.saveMaterial();
@@ -3276,14 +3270,14 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.validationMessage('Tồn tối đa', 'Tồn tối đa phải ≥ 0')).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-721 - validate Tồn tối đa nhỏ hơn Tồn tối thiểu', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1687 - validate Tồn tối đa nhỏ hơn Tồn tối thiểu', async ({ vatTuPage }) => {
     const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const unit = catalogues.units.find(({ status }) => status === 'HoatDong');
     test.skip(!unit, 'BLOCK: DB đúng tenant chưa có Đơn vị tính Hoạt động');
     if (!unit) return;
     const generator = new TestDataGenerator();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.fillRequiredInventoryMaterialFields(generator.uniqueCode('TC211'), generator.uniqueKeyword('TC211'), unit);
     await vatTuPage.fillFormField('Tồn tối thiểu', '100');
     await vatTuPage.fillFormField('Tồn tối đa', '50');
@@ -3292,8 +3286,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.validationMessage('Tồn tối đa', 'Tồn tối đa phải ≥ Tồn tối thiểu')).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-722 - hiển thị control Phương pháp tính giá bắt buộc', async ({ vatTuPage }) => {
-    await openGoodsInventoryTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1688 - hiển thị control Phương pháp tính giá bắt buộc', async ({ vatTuPage }) => {
+    await openGoodsInventoryTab(vatTuPage, 'Bán thành phẩm');
     await expect(vatTuPage.pricingMethodCombobox()).toBeVisible();
     await expect(vatTuPage.formField('Phương pháp tính giá')).toContainText('Phương pháp tính giá');
     const indicator = await vatTuPage.requiredIndicatorStyle('Phương pháp tính giá');
@@ -3301,8 +3295,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(indicator.color).toMatch(/rgb\((?:2[0-9]{2}|1[5-9][0-9]),\s*\d{1,2},\s*\d{1,2}\)/);
   });
 
-  test('TC_PMKT-U-00106-723 - danh sách Phương pháp tính giá đầy đủ', async ({ vatTuPage }) => {
-    await openGoodsInventoryTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1689 - danh sách Phương pháp tính giá đầy đủ', async ({ vatTuPage }) => {
+    await openGoodsInventoryTab(vatTuPage, 'Bán thành phẩm');
     await vatTuPage.pricingMethodCombobox().click();
     await expect(vatTuPage.pricingMethodOptions()).toHaveText([
       'Nhập trước xuất trước',
@@ -3312,28 +3306,28 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     ]);
   });
 
-  test('TC_PMKT-U-00106-724 - chọn Bình quân gia quyền tức thời', async ({ vatTuPage }) => {
-    await openGoodsInventoryTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1690 - chọn Bình quân gia quyền tức thời', async ({ vatTuPage }) => {
+    await openGoodsInventoryTab(vatTuPage, 'Bán thành phẩm');
     await vatTuPage.selectPricingMethod('Bình quân gia quyền tức thời');
     await expect(vatTuPage.selectedPricingMethod('Bình quân gia quyền tức thời')).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-725 - thay đổi Phương pháp tính giá', async ({ vatTuPage }) => {
-    await openGoodsInventoryTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1691 - thay đổi Phương pháp tính giá', async ({ vatTuPage }) => {
+    await openGoodsInventoryTab(vatTuPage, 'Bán thành phẩm');
     await vatTuPage.selectPricingMethod('Bình quân gia quyền tức thời');
     await vatTuPage.selectPricingMethod('Nhập trước xuất trước');
     await expect(vatTuPage.selectedPricingMethod('Nhập trước xuất trước')).toBeVisible();
     await expect(vatTuPage.selectedPricingMethod('Bình quân gia quyền tức thời')).toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-726 - validate bắt buộc Phương pháp tính giá', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1692 - validate bắt buộc Phương pháp tính giá', async ({ vatTuPage }) => {
     const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const unit = catalogues.units.find(({ status }) => status === 'HoatDong');
     test.skip(!unit, 'BLOCK: DB đúng tenant chưa có Đơn vị tính Hoạt động');
     if (!unit) return;
     const generator = new TestDataGenerator();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.fillRequiredMaterialFields(generator.uniqueCode('TC216'), generator.uniqueKeyword('TC216'), unit);
     await vatTuPage.openFormTab('Thông tin kho');
     await vatTuPage.clearPricingMethod();
@@ -3342,45 +3336,45 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.fieldValidation('Phương pháp tính giá')).toHaveText('Phương pháp tính giá không được để trống');
   });
 
-  test('TC_PMKT-U-00106-729 - hiển thị checkbox Theo dõi lô không bắt buộc', async ({ vatTuPage }) => {
-    await openGoodsInventoryTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1695 - hiển thị checkbox Theo dõi lô không bắt buộc', async ({ vatTuPage }) => {
+    await openGoodsInventoryTab(vatTuPage, 'Bán thành phẩm');
     await expect(vatTuPage.checkbox('Theo dõi lô')).toBeVisible();
     await expect(vatTuPage.checkboxLabel('Theo dõi lô')).toBeVisible();
     await expect(vatTuPage.requiredFormField('Theo dõi lô')).toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-730 - checkbox Theo dõi lô mặc định false và tích chọn được', async ({ vatTuPage }) => {
-    await openGoodsInventoryTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1696 - checkbox Theo dõi lô mặc định false và tích chọn được', async ({ vatTuPage }) => {
+    await openGoodsInventoryTab(vatTuPage, 'Bán thành phẩm');
     const trackLot = vatTuPage.checkbox('Theo dõi lô');
     await expect(trackLot).not.toBeChecked();
     await vatTuPage.setCheckbox('Theo dõi lô', true);
     await expect(trackLot).toBeChecked();
   });
 
-  test('TC_PMKT-U-00106-731 - hiển thị checkbox Theo dõi mã vạch không bắt buộc', async ({ vatTuPage }) => {
-    await openGoodsInventoryTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1697 - hiển thị checkbox Theo dõi mã vạch không bắt buộc', async ({ vatTuPage }) => {
+    await openGoodsInventoryTab(vatTuPage, 'Bán thành phẩm');
     await expect(vatTuPage.checkbox('Theo dõi mã vạch')).toBeVisible();
     await expect(vatTuPage.checkboxLabel('Theo dõi mã vạch')).toBeVisible();
     await expect(vatTuPage.requiredFormField('Theo dõi mã vạch')).toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-732 - checkbox Theo dõi mã vạch mặc định false và tích chọn được', async ({ vatTuPage }) => {
-    await openGoodsInventoryTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1698 - checkbox Theo dõi mã vạch mặc định false và tích chọn được', async ({ vatTuPage }) => {
+    await openGoodsInventoryTab(vatTuPage, 'Bán thành phẩm');
     const trackBarcode = vatTuPage.checkbox('Theo dõi mã vạch');
     await expect(trackBarcode).not.toBeChecked();
     await vatTuPage.setCheckbox('Theo dõi mã vạch', true);
     await expect(trackBarcode).toBeChecked();
   });
 
-  test('TC_PMKT-U-00106-733 - hiển thị select Thuế suất GTGT mặc định không bắt buộc', async ({ vatTuPage }) => {
-    await openGoodsTaxTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1699 - hiển thị select Thuế suất GTGT mặc định không bắt buộc', async ({ vatTuPage }) => {
+    await openGoodsTaxTab(vatTuPage, 'Bán thành phẩm');
     await expect(vatTuPage.defaultVatRateCombobox()).toBeVisible();
     await expect(vatTuPage.formField('Thuế suất GTGT mặc định')).toContainText('Thuế suất GTGT mặc định');
     await expect(vatTuPage.requiredIndicator('Thuế suất GTGT mặc định')).toHaveCount(0);
   });
 
-  test('TC_PMKT-U-00106-734 - danh sách Thuế suất GTGT mặc định đầy đủ', async ({ vatTuPage }) => {
-    await openGoodsTaxTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1700 - danh sách Thuế suất GTGT mặc định đầy đủ', async ({ vatTuPage }) => {
+    await openGoodsTaxTab(vatTuPage, 'Bán thành phẩm');
     await vatTuPage.defaultVatRateCombobox().click();
     const options = vatTuPage.defaultVatRateOptions();
     await expect(options.first()).toBeVisible();
@@ -3391,29 +3385,29 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(actualCodes).toHaveLength(7);
   });
 
-  test('TC_PMKT-U-00106-735 - chọn Thuế suất GTGT mặc định bằng 5', async ({ vatTuPage }) => {
-    await openGoodsTaxTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1701 - chọn Thuế suất GTGT mặc định bằng 5', async ({ vatTuPage }) => {
+    await openGoodsTaxTab(vatTuPage, 'Bán thành phẩm');
     await vatTuPage.selectDefaultVatRate('5');
     await expect(vatTuPage.formField('Thuế suất GTGT mặc định')).toContainText('5% — Hàng hoá, dịch vụ chịu thuế suất 5%');
   });
 
-  test('TC_PMKT-U-00106-736 - xóa nhanh Thuế suất GTGT mặc định', async ({ vatTuPage }) => {
-    await openGoodsTaxTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1702 - xóa nhanh Thuế suất GTGT mặc định', async ({ vatTuPage }) => {
+    await openGoodsTaxTab(vatTuPage, 'Bán thành phẩm');
     await vatTuPage.selectDefaultVatRate('5');
     await vatTuPage.clearDefaultVatRate();
     await expect(vatTuPage.defaultVatRateCombobox()).toHaveValue('');
     await expect(vatTuPage.selectedFormValue('Thuế suất GTGT mặc định')).toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-737 - hiển thị numeric Giá trị thuế suất GTGT không bắt buộc', async ({ vatTuPage }) => {
-    await openGoodsTaxTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1703 - hiển thị numeric Giá trị thuế suất GTGT không bắt buộc', async ({ vatTuPage }) => {
+    await openGoodsTaxTab(vatTuPage, 'Bán thành phẩm');
     await expect(vatTuPage.vatRateValueInput()).toBeVisible();
     await expect(vatTuPage.formField('Giá trị thuế suất GTGT')).toContainText('Giá trị thuế suất GTGT');
     await expect(vatTuPage.requiredIndicator('Giá trị thuế suất GTGT')).toHaveCount(0);
   });
 
-  test('TC_PMKT-U-00106-738 - tự động điền Giá trị thuế suất GTGT theo mức 10 và 8', async ({ vatTuPage }) => {
-    await openGoodsTaxTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1704 - tự động điền Giá trị thuế suất GTGT theo mức 10 và 8', async ({ vatTuPage }) => {
+    await openGoodsTaxTab(vatTuPage, 'Bán thành phẩm');
     const vatRateValue = vatTuPage.vatRateValueInput();
     await vatTuPage.selectDefaultVatRate('10');
     await expect(vatRateValue).toHaveValue('10');
@@ -3423,22 +3417,22 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatRateValue).toHaveAttribute('readonly', '');
   });
 
-  test('TC_PMKT-U-00106-739 - KCT tự động điền Giá trị thuế suất GTGT bằng 0', async ({ vatTuPage }) => {
-    await openGoodsTaxTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1705 - KCT tự động điền Giá trị thuế suất GTGT bằng 0', async ({ vatTuPage }) => {
+    await openGoodsTaxTab(vatTuPage, 'Bán thành phẩm');
     await vatTuPage.selectDefaultVatRate('KCT');
     await expect(vatTuPage.vatRateValueInput()).toHaveValue('0');
     await expect(vatTuPage.vatRateValueInput()).toHaveAttribute('readonly', '');
   });
 
-  test('TC_PMKT-U-00106-740 - KKKNT tự động điền Giá trị thuế suất GTGT bằng 0', async ({ vatTuPage }) => {
-    await openGoodsTaxTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1706 - KKKNT tự động điền Giá trị thuế suất GTGT bằng 0', async ({ vatTuPage }) => {
+    await openGoodsTaxTab(vatTuPage, 'Bán thành phẩm');
     await vatTuPage.selectDefaultVatRate('KKKNT');
     await expect(vatTuPage.vatRateValueInput()).toHaveValue('0');
     await expect(vatTuPage.vatRateValueInput()).toHaveAttribute('readonly', '');
   });
 
-  test('TC_PMKT-U-00106-741 - KHAC cho phép nhập Giá trị thuế suất GTGT', async ({ vatTuPage }) => {
-    await openGoodsTaxTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1707 - KHAC cho phép nhập Giá trị thuế suất GTGT', async ({ vatTuPage }) => {
+    await openGoodsTaxTab(vatTuPage, 'Bán thành phẩm');
     await vatTuPage.selectDefaultVatRate('KHAC');
     const vatRateValue = vatTuPage.vatRateValueInput();
     await expect(vatRateValue).toBeEditable();
@@ -3446,8 +3440,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatRateValue).toHaveValue('7');
   });
 
-  test('TC_PMKT-U-00106-742 - đổi KHAC về mức 8 cập nhật giá trị và read-only', async ({ vatTuPage }) => {
-    await openGoodsTaxTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1708 - đổi KHAC về mức 8 cập nhật giá trị và read-only', async ({ vatTuPage }) => {
+    await openGoodsTaxTab(vatTuPage, 'Bán thành phẩm');
     await vatTuPage.selectDefaultVatRate('KHAC');
     await vatTuPage.fillFormField('Giá trị thuế suất GTGT', '7');
     await vatTuPage.selectDefaultVatRate('8');
@@ -3455,76 +3449,76 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.vatRateValueInput()).toHaveAttribute('readonly', '');
   });
 
-  test('TC_PMKT-U-00106-743 - hiển thị numeric Thuế nhập khẩu không bắt buộc', async ({ vatTuPage }) => {
-    await openGoodsTaxTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1709 - hiển thị numeric Thuế nhập khẩu không bắt buộc', async ({ vatTuPage }) => {
+    await openGoodsTaxTab(vatTuPage, 'Bán thành phẩm');
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Thuế nhập khẩu', 'spinbutton')).toBeVisible();
     await expect(vatTuPage.formField('Thuế nhập khẩu')).toContainText('Thuế nhập khẩu');
     await expect(vatTuPage.requiredIndicator('Thuế nhập khẩu')).toHaveCount(0);
   });
 
-  test('TC_PMKT-U-00106-744 - nhập Thuế nhập khẩu hợp lệ bằng 5.5', async ({ vatTuPage }) => {
-    await openGoodsTaxTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1710 - nhập Thuế nhập khẩu hợp lệ bằng 5.5', async ({ vatTuPage }) => {
+    await openGoodsTaxTab(vatTuPage, 'Bán thành phẩm');
     await vatTuPage.fillFormField('Thuế nhập khẩu', '5.5');
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Thuế nhập khẩu', 'spinbutton')).toHaveValue('5.5');
   });
 
-  test('TC_PMKT-U-00106-745 - đổi Nguyên vật liệu sang Dịch vụ ẩn Thuế nhập khẩu', async ({ vatTuPage }) => {
-    await openGoodsTaxTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1711 - đổi Bán thành phẩm sang Dịch vụ ẩn Thuế nhập khẩu', async ({ vatTuPage }) => {
+    await openGoodsTaxTab(vatTuPage, 'Bán thành phẩm');
     await vatTuPage.changeMaterialType();
     await vatTuPage.selectMaterialType('Dịch vụ');
     await vatTuPage.openFormTab('Thông tin thuế');
     await expect(vatTuPage.formField('Thuế nhập khẩu')).toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-746 - đổi sang loại vật tư khác reset Thuế nhập khẩu', async ({ vatTuPage }) => {
-    await openGoodsTaxTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1712 - đổi sang loại vật tư khác reset Thuế nhập khẩu', async ({ vatTuPage }) => {
+    await openGoodsTaxTab(vatTuPage, 'Bán thành phẩm');
     await vatTuPage.fillFormField('Thuế nhập khẩu', '5.5');
     await vatTuPage.changeMaterialType();
-    await vatTuPage.selectMaterialType('Công cụ, dụng cụ');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openFormTab('Thông tin thuế');
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Thuế nhập khẩu', 'spinbutton')).toHaveValue('');
   });
 
-  test('TC_PMKT-U-00106-747 - hiển thị numeric Thuế xuất khẩu không bắt buộc', async ({ vatTuPage }) => {
-    await openGoodsTaxTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1713 - hiển thị numeric Thuế xuất khẩu không bắt buộc', async ({ vatTuPage }) => {
+    await openGoodsTaxTab(vatTuPage, 'Bán thành phẩm');
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Thuế xuất khẩu', 'spinbutton')).toBeVisible();
     await expect(vatTuPage.formField('Thuế xuất khẩu')).toContainText('Thuế xuất khẩu');
     await expect(vatTuPage.requiredIndicator('Thuế xuất khẩu')).toHaveCount(0);
   });
 
-  test('TC_PMKT-U-00106-748 - nhập Thuế xuất khẩu hợp lệ bằng 2', async ({ vatTuPage }) => {
-    await openGoodsTaxTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1714 - nhập Thuế xuất khẩu hợp lệ bằng 2', async ({ vatTuPage }) => {
+    await openGoodsTaxTab(vatTuPage, 'Bán thành phẩm');
     await vatTuPage.fillFormField('Thuế xuất khẩu', '2');
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Thuế xuất khẩu', 'spinbutton')).toHaveValue('2');
   });
 
-  test('TC_PMKT-U-00106-749 - đổi Nguyên vật liệu sang Dịch vụ ẩn Thuế xuất khẩu', async ({ vatTuPage }) => {
-    await openGoodsTaxTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1715 - đổi Bán thành phẩm sang Dịch vụ ẩn Thuế xuất khẩu', async ({ vatTuPage }) => {
+    await openGoodsTaxTab(vatTuPage, 'Bán thành phẩm');
     await vatTuPage.changeMaterialType();
     await vatTuPage.selectMaterialType('Dịch vụ');
     await vatTuPage.openFormTab('Thông tin thuế');
     await expect(vatTuPage.formField('Thuế xuất khẩu')).toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-750 - đổi sang loại vật tư khác reset Thuế xuất khẩu', async ({ vatTuPage }) => {
-    await openGoodsTaxTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1716 - đổi sang loại vật tư khác reset Thuế xuất khẩu', async ({ vatTuPage }) => {
+    await openGoodsTaxTab(vatTuPage, 'Bán thành phẩm');
     await vatTuPage.fillFormField('Thuế xuất khẩu', '2');
     await vatTuPage.changeMaterialType();
-    await vatTuPage.selectMaterialType('Công cụ, dụng cụ');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openFormTab('Thông tin thuế');
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Thuế xuất khẩu', 'spinbutton')).toHaveValue('');
   });
 
-  test('TC_PMKT-U-00106-751 - hiển thị combogrid Thuế Tài nguyên không bắt buộc', async ({ vatTuPage }) => {
-    await openGoodsTaxTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1717 - hiển thị combogrid Thuế Tài nguyên không bắt buộc', async ({ vatTuPage }) => {
+    await openGoodsTaxTab(vatTuPage, 'Bán thành phẩm');
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Thuế Tài nguyên', 'combobox')).toBeVisible();
     await expect(vatTuPage.formField('Thuế Tài nguyên')).toContainText('Thuế Tài nguyên');
     await expect(vatTuPage.requiredIndicator('Thuế Tài nguyên')).toHaveCount(0);
   });
 
-  test('TC_PMKT-U-00106-752 - hiển thị đúng cột, dữ liệu và thứ tự Thuế Tài nguyên', async ({ vatTuPage, db }) => {
+  test('TC_PMKT-U-00106-1718 - hiển thị đúng cột, dữ liệu và thứ tự Thuế Tài nguyên', async ({ vatTuPage, db }) => {
     // Chuẩn bị dữ liệu: Lấy mst_thue_tai_nguyen đúng tenant rồi mở combogrid Thuế Tài nguyên.
-    const expected = await prepareGoodsResourceTaxes(vatTuPage, db, 'Nguyên vật liệu');
+    const expected = await prepareGoodsResourceTaxes(vatTuPage, db, 'Bán thành phẩm');
     // Hành động: Cuộn toàn bộ virtual dropdown để thu thập đủ dữ liệu thay vì chỉ đọc các dòng đang render.
     const actualLabels = await vatTuPage.visibleTaxLabels(expected.length);
     const expectedLabels = expected.map((item) => item.label);
@@ -3541,8 +3535,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     }
   });
 
-  test('TC_PMKT-U-00106-753 - Thuế Tài nguyên Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage, db }) => {
-    const taxes = await prepareGoodsResourceTaxes(vatTuPage, db, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1719 - Thuế Tài nguyên Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage, db }) => {
+    const taxes = await prepareGoodsResourceTaxes(vatTuPage, db, 'Bán thành phẩm');
     const pair = statusPair(taxes);
     test.skip(!pair, 'BLOCK: DB đúng tenant chưa có đủ Thuế Tài nguyên Hoạt động và Ngừng hoạt động');
     if (!pair) return;
@@ -3556,8 +3550,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(inactiveStyle).not.toEqual(activeStyle);
   });
 
-  test('TC_PMKT-U-00106-754 - xác nhận sử dụng Thuế Tài nguyên Ngừng hoạt động', async ({ vatTuPage, db }) => {
-    const taxes = await prepareGoodsResourceTaxes(vatTuPage, db, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1720 - xác nhận sử dụng Thuế Tài nguyên Ngừng hoạt động', async ({ vatTuPage, db }) => {
+    const taxes = await prepareGoodsResourceTaxes(vatTuPage, db, 'Bán thành phẩm');
     const inactive = taxes.find(({ status }) => status === 'NgungHoatDong');
     test.skip(!inactive, 'BLOCK: DB đúng tenant chưa có Thuế Tài nguyên Ngừng hoạt động');
     if (!inactive) return;
@@ -3570,8 +3564,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.selectedTax('Thuế Tài nguyên', inactive.label)).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-755 - hủy sử dụng Thuế Tài nguyên Ngừng hoạt động', async ({ vatTuPage, db }) => {
-    const taxes = await prepareGoodsResourceTaxes(vatTuPage, db, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1721 - hủy sử dụng Thuế Tài nguyên Ngừng hoạt động', async ({ vatTuPage, db }) => {
+    const taxes = await prepareGoodsResourceTaxes(vatTuPage, db, 'Bán thành phẩm');
     const inactive = taxes.find(({ status }) => status === 'NgungHoatDong');
     test.skip(!inactive, 'BLOCK: DB đúng tenant chưa có Thuế Tài nguyên Ngừng hoạt động');
     if (!inactive) return;
@@ -3583,8 +3577,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(await vatTuPage.currentFormOption('Thuế Tài nguyên')).toBe(valueBefore);
   });
 
-  test('TC_PMKT-U-00106-756 - chọn Thuế Tài nguyên Hoạt động không hiển thị cảnh báo', async ({ vatTuPage, db }) => {
-    const taxes = await prepareGoodsResourceTaxes(vatTuPage, db, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1722 - chọn Thuế Tài nguyên Hoạt động không hiển thị cảnh báo', async ({ vatTuPage, db }) => {
+    const taxes = await prepareGoodsResourceTaxes(vatTuPage, db, 'Bán thành phẩm');
     const active = taxes.find(({ status }) => status === 'HoatDong');
     test.skip(!active, 'BLOCK: DB đúng tenant chưa có Thuế Tài nguyên Hoạt động');
     if (!active) return;
@@ -3593,8 +3587,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.taxConfirmationDialog()).toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-757 - tìm Thuế Tài nguyên theo Mã', async ({ vatTuPage, db }) => {
-    const taxes = await prepareGoodsResourceTaxes(vatTuPage, db, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1723 - tìm Thuế Tài nguyên theo Mã', async ({ vatTuPage, db }) => {
+    const taxes = await prepareGoodsResourceTaxes(vatTuPage, db, 'Bán thành phẩm');
     const target = taxes[0];
     test.skip(!target, 'BLOCK: DB đúng tenant chưa có Thuế Tài nguyên');
     if (!target) return;
@@ -3603,8 +3597,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect.poll(() => vatTuPage.currentTaxLabels(), { message: 'Kết quả tìm theo Mã Thuế Tài nguyên phải khớp DB' }).toEqual(expected);
   });
 
-  test('TC_PMKT-U-00106-758 - tìm Thuế Tài nguyên theo Tên', async ({ vatTuPage, db }) => {
-    const taxes = await prepareGoodsResourceTaxes(vatTuPage, db, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1724 - tìm Thuế Tài nguyên theo Tên', async ({ vatTuPage, db }) => {
+    const taxes = await prepareGoodsResourceTaxes(vatTuPage, db, 'Bán thành phẩm');
     const query = discriminatingSearchKeyword(taxes.map(({ name }) => name), taxes.map(({ code }) => code));
     test.skip(!query, 'BLOCK: DB chưa có từ khóa Tên Thuế Tài nguyên phân biệt được với Mã');
     if (!query) return;
@@ -3614,8 +3608,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect.poll(() => vatTuPage.currentTaxLabels(), { message: 'Kết quả tìm theo Tên Thuế Tài nguyên phải khớp DB' }).toEqual(expected);
   });
 
-  test('TC_PMKT-U-00106-759 - tìm Thuế Tài nguyên theo Thuế suất', async ({ vatTuPage, db }) => {
-    const taxes = await prepareGoodsResourceTaxes(vatTuPage, db, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1725 - tìm Thuế Tài nguyên theo Thuế suất', async ({ vatTuPage, db }) => {
+    const taxes = await prepareGoodsResourceTaxes(vatTuPage, db, 'Bán thành phẩm');
     const target = taxes[0];
     test.skip(!target, 'BLOCK: DB đúng tenant chưa có Thuế Tài nguyên');
     if (!target) return;
@@ -3624,16 +3618,16 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect.poll(() => vatTuPage.currentTaxLabels(), { message: 'Kết quả tìm theo Thuế suất phải khớp DB' }).toEqual(expected);
   });
 
-  test('TC_PMKT-U-00106-760 - tìm Thuế Tài nguyên theo Trạng thái', async ({ vatTuPage, db }) => {
-    const taxes = await prepareGoodsResourceTaxes(vatTuPage, db, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1726 - tìm Thuế Tài nguyên theo Trạng thái', async ({ vatTuPage, db }) => {
+    const taxes = await prepareGoodsResourceTaxes(vatTuPage, db, 'Bán thành phẩm');
     const expected = taxes.filter(({ status }) => status === 'HoatDong').map(({ label }) => label);
     test.skip(expected.length === 0, 'BLOCK: DB đúng tenant chưa có Thuế Tài nguyên Hoạt động');
     await vatTuPage.searchTax('Thuế Tài nguyên', 'Hoạt động');
     await expect.poll(() => vatTuPage.currentTaxLabels(), { message: 'Kết quả tìm theo Trạng thái phải khớp DB' }).toEqual(expected);
   });
 
-  test('TC_PMKT-U-00106-761 - Enter chọn dòng Thuế Tài nguyên đầu tiên', async ({ vatTuPage, db }) => {
-    const taxes = await prepareGoodsResourceTaxes(vatTuPage, db, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1727 - Enter chọn dòng Thuế Tài nguyên đầu tiên', async ({ vatTuPage, db }) => {
+    const taxes = await prepareGoodsResourceTaxes(vatTuPage, db, 'Bán thành phẩm');
     const query = sharedSearchKeyword(taxes.map(({ code }) => code));
     test.skip(!query, 'BLOCK: DB chưa có từ khóa trả về nhiều Thuế Tài nguyên');
     if (!query) return;
@@ -3647,8 +3641,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.selectedTax('Thuế Tài nguyên', firstLabel)).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-762 - Up và Down di chuyển từng option Thuế Tài nguyên', async ({ vatTuPage, db }) => {
-    const taxes = await prepareGoodsResourceTaxes(vatTuPage, db, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1728 - Up và Down di chuyển từng option Thuế Tài nguyên', async ({ vatTuPage, db }) => {
+    const taxes = await prepareGoodsResourceTaxes(vatTuPage, db, 'Bán thành phẩm');
     test.skip(taxes.length < 3, 'BLOCK: DB cần tối thiểu ba Thuế Tài nguyên để kiểm tra điều hướng');
     const valueBefore = await vatTuPage.currentFormOption('Thuế Tài nguyên');
     const initial = await vatTuPage.activeTaxLabel();
@@ -3664,16 +3658,16 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(await vatTuPage.currentFormOption('Thuế Tài nguyên')).toBe(valueBefore);
   });
 
-  test('TC_PMKT-U-00106-763 - ESC đóng dropdown Thuế Tài nguyên không đổi giá trị', async ({ vatTuPage, db }) => {
-    await prepareGoodsResourceTaxes(vatTuPage, db, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1729 - ESC đóng dropdown Thuế Tài nguyên không đổi giá trị', async ({ vatTuPage, db }) => {
+    await prepareGoodsResourceTaxes(vatTuPage, db, 'Bán thành phẩm');
     const valueBefore = await vatTuPage.currentFormOption('Thuế Tài nguyên');
     await vatTuPage.pressTaxKey('Thuế Tài nguyên', 'Escape');
     await expect(vatTuPage.taxDropdown()).toBeHidden();
     expect(await vatTuPage.currentFormOption('Thuế Tài nguyên')).toBe(valueBefore);
   });
 
-  test('TC_PMKT-U-00106-764 - icon X xóa nhanh Thuế Tài nguyên', async ({ vatTuPage, db }) => {
-    const taxes = await prepareGoodsResourceTaxes(vatTuPage, db, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1730 - icon X xóa nhanh Thuế Tài nguyên', async ({ vatTuPage, db }) => {
+    const taxes = await prepareGoodsResourceTaxes(vatTuPage, db, 'Bán thành phẩm');
     const active = taxes.find(({ status }) => status === 'HoatDong');
     test.skip(!active, 'BLOCK: DB đúng tenant chưa có Thuế Tài nguyên Hoạt động');
     if (!active) return;
@@ -3683,36 +3677,36 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.formFieldControl('Thuế Tài nguyên', 'combobox')).toHaveValue('');
   });
 
-  test('TC_PMKT-U-00106-765 - đổi sang Dịch vụ ẩn Thuế Tài nguyên', async ({ vatTuPage }) => {
-    await openGoodsTaxTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1731 - đổi sang Dịch vụ ẩn Thuế Tài nguyên', async ({ vatTuPage }) => {
+    await openGoodsTaxTab(vatTuPage, 'Bán thành phẩm');
     await vatTuPage.changeMaterialType();
     await vatTuPage.selectMaterialType('Dịch vụ');
     await vatTuPage.openFormTab('Thông tin thuế');
     await expect(vatTuPage.formField('Thuế Tài nguyên')).toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-766 - đổi sang Nguyên vật liệu reset Thuế Tài nguyên', async ({ vatTuPage, db }) => {
-    const taxes = await prepareGoodsResourceTaxes(vatTuPage, db, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1732 - đổi sang Bán thành phẩm reset Thuế Tài nguyên', async ({ vatTuPage, db }) => {
+    const taxes = await prepareGoodsResourceTaxes(vatTuPage, db, 'Bán thành phẩm');
     const active = taxes.find(({ status }) => status === 'HoatDong');
     test.skip(!active, 'BLOCK: DB đúng tenant chưa có Thuế Tài nguyên Hoạt động');
     if (!active) return;
     await vatTuPage.selectTax('Thuế Tài nguyên', active);
     await vatTuPage.changeMaterialType();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openFormTab('Thông tin thuế');
     await expect(vatTuPage.formFieldControl('Thuế Tài nguyên', 'combobox')).toHaveValue('');
   });
 
-  test('TC_PMKT-U-00106-767 - hiển thị combogrid Thuế tiêu thụ đặc biệt không bắt buộc', async ({ vatTuPage }) => {
-    await openGoodsTaxTab(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1733 - hiển thị combogrid Thuế tiêu thụ đặc biệt không bắt buộc', async ({ vatTuPage }) => {
+    await openGoodsTaxTab(vatTuPage, 'Bán thành phẩm');
     await expect(vatTuPage.inventoryMaterialFormFieldControl('Thuế tiêu thụ đặc biệt', 'combobox')).toBeVisible();
     await expect(vatTuPage.formField('Thuế tiêu thụ đặc biệt')).toContainText('Thuế tiêu thụ đặc biệt');
     await expect(vatTuPage.requiredIndicator('Thuế tiêu thụ đặc biệt')).toHaveCount(0);
   });
 
-  test('TC_PMKT-U-00106-768 - hiển thị đúng cột, dữ liệu và thứ tự Thuế tiêu thụ đặc biệt', async ({ vatTuPage, db }) => {
+  test('TC_PMKT-U-00106-1734 - hiển thị đúng cột, dữ liệu và thứ tự Thuế tiêu thụ đặc biệt', async ({ vatTuPage, db }) => {
     // Chuẩn bị dữ liệu: Lấy mst_thue_tieu_thu_db đúng tenant rồi mở combogrid Thuế tiêu thụ đặc biệt.
-    const expected = await prepareGoodsExciseTaxes(vatTuPage, db, 'Nguyên vật liệu');
+    const expected = await prepareGoodsExciseTaxes(vatTuPage, db, 'Bán thành phẩm');
     // Hành động: Cuộn toàn bộ virtual dropdown để thu thập đủ dữ liệu thay vì chỉ đọc các dòng đang render.
     const actualLabels = await vatTuPage.visibleTaxLabels(expected.length);
     const expectedLabels = expected.map((item) => item.label);
@@ -3729,9 +3723,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     }
   });
 
-  test('TC_PMKT-U-00106-769 - Thuế tiêu thụ đặc biệt Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage, db }) => {
+  test('TC_PMKT-U-00106-1735 - Thuế tiêu thụ đặc biệt Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage, db }) => {
     // Chuẩn bị dữ liệu: Lấy cặp Thuế tiêu thụ đặc biệt Hoạt động/Ngừng hoạt động từ DB đúng tenant.
-    const taxes = await prepareGoodsExciseTaxes(vatTuPage, db, 'Nguyên vật liệu');
+    const taxes = await prepareGoodsExciseTaxes(vatTuPage, db, 'Bán thành phẩm');
     const pair = statusPair(taxes);
     test.skip(!pair, 'BLOCK: DB đúng tenant chưa có đủ Thuế tiêu thụ đặc biệt Hoạt động và Ngừng hoạt động');
     if (!pair) return;
@@ -3747,9 +3741,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(inactiveStyle).not.toEqual(activeStyle);
   });
 
-  test('TC_PMKT-U-00106-770 - xác nhận sử dụng Thuế tiêu thụ đặc biệt Ngừng hoạt động', async ({ vatTuPage, db }) => {
+  test('TC_PMKT-U-00106-1736 - xác nhận sử dụng Thuế tiêu thụ đặc biệt Ngừng hoạt động', async ({ vatTuPage, db }) => {
     // Chuẩn bị dữ liệu: Lấy một Thuế tiêu thụ đặc biệt Ngừng hoạt động từ DB đúng tenant.
-    const taxes = await prepareGoodsExciseTaxes(vatTuPage, db, 'Nguyên vật liệu');
+    const taxes = await prepareGoodsExciseTaxes(vatTuPage, db, 'Bán thành phẩm');
     const inactive = taxes.find(({ status }) => status === 'NgungHoatDong');
     test.skip(!inactive, 'BLOCK: DB đúng tenant chưa có Thuế tiêu thụ đặc biệt Ngừng hoạt động');
     if (!inactive) return;
@@ -3764,9 +3758,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.selectedTax('Thuế tiêu thụ đặc biệt', inactive.label)).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-771 - hủy sử dụng Thuế tiêu thụ đặc biệt Ngừng hoạt động', async ({ vatTuPage, db }) => {
+  test('TC_PMKT-U-00106-1737 - hủy sử dụng Thuế tiêu thụ đặc biệt Ngừng hoạt động', async ({ vatTuPage, db }) => {
     // Chuẩn bị dữ liệu: Lấy option Ngừng hoạt động từ DB và lưu giá trị trường trước thao tác.
-    const taxes = await prepareGoodsExciseTaxes(vatTuPage, db, 'Nguyên vật liệu');
+    const taxes = await prepareGoodsExciseTaxes(vatTuPage, db, 'Bán thành phẩm');
     const inactive = taxes.find(({ status }) => status === 'NgungHoatDong');
     test.skip(!inactive, 'BLOCK: DB đúng tenant chưa có Thuế tiêu thụ đặc biệt Ngừng hoạt động');
     if (!inactive) return;
@@ -3780,9 +3774,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(await vatTuPage.currentFormOption('Thuế tiêu thụ đặc biệt')).toBe(valueBefore);
   });
 
-  test('TC_PMKT-U-00106-772 - chọn Thuế tiêu thụ đặc biệt Hoạt động không hiển thị cảnh báo', async ({ vatTuPage, db }) => {
+  test('TC_PMKT-U-00106-1738 - chọn Thuế tiêu thụ đặc biệt Hoạt động không hiển thị cảnh báo', async ({ vatTuPage, db }) => {
     // Chuẩn bị dữ liệu: Lấy một Thuế tiêu thụ đặc biệt Hoạt động từ DB đúng tenant.
-    const taxes = await prepareGoodsExciseTaxes(vatTuPage, db, 'Nguyên vật liệu');
+    const taxes = await prepareGoodsExciseTaxes(vatTuPage, db, 'Bán thành phẩm');
     const active = taxes.find(({ status }) => status === 'HoatDong');
     test.skip(!active, 'BLOCK: DB đúng tenant chưa có Thuế tiêu thụ đặc biệt Hoạt động');
     if (!active) return;
@@ -3793,9 +3787,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.taxConfirmationDialog()).toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-773 - tìm Thuế tiêu thụ đặc biệt theo Mã', async ({ vatTuPage, db }) => {
+  test('TC_PMKT-U-00106-1739 - tìm Thuế tiêu thụ đặc biệt theo Mã', async ({ vatTuPage, db }) => {
     // Chuẩn bị dữ liệu: Chọn mã Thuế tiêu thụ đặc biệt đầu tiên từ DB đúng tenant.
-    const taxes = await prepareGoodsExciseTaxes(vatTuPage, db, 'Nguyên vật liệu');
+    const taxes = await prepareGoodsExciseTaxes(vatTuPage, db, 'Bán thành phẩm');
     const target = taxes[0];
     test.skip(!target, 'BLOCK: DB đúng tenant chưa có Thuế tiêu thụ đặc biệt');
     if (!target) return;
@@ -3806,9 +3800,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect.poll(() => vatTuPage.currentTaxLabels(), { message: 'Kết quả tìm theo Mã Thuế tiêu thụ đặc biệt phải khớp DB' }).toEqual(expected);
   });
 
-  test('TC_PMKT-U-00106-774 - tìm Thuế tiêu thụ đặc biệt theo Tên', async ({ vatTuPage, db }) => {
+  test('TC_PMKT-U-00106-1740 - tìm Thuế tiêu thụ đặc biệt theo Tên', async ({ vatTuPage, db }) => {
     // Chuẩn bị dữ liệu: Sinh từ khóa Tên phân biệt được với Mã từ danh mục DB đúng tenant.
-    const taxes = await prepareGoodsExciseTaxes(vatTuPage, db, 'Nguyên vật liệu');
+    const taxes = await prepareGoodsExciseTaxes(vatTuPage, db, 'Bán thành phẩm');
     const query = discriminatingSearchKeyword(taxes.map(({ name }) => name), taxes.map(({ code }) => code));
     test.skip(!query, 'BLOCK: DB chưa có từ khóa Tên Thuế tiêu thụ đặc biệt phân biệt được với Mã');
     if (!query) return;
@@ -3820,9 +3814,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect.poll(() => vatTuPage.currentTaxLabels(), { message: 'Kết quả tìm theo Tên Thuế tiêu thụ đặc biệt phải khớp DB' }).toEqual(expected);
   });
 
-  test('TC_PMKT-U-00106-775 - tìm Thuế tiêu thụ đặc biệt theo Thuế suất', async ({ vatTuPage, db }) => {
+  test('TC_PMKT-U-00106-1741 - tìm Thuế tiêu thụ đặc biệt theo Thuế suất', async ({ vatTuPage, db }) => {
     // Chuẩn bị dữ liệu: Lấy Thuế suất thực tế từ DB đúng tenant làm expected.
-    const taxes = await prepareGoodsExciseTaxes(vatTuPage, db, 'Nguyên vật liệu');
+    const taxes = await prepareGoodsExciseTaxes(vatTuPage, db, 'Bán thành phẩm');
     const target = taxes[0];
     test.skip(!target, 'BLOCK: DB đúng tenant chưa có Thuế tiêu thụ đặc biệt');
     if (!target) return;
@@ -3833,9 +3827,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect.poll(() => vatTuPage.currentTaxLabels(), { message: 'Kết quả tìm theo Thuế suất Thuế tiêu thụ đặc biệt phải khớp DB' }).toEqual(expected);
   });
 
-  test('TC_PMKT-U-00106-776 - tìm Thuế tiêu thụ đặc biệt theo Trạng thái', async ({ vatTuPage, db }) => {
+  test('TC_PMKT-U-00106-1742 - tìm Thuế tiêu thụ đặc biệt theo Trạng thái', async ({ vatTuPage, db }) => {
     // Chuẩn bị dữ liệu: Lấy tập Thuế tiêu thụ đặc biệt Hoạt động từ DB đúng tenant.
-    const taxes = await prepareGoodsExciseTaxes(vatTuPage, db, 'Nguyên vật liệu');
+    const taxes = await prepareGoodsExciseTaxes(vatTuPage, db, 'Bán thành phẩm');
     const expected = taxes.filter(({ status }) => status === 'HoatDong').map(({ label }) => label);
     test.skip(expected.length === 0, 'BLOCK: DB đúng tenant chưa có Thuế tiêu thụ đặc biệt Hoạt động');
     // Hành động: Nhập nhãn Trạng thái Hoạt động vào ô tìm kiếm.
@@ -3844,9 +3838,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect.poll(() => vatTuPage.currentTaxLabels(), { message: 'Kết quả tìm theo Trạng thái Thuế tiêu thụ đặc biệt phải khớp DB' }).toEqual(expected);
   });
 
-  test('TC_PMKT-U-00106-777 - Enter chọn dòng Thuế tiêu thụ đặc biệt đầu tiên', async ({ vatTuPage, db }) => {
+  test('TC_PMKT-U-00106-1743 - Enter chọn dòng Thuế tiêu thụ đặc biệt đầu tiên', async ({ vatTuPage, db }) => {
     // Chuẩn bị dữ liệu: Sinh từ khóa từ DB trả về nhiều option để kiểm tra Enter.
-    const taxes = await prepareGoodsExciseTaxes(vatTuPage, db, 'Nguyên vật liệu');
+    const taxes = await prepareGoodsExciseTaxes(vatTuPage, db, 'Bán thành phẩm');
     const query = sharedSearchKeyword(taxes.map(({ code }) => code));
     test.skip(!query, 'BLOCK: DB chưa có từ khóa trả về nhiều Thuế tiêu thụ đặc biệt');
     if (!query) return;
@@ -3862,9 +3856,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.selectedTax('Thuế tiêu thụ đặc biệt', firstLabel)).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-778 - Up và Down di chuyển từng option Thuế tiêu thụ đặc biệt', async ({ vatTuPage, db }) => {
+  test('TC_PMKT-U-00106-1744 - Up và Down di chuyển từng option Thuế tiêu thụ đặc biệt', async ({ vatTuPage, db }) => {
     // Chuẩn bị dữ liệu: Mở dropdown có tối thiểu ba option theo DB đúng tenant.
-    const taxes = await prepareGoodsExciseTaxes(vatTuPage, db, 'Nguyên vật liệu');
+    const taxes = await prepareGoodsExciseTaxes(vatTuPage, db, 'Bán thành phẩm');
     test.skip(taxes.length < 3, 'BLOCK: DB cần tối thiểu ba Thuế tiêu thụ đặc biệt để kiểm tra điều hướng');
     const valueBefore = await vatTuPage.currentFormOption('Thuế tiêu thụ đặc biệt');
     const initial = await vatTuPage.activeTaxLabel();
@@ -3882,9 +3876,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(await vatTuPage.currentFormOption('Thuế tiêu thụ đặc biệt')).toBe(valueBefore);
   });
 
-  test('TC_PMKT-U-00106-779 - ESC đóng dropdown Thuế tiêu thụ đặc biệt không đổi giá trị', async ({ vatTuPage, db }) => {
+  test('TC_PMKT-U-00106-1745 - ESC đóng dropdown Thuế tiêu thụ đặc biệt không đổi giá trị', async ({ vatTuPage, db }) => {
     // Chuẩn bị dữ liệu: Mở combogrid từ danh mục DB đúng tenant và lưu giá trị ban đầu.
-    await prepareGoodsExciseTaxes(vatTuPage, db, 'Nguyên vật liệu');
+    await prepareGoodsExciseTaxes(vatTuPage, db, 'Bán thành phẩm');
     const valueBefore = await vatTuPage.currentFormOption('Thuế tiêu thụ đặc biệt');
     // Hành động: Nhấn ESC khi dropdown đang mở.
     await vatTuPage.pressTaxKey('Thuế tiêu thụ đặc biệt', 'Escape');
@@ -3893,9 +3887,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(await vatTuPage.currentFormOption('Thuế tiêu thụ đặc biệt')).toBe(valueBefore);
   });
 
-  test('TC_PMKT-U-00106-780 - icon X xóa nhanh Thuế tiêu thụ đặc biệt', async ({ vatTuPage, db }) => {
+  test('TC_PMKT-U-00106-1746 - icon X xóa nhanh Thuế tiêu thụ đặc biệt', async ({ vatTuPage, db }) => {
     // Chuẩn bị dữ liệu: Lấy và chọn một Thuế tiêu thụ đặc biệt Hoạt động từ DB đúng tenant.
-    const taxes = await prepareGoodsExciseTaxes(vatTuPage, db, 'Nguyên vật liệu');
+    const taxes = await prepareGoodsExciseTaxes(vatTuPage, db, 'Bán thành phẩm');
     const active = taxes.find(({ status }) => status === 'HoatDong');
     test.skip(!active, 'BLOCK: DB đúng tenant chưa có Thuế tiêu thụ đặc biệt Hoạt động');
     if (!active) return;
@@ -3907,11 +3901,11 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.formFieldControl('Thuế tiêu thụ đặc biệt', 'combobox')).toHaveValue('');
   });
 
-  test('TC_PMKT-U-00106-781 - đổi sang Dịch vụ ẩn tab Đơn vị quy đổi', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Mở form Nguyên vật liệu tại tab Đơn vị quy đổi theo pre-condition testcase.
+  test('TC_PMKT-U-00106-1747 - đổi sang Dịch vụ ẩn tab Đơn vị quy đổi', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Bán thành phẩm tại tab Đơn vị quy đổi theo pre-condition testcase.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openFormTab('Đơn vị quy đổi');
 
     // Hành động: Thay đổi tính chất > chọn Dịch vụ.
@@ -3923,29 +3917,29 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.formTab('Đơn vị quy đổi')).toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-782 - đổi từ Dịch vụ về Nguyên vật liệu hiện lại tab Đơn vị quy đổi', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Mở form Nguyên vật liệu rồi đổi sang Dịch vụ để tab Đơn vị quy đổi bị ẩn.
+  test('TC_PMKT-U-00106-1748 - đổi từ Dịch vụ về Bán thành phẩm hiện lại tab Đơn vị quy đổi', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Bán thành phẩm rồi đổi sang Dịch vụ để tab Đơn vị quy đổi bị ẩn.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.changeMaterialType();
     await vatTuPage.selectMaterialType('Dịch vụ');
     await expect(vatTuPage.formTab('Đơn vị quy đổi')).toBeHidden();
 
-    // Hành động: Thay đổi tính chất > chọn lại Nguyên vật liệu.
+    // Hành động: Thay đổi tính chất > chọn lại Bán thành phẩm.
     await vatTuPage.changeMaterialType();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
 
-    // Xác nhận UI: Form tải lại đúng loại Nguyên vật liệu và tab Đơn vị quy đổi hiển thị bình thường.
-    await expect(vatTuPage.materialTypeValue('Nguyên vật liệu')).toBeVisible();
+    // Xác nhận UI: Form tải lại đúng loại Bán thành phẩm và tab Đơn vị quy đổi hiển thị bình thường.
+    await expect(vatTuPage.semiFinishedProductMaterialTypeField()).toContainText('Bán thành phẩm');
     await expect(vatTuPage.formTab('Đơn vị quy đổi')).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-783 - đổi sang Dịch vụ hiện tab Đơn vị tính khác', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Mở form Nguyên vật liệu tại tab Đơn vị quy đổi theo pre-condition testcase.
+  test('TC_PMKT-U-00106-1749 - đổi sang Dịch vụ hiện tab Đơn vị tính khác', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Bán thành phẩm tại tab Đơn vị quy đổi theo pre-condition testcase.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openFormTab('Đơn vị quy đổi');
 
     // Hành động: Thay đổi tính chất > chọn Dịch vụ.
@@ -3957,29 +3951,29 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.formTab('Đơn vị tính khác')).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-784 - đổi từ Dịch vụ về Nguyên vật liệu ẩn tab Đơn vị tính khác', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Mở form Nguyên vật liệu rồi đổi sang Dịch vụ để tab Đơn vị tính khác xuất hiện.
+  test('TC_PMKT-U-00106-1750 - đổi từ Dịch vụ về Bán thành phẩm ẩn tab Đơn vị tính khác', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Bán thành phẩm rồi đổi sang Dịch vụ để tab Đơn vị tính khác xuất hiện.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.changeMaterialType();
     await vatTuPage.selectMaterialType('Dịch vụ');
     await expect(vatTuPage.formTab('Đơn vị tính khác')).toBeVisible();
 
-    // Hành động: Thay đổi tính chất > chọn lại Nguyên vật liệu.
+    // Hành động: Thay đổi tính chất > chọn lại Bán thành phẩm.
     await vatTuPage.changeMaterialType();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
 
-    // Xác nhận UI: Form tải lại đúng loại Nguyên vật liệu và ẩn hoàn toàn tab Đơn vị tính khác.
-    await expect(vatTuPage.materialTypeValue('Nguyên vật liệu')).toBeVisible();
+    // Xác nhận UI: Form tải lại đúng loại Bán thành phẩm và ẩn hoàn toàn tab Đơn vị tính khác.
+    await expect(vatTuPage.semiFinishedProductMaterialTypeField()).toContainText('Bán thành phẩm');
     await expect(vatTuPage.formTab('Đơn vị tính khác')).toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-785 - hiển thị đúng control trên dòng lưới Đơn vị quy đổi', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Mở form Nguyên vật liệu và tab Đơn vị quy đổi.
+  test('TC_PMKT-U-00106-1751 - hiển thị đúng control trên dòng lưới Đơn vị quy đổi', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Bán thành phẩm và tab Đơn vị quy đổi.
     await vatTuPage.openFromDanhMuc();
     await vatTuPage.openMaterialTypePopup();
-    await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openFormTab('Đơn vị quy đổi');
 
     // Hành động: Nhấn Thêm dòng để hiển thị các control của một dòng quy đổi mới.
@@ -4010,12 +4004,12 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(description).toHaveValue('');
   });
 
-  test('TC_PMKT-U-00106-786 - thêm dòng Đơn vị quy đổi với thông tin đầy đủ', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1752 - thêm dòng Đơn vị quy đổi với thông tin đầy đủ', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Lấy hai Đơn vị tính Hoạt động khác nhau từ DB đúng tenant.
     const catalogues = await openVatTuWithCatalogues(vatTuPage);
     const activeUnits = catalogues.units.filter((unit) => unit.status === 'HoatDong');
     test.skip(activeUnits.length < 2, 'DB cần tối thiểu hai Đơn vị tính Hoạt động');
-    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.openMainUnitDropdown(); await vatTuPage.selectMainUnit(activeUnits[0]!);
     await vatTuPage.openFormTab('Đơn vị quy đổi'); await vatTuPage.addConversionRow();
     // Hành động: Chọn Đơn vị tính, nhập tỷ lệ 12 và giữ Phép tính mặc định Nhân.
@@ -4027,9 +4021,9 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.conversionRowControls('textbox').first()).toHaveValue(`1 ${activeUnits[1]!.name} = 12 ${activeUnits[0]!.name}`);
   });
 
-  test('TC_PMKT-U-00106-787 - combogrid Đơn vị tính quy đổi khớp cột dữ liệu DB và thứ tự trạng thái', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1753 - combogrid Đơn vị tính quy đổi khớp cột dữ liệu DB và thứ tự trạng thái', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Lấy toàn bộ Đơn vị tính từ DB đúng tenant và mở combogrid trên dòng quy đổi.
-    const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Nguyên vật liệu'); await vatTuPage.openFirstConversionUnitDropdown();
+    const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Bán thành phẩm'); await vatTuPage.openFirstConversionUnitDropdown();
     const headers = (await vatTuPage.mainUnitDropdown().getByRole('columnheader').allTextContents()).map((v) => v.trim()).filter(Boolean);
     const labels = (await vatTuPage.conversionUnitOptions().allTextContents()).map((v) => v.trim()).filter(Boolean);
     // Xác nhận UI/DB: Cột, dữ liệu và thứ tự Hoạt động trên Ngừng hoạt động đúng testcase.
@@ -4039,8 +4033,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     const firstInactive = statuses.indexOf('NgungHoatDong'); expect(firstInactive < 0 || statuses.slice(firstInactive).every((s) => s === 'NgungHoatDong')).toBe(true);
   });
 
-  test('TC_PMKT-U-00106-788 - Đơn vị tính quy đổi Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage }) => {
-    const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Nguyên vật liệu'); const inactive = units.find((u) => u.status === 'NgungHoatDong');
+  test('TC_PMKT-U-00106-1754 - Đơn vị tính quy đổi Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage }) => {
+    const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Bán thành phẩm'); const inactive = units.find((u) => u.status === 'NgungHoatDong');
     test.skip(!inactive, 'DB không có Đơn vị tính Ngừng hoạt động'); if (!inactive) return;
     await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit(inactive.code);
     test.skip(!(await vatTuPage.conversionUnitOptions().filter({ hasText: inactive.label }).isVisible()), 'Combogrid không hiển thị Đơn vị tính Ngừng hoạt động');
@@ -4048,74 +4042,74 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     expect(isGrayCssColor(style.color) || Number(style.opacity) < 1).toBe(true);
   });
 
-  test('TC_PMKT-U-00106-789 - xác nhận sử dụng Đơn vị tính quy đổi Ngừng hoạt động', async ({ vatTuPage }) => {
-    const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Nguyên vật liệu'); const inactive = units.find((u) => u.status === 'NgungHoatDong');
+  test('TC_PMKT-U-00106-1755 - xác nhận sử dụng Đơn vị tính quy đổi Ngừng hoạt động', async ({ vatTuPage }) => {
+    const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Bán thành phẩm'); const inactive = units.find((u) => u.status === 'NgungHoatDong');
     test.skip(!inactive, 'DB không có Đơn vị tính Ngừng hoạt động'); if (!inactive) return;
     await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit(inactive.code);
-    test.skip(!(await vatTuPage.conversionUnitOptions().filter({ hasText: inactive.label }).isVisible()), 'BLOCK bởi TC277: combogrid không hiển thị Đơn vị tính Ngừng hoạt động');
+    test.skip(!(await vatTuPage.conversionUnitOptions().filter({ hasText: inactive.label }).isVisible()), 'BLOCK bởi TC1754: combogrid không hiển thị Đơn vị tính Ngừng hoạt động');
     await vatTuPage.selectFirstConversionUnit(inactive);
     await expect(vatTuPage.mainUnitConfirmationMessage()).toHaveText('Bản ghi đang ở trạng thái Ngừng hoạt động. Bạn có chắc chắn muốn sử dụng?');
     await vatTuPage.confirmInactiveMainUnit(); await expect(vatTuPage.selectedFirstConversionUnit(inactive.label)).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-790 - hủy sử dụng Đơn vị tính quy đổi Ngừng hoạt động', async ({ vatTuPage }) => {
-    const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Nguyên vật liệu'); const inactive = units.find((u) => u.status === 'NgungHoatDong');
+  test('TC_PMKT-U-00106-1756 - hủy sử dụng Đơn vị tính quy đổi Ngừng hoạt động', async ({ vatTuPage }) => {
+    const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Bán thành phẩm'); const inactive = units.find((u) => u.status === 'NgungHoatDong');
     test.skip(!inactive, 'DB không có Đơn vị tính Ngừng hoạt động'); if (!inactive) return;
     await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit(inactive.code);
-    test.skip(!(await vatTuPage.conversionUnitOptions().filter({ hasText: inactive.label }).isVisible()), 'BLOCK bởi TC277: combogrid không hiển thị Đơn vị tính Ngừng hoạt động');
+    test.skip(!(await vatTuPage.conversionUnitOptions().filter({ hasText: inactive.label }).isVisible()), 'BLOCK bởi TC1754: combogrid không hiển thị Đơn vị tính Ngừng hoạt động');
     await vatTuPage.selectFirstConversionUnit(inactive); await vatTuPage.cancelInactiveMainUnit();
     await expect(vatTuPage.selectedFirstConversionUnit(inactive.label)).toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-791 - chọn Đơn vị tính quy đổi Hoạt động không hiển thị cảnh báo', async ({ vatTuPage }) => {
-    const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Nguyên vật liệu'); const active = units.find((u) => u.status === 'HoatDong');
+  test('TC_PMKT-U-00106-1757 - chọn Đơn vị tính quy đổi Hoạt động không hiển thị cảnh báo', async ({ vatTuPage }) => {
+    const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Bán thành phẩm'); const active = units.find((u) => u.status === 'HoatDong');
     test.skip(!active, 'DB không có Đơn vị tính Hoạt động'); if (!active) return;
     await vatTuPage.selectFirstConversionUnit(active);
     await expect(vatTuPage.selectedFirstConversionUnit(active.label)).toBeVisible(); await expect(vatTuPage.mainUnitConfirmationDialog()).toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-792 - tìm Đơn vị tính quy đổi theo Mã', async ({ vatTuPage }) => {
-    const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Nguyên vật liệu'); const unit = units[0]; test.skip(!unit, 'DB không có Đơn vị tính'); if (!unit) return;
+  test('TC_PMKT-U-00106-1758 - tìm Đơn vị tính quy đổi theo Mã', async ({ vatTuPage }) => {
+    const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Bán thành phẩm'); const unit = units[0]; test.skip(!unit, 'DB không có Đơn vị tính'); if (!unit) return;
     await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit(unit.code);
     expect((await vatTuPage.conversionUnitOptions().allTextContents()).map((v) => v.trim())).toContain(unit.label);
   });
 
-  test('TC_PMKT-U-00106-793 - tìm Đơn vị tính quy đổi theo Tên', async ({ vatTuPage }) => {
-    const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Nguyên vật liệu'); const unit = units[0]; test.skip(!unit, 'DB không có Đơn vị tính'); if (!unit) return;
+  test('TC_PMKT-U-00106-1759 - tìm Đơn vị tính quy đổi theo Tên', async ({ vatTuPage }) => {
+    const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Bán thành phẩm'); const unit = units[0]; test.skip(!unit, 'DB không có Đơn vị tính'); if (!unit) return;
     await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit(unit.name);
     expect((await vatTuPage.conversionUnitOptions().allTextContents()).map((v) => v.trim())).toContain(unit.label);
   });
 
-  test('TC_PMKT-U-00106-794 - tìm Đơn vị tính quy đổi theo Trạng thái', async ({ vatTuPage }) => {
-    const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Nguyên vật liệu'); await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit('Hoạt động');
+  test('TC_PMKT-U-00106-1760 - tìm Đơn vị tính quy đổi theo Trạng thái', async ({ vatTuPage }) => {
+    const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Bán thành phẩm'); await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit('Hoạt động');
     const labels = (await vatTuPage.conversionUnitOptions().allTextContents()).map((v) => v.trim()).filter(Boolean);
     expect(labels.length).toBeGreaterThan(0); expect(labels.every((label) => units.find((u) => u.label === label)?.status === 'HoatDong')).toBe(true);
   });
 
-  test('TC_PMKT-U-00106-795 - Enter chọn dòng Đơn vị tính quy đổi đầu tiên', async ({ vatTuPage }) => {
-    const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Nguyên vật liệu'); const keyword = units[0]?.code.slice(0, 1); test.skip(!keyword, 'DB không có dữ liệu tìm kiếm'); if (!keyword) return;
+  test('TC_PMKT-U-00106-1761 - Enter chọn dòng Đơn vị tính quy đổi đầu tiên', async ({ vatTuPage }) => {
+    const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Bán thành phẩm'); const keyword = units[0]?.code.slice(0, 1); test.skip(!keyword, 'DB không có dữ liệu tìm kiếm'); if (!keyword) return;
     await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit(keyword); const first = (await vatTuPage.conversionUnitOptions().allTextContents()).map((v) => v.trim()).filter(Boolean)[0]!;
     await vatTuPage.pressFirstConversionUnitKey('Enter'); await expect(vatTuPage.selectedFirstConversionUnit(first)).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-796 - Up Down di chuyển dòng Đơn vị tính quy đổi', async ({ vatTuPage }) => {
-    await prepareGoodsConversionGrid(vatTuPage, 'Nguyên vật liệu'); await vatTuPage.openFirstConversionUnitDropdown(); const before = await vatTuPage.activeConversionUnitLabel();
+  test('TC_PMKT-U-00106-1762 - Up Down di chuyển dòng Đơn vị tính quy đổi', async ({ vatTuPage }) => {
+    await prepareGoodsConversionGrid(vatTuPage, 'Bán thành phẩm'); await vatTuPage.openFirstConversionUnitDropdown(); const before = await vatTuPage.activeConversionUnitLabel();
     await vatTuPage.pressFirstConversionUnitKey('ArrowDown'); const down = await vatTuPage.activeConversionUnitLabel(); await vatTuPage.pressFirstConversionUnitKey('ArrowUp'); const up = await vatTuPage.activeConversionUnitLabel();
     expect(down).not.toBe(before); expect(up).not.toBe(down); await expect(vatTuPage.conversionRowControls('combobox').first()).toHaveAttribute('aria-expanded', 'true');
   });
 
-  test('TC_PMKT-U-00106-797 - ESC đóng dropdown Đơn vị tính quy đổi không đổi giá trị', async ({ vatTuPage }) => {
-    await prepareGoodsConversionGrid(vatTuPage, 'Nguyên vật liệu'); await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.pressFirstConversionUnitKey('Escape');
+  test('TC_PMKT-U-00106-1763 - ESC đóng dropdown Đơn vị tính quy đổi không đổi giá trị', async ({ vatTuPage }) => {
+    await prepareGoodsConversionGrid(vatTuPage, 'Bán thành phẩm'); await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.pressFirstConversionUnitKey('Escape');
     await expect(vatTuPage.mainUnitDropdown()).toBeHidden(); await expect(vatTuPage.conversionRowControls('combobox').first()).toHaveValue('');
   });
 
-  test('TC_PMKT-U-00106-798 - icon X xóa nhanh Đơn vị tính quy đổi', async ({ vatTuPage }) => {
-    const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Nguyên vật liệu'); const active = units.find((u) => u.status === 'HoatDong'); test.skip(!active, 'DB không có Đơn vị tính Hoạt động'); if (!active) return;
+  test('TC_PMKT-U-00106-1764 - icon X xóa nhanh Đơn vị tính quy đổi', async ({ vatTuPage }) => {
+    const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Bán thành phẩm'); const active = units.find((u) => u.status === 'HoatDong'); test.skip(!active, 'DB không có Đơn vị tính Hoạt động'); if (!active) return;
     await vatTuPage.selectFirstConversionUnit(active); await vatTuPage.clearFirstConversionUnit(); await expect(vatTuPage.selectedFirstConversionUnit(active.label)).toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-799 - hiển thị nút Thêm nhanh Đơn vị tính quy đổi theo quyền', async ({ vatTuPage }) => {
-    await prepareGoodsConversionGrid(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1765 - hiển thị nút Thêm nhanh Đơn vị tính quy đổi theo quyền', async ({ vatTuPage }) => {
+    await prepareGoodsConversionGrid(vatTuPage, 'Bán thành phẩm');
     await vatTuPage.openFirstConversionUnitDropdown();
     await expect(
       vatTuPage.conversionUnitQuickAddButton(),
@@ -4123,59 +4117,59 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     ).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-800 - giao diện form Thêm nhanh Đơn vị tính quy đổi', async () => {
-    test.skip(true, 'BLOCK: bị chặn bởi TC799 - tài khoản full quyền không hiển thị nút (+) Thêm nhanh Đơn vị tính');
+  test('TC_PMKT-U-00106-1766 - giao diện form Thêm nhanh Đơn vị tính quy đổi', async () => {
+    test.skip(true, 'BLOCK: bị chặn bởi TC1765 - tài khoản full quyền không hiển thị nút (+) Thêm nhanh Đơn vị tính');
   });
 
-  test('TC_PMKT-U-00106-801 - validate bắt buộc form Thêm nhanh Đơn vị tính quy đổi', async () => {
-    test.skip(true, 'BLOCK: bị chặn bởi TC799 - không thể mở form Thêm nhanh Đơn vị tính');
+  test('TC_PMKT-U-00106-1767 - validate bắt buộc form Thêm nhanh Đơn vị tính quy đổi', async () => {
+    test.skip(true, 'BLOCK: bị chặn bởi TC1765 - không thể mở form Thêm nhanh Đơn vị tính');
   });
 
-  test('TC_PMKT-U-00106-802 - validate trùng Mã form Thêm nhanh Đơn vị tính quy đổi', async () => {
-    test.skip(true, 'BLOCK: bị chặn bởi TC799 - không thể mở form Thêm nhanh Đơn vị tính');
+  test('TC_PMKT-U-00106-1768 - validate trùng Mã form Thêm nhanh Đơn vị tính quy đổi', async () => {
+    test.skip(true, 'BLOCK: bị chặn bởi TC1765 - không thể mở form Thêm nhanh Đơn vị tính');
   });
 
-  test('TC_PMKT-U-00106-803 - boundary Mã form Thêm nhanh Đơn vị tính quy đổi', async () => {
-    test.skip(true, 'BLOCK: bị chặn bởi TC799 - không thể mở form Thêm nhanh Đơn vị tính');
+  test('TC_PMKT-U-00106-1769 - boundary Mã form Thêm nhanh Đơn vị tính quy đổi', async () => {
+    test.skip(true, 'BLOCK: bị chặn bởi TC1765 - không thể mở form Thêm nhanh Đơn vị tính');
   });
 
-  test('TC_PMKT-U-00106-804 - boundary Tên form Thêm nhanh Đơn vị tính quy đổi', async () => {
-    test.skip(true, 'BLOCK: bị chặn bởi TC799 - không thể mở form Thêm nhanh Đơn vị tính');
+  test('TC_PMKT-U-00106-1770 - boundary Tên form Thêm nhanh Đơn vị tính quy đổi', async () => {
+    test.skip(true, 'BLOCK: bị chặn bởi TC1765 - không thể mở form Thêm nhanh Đơn vị tính');
   });
 
-  test('TC_PMKT-U-00106-805 - lưu Thêm nhanh Đơn vị tính quy đổi và tự động điền', async () => {
-    test.skip(true, 'BLOCK: bị chặn bởi TC799 - không thể mở form Thêm nhanh Đơn vị tính');
+  test('TC_PMKT-U-00106-1771 - lưu Thêm nhanh Đơn vị tính quy đổi và tự động điền', async () => {
+    test.skip(true, 'BLOCK: bị chặn bởi TC1765 - không thể mở form Thêm nhanh Đơn vị tính');
   });
 
-  test('TC_PMKT-U-00106-806 - hủy form Thêm nhanh Đơn vị tính quy đổi', async () => {
-    test.skip(true, 'BLOCK: bị chặn bởi TC799 - không thể mở form Thêm nhanh Đơn vị tính');
+  test('TC_PMKT-U-00106-1772 - hủy form Thêm nhanh Đơn vị tính quy đổi', async () => {
+    test.skip(true, 'BLOCK: bị chặn bởi TC1765 - không thể mở form Thêm nhanh Đơn vị tính');
   });
 
-  test('TC_PMKT-U-00106-807 - control Numeric Tỷ lệ quy đổi mặc định trống', async ({ vatTuPage }) => {
-    await prepareGoodsConversionGrid(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1773 - control Numeric Tỷ lệ quy đổi mặc định trống', async ({ vatTuPage }) => {
+    await prepareGoodsConversionGrid(vatTuPage, 'Bán thành phẩm');
     const ratio = vatTuPage.conversionRowControls('spinbutton').first();
     await expect(ratio).toBeVisible();
     await expect(ratio).toHaveValue('');
   });
 
-  test('TC_PMKT-U-00106-808 - validate Đơn vị quy đổi trùng Đơn vị tính chính', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1774 - validate Đơn vị quy đổi trùng Đơn vị tính chính', async ({ vatTuPage }) => {
     const { units } = await openVatTuWithCatalogues(vatTuPage);
     const mainUnit = units.find((unit) => unit.status === 'HoatDong');
     test.skip(!mainUnit, 'DB không có Đơn vị tính Hoạt động'); if (!mainUnit) return;
     const generator = new TestDataGenerator();
-    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.fillRequiredInventoryMaterialFields(generator.uniqueCode('TC298'), generator.uniqueKeyword('TC298'), mainUnit);
     await vatTuPage.openFormTab('Đơn vị quy đổi'); await vatTuPage.addConversionRow();
     await vatTuPage.selectConversionUnit(0, mainUnit); await vatTuPage.fillConversionRatio(0, '5'); await vatTuPage.saveMaterial();
     await expect(vatTuPage.conversionMessage('Đơn vị tính không được trùng với đơn vị tính chính')).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-809 - validate hai dòng chọn trùng Đơn vị tính quy đổi', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1775 - validate hai dòng chọn trùng Đơn vị tính quy đổi', async ({ vatTuPage }) => {
     const { units } = await openVatTuWithCatalogues(vatTuPage);
     const activeUnits = units.filter((unit) => unit.status === 'HoatDong');
     test.skip(activeUnits.length < 2, 'DB cần tối thiểu hai Đơn vị tính Hoạt động');
     const generator = new TestDataGenerator(); const mainUnit = activeUnits[0]!; const conversionUnit = activeUnits[1]!;
-    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.fillRequiredInventoryMaterialFields(generator.uniqueCode('TC299'), generator.uniqueKeyword('TC299'), mainUnit);
     await vatTuPage.openFormTab('Đơn vị quy đổi'); await vatTuPage.addConversionRow(); await vatTuPage.addConversionRow();
     await vatTuPage.selectConversionUnit(0, conversionUnit); await vatTuPage.fillConversionRatio(0, '2');
@@ -4183,76 +4177,76 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.conversionMessage('Không được chọn trùng đơn vị tính')).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-810 - validate Tỷ lệ quy đổi bằng 0', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1776 - validate Tỷ lệ quy đổi bằng 0', async ({ vatTuPage }) => {
     const { units } = await openVatTuWithCatalogues(vatTuPage); const activeUnits = units.filter((unit) => unit.status === 'HoatDong');
     test.skip(activeUnits.length < 2, 'DB cần tối thiểu hai Đơn vị tính Hoạt động');
-    const generator = new TestDataGenerator(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    const generator = new TestDataGenerator(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.fillRequiredInventoryMaterialFields(generator.uniqueCode('TC300'), generator.uniqueKeyword('TC300'), activeUnits[0]!);
     await vatTuPage.openFormTab('Đơn vị quy đổi'); await vatTuPage.addConversionRow(); await vatTuPage.selectConversionUnit(0, activeUnits[1]!);
     await vatTuPage.fillConversionRatio(0, '0'); await vatTuPage.saveMaterial();
     await expect(vatTuPage.conversionMessage('Tỷ lệ quy đổi phải là số dương')).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-811 - validate Tỷ lệ quy đổi nhỏ hơn 0', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1777 - validate Tỷ lệ quy đổi nhỏ hơn 0', async ({ vatTuPage }) => {
     const { units } = await openVatTuWithCatalogues(vatTuPage); const activeUnits = units.filter((unit) => unit.status === 'HoatDong');
     test.skip(activeUnits.length < 2, 'DB cần tối thiểu hai Đơn vị tính Hoạt động');
-    const generator = new TestDataGenerator(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu');
+    const generator = new TestDataGenerator(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm');
     await vatTuPage.fillRequiredInventoryMaterialFields(generator.uniqueCode('TC301'), generator.uniqueKeyword('TC301'), activeUnits[0]!);
     await vatTuPage.openFormTab('Đơn vị quy đổi'); await vatTuPage.addConversionRow(); await vatTuPage.selectConversionUnit(0, activeUnits[1]!);
     await vatTuPage.fillConversionRatio(0, '-5'); await vatTuPage.saveMaterial();
     await expect(vatTuPage.conversionMessage('Tỷ lệ quy đổi phải là số dương')).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-812 - Phép tính mặc định Nhân và chỉ có Nhân Chia', async ({ vatTuPage }) => {
-    await prepareGoodsConversionGrid(vatTuPage, 'Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1778 - Phép tính mặc định Nhân và chỉ có Nhân Chia', async ({ vatTuPage }) => {
+    await prepareGoodsConversionGrid(vatTuPage, 'Bán thành phẩm');
     await expect(vatTuPage.conversionOperationCell('Nhân')).toBeVisible();
     await vatTuPage.openConversionOperation();
     await expect(vatTuPage.conversionUnitOptions()).toHaveText(['Nhân', 'Chia']);
   });
 
-  test('TC_PMKT-U-00106-813 - chọn Phép tính Chia thành công', async ({ vatTuPage }) => {
-    await prepareGoodsConversionGrid(vatTuPage, 'Nguyên vật liệu'); await vatTuPage.selectConversionOperation('Chia');
+  test('TC_PMKT-U-00106-1779 - chọn Phép tính Chia thành công', async ({ vatTuPage }) => {
+    await prepareGoodsConversionGrid(vatTuPage, 'Bán thành phẩm'); await vatTuPage.selectConversionOperation('Chia');
     await expect(vatTuPage.conversionOperationCell('Chia')).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-814 - Mô tả là Textbox read-only', async ({ vatTuPage }) => {
-    await prepareGoodsConversionGrid(vatTuPage, 'Nguyên vật liệu'); const description = vatTuPage.conversionDescription();
+  test('TC_PMKT-U-00106-1780 - Mô tả là Textbox read-only', async ({ vatTuPage }) => {
+    await prepareGoodsConversionGrid(vatTuPage, 'Bán thành phẩm'); const description = vatTuPage.conversionDescription();
     await expect(description).toBeVisible(); await expect(description).toHaveAttribute('readonly', '');
   });
 
-  test('TC_PMKT-U-00106-815 - Mô tả tự tính đúng với phép Nhân', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1781 - Mô tả tự tính đúng với phép Nhân', async ({ vatTuPage }) => {
     const { units } = await openVatTuWithCatalogues(vatTuPage); const activeUnits = units.filter((unit) => unit.status === 'HoatDong');
     test.skip(activeUnits.length < 2, 'DB cần tối thiểu hai Đơn vị tính Hoạt động'); const mainUnit = activeUnits[0]!; const conversionUnit = activeUnits[1]!;
     const ratio = 12;
-    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu'); await vatTuPage.openMainUnitDropdown(); await vatTuPage.selectMainUnit(mainUnit);
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm'); await vatTuPage.openMainUnitDropdown(); await vatTuPage.selectMainUnit(mainUnit);
     await vatTuPage.openFormTab('Đơn vị quy đổi'); await vatTuPage.addConversionRow(); await vatTuPage.selectConversionUnit(0, conversionUnit); await vatTuPage.fillConversionRatio(0, String(ratio));
     await expect(vatTuPage.conversionDescription()).toHaveValue(`1 ${conversionUnit.name} = ${ratio} ${mainUnit.name}`);
   });
 
-  test('TC_PMKT-U-00106-816 - Mô tả tự tính đúng với phép Chia', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1782 - Mô tả tự tính đúng với phép Chia', async ({ vatTuPage }) => {
     const { units } = await openVatTuWithCatalogues(vatTuPage); const activeUnits = units.filter((unit) => unit.status === 'HoatDong');
     test.skip(activeUnits.length < 2, 'DB cần tối thiểu hai Đơn vị tính Hoạt động'); const mainUnit = activeUnits[0]!; const conversionUnit = activeUnits[1]!;
     const ratio = 12;
     const reciprocalRatio = Number((1 / ratio).toFixed(6));
-    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu'); await vatTuPage.openMainUnitDropdown(); await vatTuPage.selectMainUnit(mainUnit);
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm'); await vatTuPage.openMainUnitDropdown(); await vatTuPage.selectMainUnit(mainUnit);
     await vatTuPage.openFormTab('Đơn vị quy đổi'); await vatTuPage.addConversionRow(); await vatTuPage.selectConversionUnit(0, conversionUnit); await vatTuPage.fillConversionRatio(0, String(ratio)); await vatTuPage.selectConversionOperation('Chia');
     await expect(vatTuPage.conversionDescription()).toHaveValue(`1 ${conversionUnit.name} = ${reciprocalRatio} ${mainUnit.name}`);
   });
 
-  test('TC_PMKT-U-00106-817 - xóa dòng Đơn vị quy đổi không cảnh báo', async ({ vatTuPage }) => {
-    await prepareGoodsConversionGrid(vatTuPage, 'Nguyên vật liệu'); await expect(vatTuPage.conversionRowControls('spinbutton')).toHaveCount(1);
+  test('TC_PMKT-U-00106-1783 - xóa dòng Đơn vị quy đổi không cảnh báo', async ({ vatTuPage }) => {
+    await prepareGoodsConversionGrid(vatTuPage, 'Bán thành phẩm'); await expect(vatTuPage.conversionRowControls('spinbutton')).toHaveCount(1);
     await vatTuPage.deleteConversionRow();
     await expect(vatTuPage.conversionRowControls('spinbutton')).toHaveCount(0);
     await expect(vatTuPage.mainUnitConfirmationDialog()).toBeHidden();
   });
 
-  test('TC_PMKT-U-00106-818 - xóa dòng quy đổi cuối cùng rồi Lưu và kiểm tra DB', async ({ vatTuPage, db }, testInfo) => {
+  test('TC_PMKT-U-00106-1784 - xóa dòng quy đổi cuối cùng rồi Lưu và kiểm tra DB', async ({ vatTuPage, db }, testInfo) => {
     const credentials = requireCredentials(); const { groups, units } = await openVatTuWithCatalogues(vatTuPage);
     const group = groups.find((item) => item.status === 'HoatDong'); const mainUnit = units.find((item) => item.status === 'HoatDong');
     test.skip(!group || !mainUnit, 'DB cần Nhóm vật tư và Đơn vị tính Hoạt động'); if (!group || !mainUnit) return;
-    const material = fullGoodsData('TC818', group, mainUnit, 'Nguyên vật liệu');
-    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu');
-    await recordMissingSpecialGoodsTypeBug(vatTuPage, 'Nguyên vật liệu');
+    const material = fullGoodsData('TC818', group, mainUnit, 'Bán thành phẩm');
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm');
+    await recordMissingSpecialGoodsTypeBug(vatTuPage, 'Bán thành phẩm');
     const selection = await vatTuPage.fillFullGoodsMaterial(material, 'inventory-material');
     await vatTuPage.openFormTab('Thông tin thuế');
     await testInfo.attach('TC818-tax-ui-values', {
@@ -4263,67 +4257,67 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.conversionRowControls('spinbutton')).toHaveCount(0); await vatTuPage.saveMaterial();
     await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công'); await vatTuPage.searchMaterial(material.code);
     await expect(vatTuPage.materialRow(material.code)).toBeVisible();
-    await verifyFullGoodsSavedInDatabase(db, credentials.username, material, selection, true, 0, 'Nguyên vật liệu');
+    await verifyFullGoodsSavedInDatabase(db, credentials.username, material, selection, true, 0, 'Bán thành phẩm');
   });
 
-  test('TC_PMKT-U-00106-819 - Lưu Nguyên vật liệu đầy đủ trạng thái Hoạt động và kiểm tra DB', async ({ vatTuPage, db }) => {
+  test('TC_PMKT-U-00106-1785 - Lưu Bán thành phẩm đầy đủ trạng thái Hoạt động và kiểm tra DB', async ({ vatTuPage, db }) => {
     const credentials = requireCredentials(); const { groups, units } = await openVatTuWithCatalogues(vatTuPage);
     const group = groups.find((item) => item.status === 'HoatDong'); const mainUnit = units.find((item) => item.status === 'HoatDong');
     test.skip(!group || !mainUnit, 'DB cần Nhóm vật tư và Đơn vị tính Hoạt động'); if (!group || !mainUnit) return;
-    const material = fullGoodsData('TC819', group, mainUnit, 'Nguyên vật liệu');
-    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu');
-    await recordMissingSpecialGoodsTypeBug(vatTuPage, 'Nguyên vật liệu');
+    const material = fullGoodsData('TC819', group, mainUnit, 'Bán thành phẩm');
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm');
+    await recordMissingSpecialGoodsTypeBug(vatTuPage, 'Bán thành phẩm');
     const selection = await vatTuPage.fillFullGoodsMaterial(material, 'inventory-material');
     await vatTuPage.saveMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công');
     await vatTuPage.searchMaterial(material.code); await expect(vatTuPage.materialRow(material.code)).toBeVisible();
-    await verifyFullGoodsSavedInDatabase(db, credentials.username, material, selection, true, 1, 'Nguyên vật liệu');
+    await verifyFullGoodsSavedInDatabase(db, credentials.username, material, selection, true, 1, 'Bán thành phẩm');
   });
 
-  test('TC_PMKT-U-00106-820 - Lưu Nguyên vật liệu chỉ với trường bắt buộc và kiểm tra mặc định DB', async ({ vatTuPage, db }) => {
+  test('TC_PMKT-U-00106-1786 - Lưu Bán thành phẩm chỉ với trường bắt buộc và kiểm tra mặc định DB', async ({ vatTuPage, db }) => {
     const credentials = requireCredentials(); const { units } = await openVatTuWithCatalogues(vatTuPage);
     const mainUnit = units.find((item) => item.status === 'HoatDong'); test.skip(!mainUnit, 'DB cần Đơn vị tính Hoạt động'); if (!mainUnit) return;
     const generator = new TestDataGenerator(); const code = generator.uniqueCode('TC820'); const name = generator.uniqueKeyword('TC820');
-    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu');
-    await recordMissingSpecialGoodsTypeBug(vatTuPage, 'Nguyên vật liệu');
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm');
+    await recordMissingSpecialGoodsTypeBug(vatTuPage, 'Bán thành phẩm');
     await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit); const defaults = await vatTuPage.readRequiredGoodsUiDefaults();
     await vatTuPage.saveMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công');
     await vatTuPage.searchMaterial(code); await expect(vatTuPage.materialRow(code)).toBeVisible();
-    await verifyRequiredGoodsSavedInDatabase(db, credentials.username, { code, name, mainUnit, active: true, defaults }, 'Nguyên vật liệu');
+    await verifyRequiredGoodsSavedInDatabase(db, credentials.username, { code, name, mainUnit, active: true, defaults }, 'Bán thành phẩm');
   });
 
-  test('TC_PMKT-U-00106-821 - Lưu Nguyên vật liệu đầy đủ trạng thái Ngừng hoạt động và kiểm tra DB', async ({ vatTuPage, db }) => {
+  test('TC_PMKT-U-00106-1787 - Lưu Bán thành phẩm đầy đủ trạng thái Ngừng hoạt động và kiểm tra DB', async ({ vatTuPage, db }) => {
     const credentials = requireCredentials(); const { groups, units } = await openVatTuWithCatalogues(vatTuPage);
     const group = groups.find((item) => item.status === 'HoatDong'); const mainUnit = units.find((item) => item.status === 'HoatDong');
     test.skip(!group || !mainUnit, 'DB cần Nhóm vật tư và Đơn vị tính Hoạt động'); if (!group || !mainUnit) return;
-    const material = fullGoodsData('TC821', group, mainUnit, 'Nguyên vật liệu');
-    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu');
-    await recordMissingSpecialGoodsTypeBug(vatTuPage, 'Nguyên vật liệu');
+    const material = fullGoodsData('TC821', group, mainUnit, 'Bán thành phẩm');
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm');
+    await recordMissingSpecialGoodsTypeBug(vatTuPage, 'Bán thành phẩm');
     const selection = await vatTuPage.fillFullGoodsMaterial(material, 'inventory-material');
     await vatTuPage.setMaterialStatus(false); await vatTuPage.saveMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công');
     await vatTuPage.searchMaterial(material.code); await expect(vatTuPage.materialRow(material.code)).toContainText('Ngừng hoạt động');
-    await verifyFullGoodsSavedInDatabase(db, credentials.username, material, selection, false, 1, 'Nguyên vật liệu');
+    await verifyFullGoodsSavedInDatabase(db, credentials.username, material, selection, false, 1, 'Bán thành phẩm');
   });
 
-  test('TC_PMKT-U-00106-822 - Lưu và Thêm mới reset form, hiển thị danh sách và kiểm tra DB', async ({ vatTuPage, db }) => {
+  test('TC_PMKT-U-00106-1788 - Lưu và Thêm mới reset form, hiển thị danh sách và kiểm tra DB', async ({ vatTuPage, db }) => {
     const credentials = requireCredentials(); const { groups, units } = await openVatTuWithCatalogues(vatTuPage);
     const group = groups.find((item) => item.status === 'HoatDong'); const mainUnit = units.find((item) => item.status === 'HoatDong');
     test.skip(!group || !mainUnit, 'DB cần Nhóm vật tư và Đơn vị tính Hoạt động'); if (!group || !mainUnit) return;
-    const material = fullGoodsData('TC822', group, mainUnit, 'Nguyên vật liệu');
-    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu');
-    await recordMissingSpecialGoodsTypeBug(vatTuPage, 'Nguyên vật liệu');
+    const material = fullGoodsData('TC822', group, mainUnit, 'Bán thành phẩm');
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm');
+    await recordMissingSpecialGoodsTypeBug(vatTuPage, 'Bán thành phẩm');
     const selection = await vatTuPage.fillFullGoodsMaterial(material, 'inventory-material');
     await vatTuPage.saveAndAddMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công');
     await expect(vatTuPage.createMaterialDialog).toBeVisible(); await expect(vatTuPage.materialCodeInput()).toHaveValue(''); await expect(vatTuPage.materialNameInput()).toHaveValue('');
     await vatTuPage.discardMaterialFormIfOpen(); await vatTuPage.searchMaterial(material.code); await expect(vatTuPage.materialRow(material.code)).toBeVisible();
-    await verifyFullGoodsSavedInDatabase(db, credentials.username, material, selection, true, 1, 'Nguyên vật liệu');
+    await verifyFullGoodsSavedInDatabase(db, credentials.username, material, selection, true, 1, 'Bán thành phẩm');
   });
 
-  test('TC_PMKT-U-00106-823 - icon X đóng form ngay sau khi Lưu và Thêm mới reset', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Tạo Nguyên vật liệu chỉ với trường bắt buộc và đưa form về trạng thái reset sau Lưu và Thêm mới.
+  test('TC_PMKT-U-00106-1789 - icon X đóng form ngay sau khi Lưu và Thêm mới reset', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Tạo Bán thành phẩm chỉ với trường bắt buộc và đưa form về trạng thái reset sau Lưu và Thêm mới.
     const { units } = await openVatTuWithCatalogues(vatTuPage); const mainUnit = units.find((item) => item.status === 'HoatDong');
     test.skip(!mainUnit, 'DB cần Đơn vị tính Hoạt động'); if (!mainUnit) return;
     const generator = new TestDataGenerator(); const code = generator.uniqueCode('TC313'); const name = generator.uniqueKeyword('TC313');
-    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu'); await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit);
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm'); await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit);
     await vatTuPage.saveAndAddMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công'); await expect(vatTuPage.materialCodeInput()).toHaveValue('');
     // Hành động: Nhấn icon X khi form reset chưa có thay đổi mới.
     await vatTuPage.closeCreatingMaterial();
@@ -4331,12 +4325,12 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.createMaterialDialog).toBeHidden(); await expect(vatTuPage.closeConfirmationDialog).toBeHidden(); await expect(vatTuPage.materialSearchInput()).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-824 - icon X hiển thị cảnh báo sau khi thay đổi form reset', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Lưu Nguyên vật liệu tối thiểu, reset form rồi nhập lại Tên vật tư unique.
+  test('TC_PMKT-U-00106-1790 - icon X hiển thị cảnh báo sau khi thay đổi form reset', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Lưu Bán thành phẩm tối thiểu, reset form rồi nhập lại Tên vật tư unique.
     const { units } = await openVatTuWithCatalogues(vatTuPage); const mainUnit = units.find((item) => item.status === 'HoatDong');
     test.skip(!mainUnit, 'DB cần Đơn vị tính Hoạt động'); if (!mainUnit) return;
     const generator = new TestDataGenerator(); const code = generator.uniqueCode('TC314'); const name = generator.uniqueKeyword('TC314'); const changedName = generator.uniqueKeyword('TC314_CHANGED');
-    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu'); await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit);
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm'); await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit);
     await vatTuPage.saveAndAddMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công'); await vatTuPage.materialNameInput().fill(changedName);
     // Hành động: Nhấn icon X sau khi thay đổi dữ liệu trên form reset.
     await vatTuPage.closeCreatingMaterial();
@@ -4345,12 +4339,12 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.closeConfirmationButton('Xác nhận')).toBeVisible(); await expect(vatTuPage.closeConfirmationButton('Hủy')).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-825 - Hủy cảnh báo icon X giữ nguyên dữ liệu sau reset', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Lưu Nguyên vật liệu tối thiểu, reset form, nhập lại Tên và mở cảnh báo bằng icon X.
+  test('TC_PMKT-U-00106-1791 - Hủy cảnh báo icon X giữ nguyên dữ liệu sau reset', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Lưu Bán thành phẩm tối thiểu, reset form, nhập lại Tên và mở cảnh báo bằng icon X.
     const { units } = await openVatTuWithCatalogues(vatTuPage); const mainUnit = units.find((item) => item.status === 'HoatDong');
     test.skip(!mainUnit, 'DB cần Đơn vị tính Hoạt động'); if (!mainUnit) return;
     const generator = new TestDataGenerator(); const code = generator.uniqueCode('TC315'); const name = generator.uniqueKeyword('TC315'); const changedName = generator.uniqueKeyword('TC315_CHANGED');
-    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu'); await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit);
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm'); await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit);
     await vatTuPage.saveAndAddMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công'); await vatTuPage.materialNameInput().fill(changedName); await vatTuPage.closeCreatingMaterial();
     // Hành động: Nhấn Hủy trên popup xác nhận đóng.
     await vatTuPage.dismissCloseConfirmation();
@@ -4358,12 +4352,12 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.closeConfirmationDialog).toBeHidden(); await expect(vatTuPage.createMaterialDialog).toBeVisible(); await expect(vatTuPage.materialNameInput()).toHaveValue(changedName);
   });
 
-  test('TC_PMKT-U-00106-826 - Xác nhận cảnh báo icon X đóng form sau reset', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Lưu Nguyên vật liệu tối thiểu, reset form, nhập lại dữ liệu và mở cảnh báo bằng icon X.
+  test('TC_PMKT-U-00106-1792 - Xác nhận cảnh báo icon X đóng form sau reset', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Lưu Bán thành phẩm tối thiểu, reset form, nhập lại dữ liệu và mở cảnh báo bằng icon X.
     const { units } = await openVatTuWithCatalogues(vatTuPage); const mainUnit = units.find((item) => item.status === 'HoatDong');
     test.skip(!mainUnit, 'DB cần Đơn vị tính Hoạt động'); if (!mainUnit) return;
     const generator = new TestDataGenerator(); const code = generator.uniqueCode('TC316'); const name = generator.uniqueKeyword('TC316'); const changedName = generator.uniqueKeyword('TC316_CHANGED');
-    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu'); await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit);
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm'); await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit);
     await vatTuPage.saveAndAddMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công'); await vatTuPage.materialNameInput().fill(changedName); await vatTuPage.closeCreatingMaterial();
     // Hành động: Nhấn Xác nhận bỏ thay đổi.
     await vatTuPage.confirmClose();
@@ -4371,12 +4365,12 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.closeConfirmationDialog).toBeHidden(); await expect(vatTuPage.createMaterialDialog).toBeHidden(); await expect(vatTuPage.materialSearchInput()).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-827 - nút Hủy đóng form ngay sau khi Lưu và Thêm mới reset', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Tạo Nguyên vật liệu tối thiểu và giữ form reset không có thay đổi mới.
+  test('TC_PMKT-U-00106-1793 - nút Hủy đóng form ngay sau khi Lưu và Thêm mới reset', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Tạo Bán thành phẩm tối thiểu và giữ form reset không có thay đổi mới.
     const { units } = await openVatTuWithCatalogues(vatTuPage); const mainUnit = units.find((item) => item.status === 'HoatDong');
     test.skip(!mainUnit, 'DB cần Đơn vị tính Hoạt động'); if (!mainUnit) return;
     const generator = new TestDataGenerator(); const code = generator.uniqueCode('TC317'); const name = generator.uniqueKeyword('TC317');
-    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu'); await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit);
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm'); await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit);
     await vatTuPage.saveAndAddMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công'); await expect(vatTuPage.materialCodeInput()).toHaveValue('');
     // Hành động: Nhấn nút Hủy ở cuối form.
     await vatTuPage.cancelCreatingMaterial();
@@ -4384,12 +4378,12 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.createMaterialDialog).toBeHidden(); await expect(vatTuPage.closeConfirmationDialog).toBeHidden(); await expect(vatTuPage.materialSearchInput()).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-828 - nút Hủy hiển thị cảnh báo sau khi thay đổi form reset', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Lưu Nguyên vật liệu tối thiểu, reset form rồi nhập lại Tên vật tư unique.
+  test('TC_PMKT-U-00106-1794 - nút Hủy hiển thị cảnh báo sau khi thay đổi form reset', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Lưu Bán thành phẩm tối thiểu, reset form rồi nhập lại Tên vật tư unique.
     const { units } = await openVatTuWithCatalogues(vatTuPage); const mainUnit = units.find((item) => item.status === 'HoatDong');
     test.skip(!mainUnit, 'DB cần Đơn vị tính Hoạt động'); if (!mainUnit) return;
     const generator = new TestDataGenerator(); const code = generator.uniqueCode('TC318'); const name = generator.uniqueKeyword('TC318'); const changedName = generator.uniqueKeyword('TC318_CHANGED');
-    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu'); await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit);
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm'); await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit);
     await vatTuPage.saveAndAddMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công'); await vatTuPage.materialNameInput().fill(changedName);
     // Hành động: Nhấn nút Hủy sau khi thay đổi dữ liệu trên form reset.
     await vatTuPage.cancelCreatingMaterial();
@@ -4398,12 +4392,12 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.closeConfirmationButton('Xác nhận')).toBeVisible(); await expect(vatTuPage.closeConfirmationButton('Hủy')).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-829 - Hủy cảnh báo nút Hủy giữ nguyên dữ liệu sau reset', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Lưu Nguyên vật liệu tối thiểu, reset form, nhập lại Tên và mở cảnh báo bằng nút Hủy.
+  test('TC_PMKT-U-00106-1795 - Hủy cảnh báo nút Hủy giữ nguyên dữ liệu sau reset', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Lưu Bán thành phẩm tối thiểu, reset form, nhập lại Tên và mở cảnh báo bằng nút Hủy.
     const { units } = await openVatTuWithCatalogues(vatTuPage); const mainUnit = units.find((item) => item.status === 'HoatDong');
     test.skip(!mainUnit, 'DB cần Đơn vị tính Hoạt động'); if (!mainUnit) return;
     const generator = new TestDataGenerator(); const code = generator.uniqueCode('TC319'); const name = generator.uniqueKeyword('TC319'); const changedName = generator.uniqueKeyword('TC319_CHANGED');
-    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu'); await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit);
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm'); await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit);
     await vatTuPage.saveAndAddMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công'); await vatTuPage.materialNameInput().fill(changedName); await vatTuPage.cancelCreatingMaterial();
     // Hành động: Nhấn Hủy trên popup xác nhận đóng.
     await vatTuPage.dismissCloseConfirmation();
@@ -4411,12 +4405,12 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.closeConfirmationDialog).toBeHidden(); await expect(vatTuPage.createMaterialDialog).toBeVisible(); await expect(vatTuPage.materialNameInput()).toHaveValue(changedName);
   });
 
-  test('TC_PMKT-U-00106-830 - Xác nhận cảnh báo nút Hủy đóng form sau reset', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Lưu Nguyên vật liệu tối thiểu, reset form, nhập lại dữ liệu và mở cảnh báo bằng nút Hủy.
+  test('TC_PMKT-U-00106-1796 - Xác nhận cảnh báo nút Hủy đóng form sau reset', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Lưu Bán thành phẩm tối thiểu, reset form, nhập lại dữ liệu và mở cảnh báo bằng nút Hủy.
     const { units } = await openVatTuWithCatalogues(vatTuPage); const mainUnit = units.find((item) => item.status === 'HoatDong');
     test.skip(!mainUnit, 'DB cần Đơn vị tính Hoạt động'); if (!mainUnit) return;
     const generator = new TestDataGenerator(); const code = generator.uniqueCode('TC320'); const name = generator.uniqueKeyword('TC320'); const changedName = generator.uniqueKeyword('TC320_CHANGED');
-    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu'); await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit);
+    await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm'); await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit);
     await vatTuPage.saveAndAddMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công'); await vatTuPage.materialNameInput().fill(changedName); await vatTuPage.cancelCreatingMaterial();
     // Hành động: Nhấn Xác nhận bỏ thay đổi.
     await vatTuPage.confirmClose();
@@ -4424,19 +4418,19 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.closeConfirmationDialog).toBeHidden(); await expect(vatTuPage.createMaterialDialog).toBeHidden(); await expect(vatTuPage.materialSearchInput()).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-831 - icon X đóng form chưa thay đổi mà không cảnh báo', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Mở form Nguyên vật liệu mới và không thay đổi bất kỳ trường nào.
-    await vatTuPage.openFromDanhMuc(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1797 - icon X đóng form chưa thay đổi mà không cảnh báo', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Bán thành phẩm mới và không thay đổi bất kỳ trường nào.
+    await vatTuPage.openFromDanhMuc(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm');
     // Hành động: Nhấn icon X ở góc form.
     await vatTuPage.closeCreatingMaterial();
     // Xác nhận UI: Form đóng, danh sách hiển thị và không có popup xác nhận.
     await expect(vatTuPage.createMaterialDialog).toBeHidden(); await expect(vatTuPage.closeConfirmationDialog).toBeHidden(); await expect(vatTuPage.materialSearchInput()).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-832 - icon X hiển thị cảnh báo khi form có thay đổi', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Mở form Nguyên vật liệu và nhập Tên vật tư unique nhưng chưa lưu.
+  test('TC_PMKT-U-00106-1798 - icon X hiển thị cảnh báo khi form có thay đổi', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Bán thành phẩm và nhập Tên vật tư unique nhưng chưa lưu.
     const changedName = new TestDataGenerator().uniqueKeyword('TC322');
-    await vatTuPage.openFromDanhMuc(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu'); await vatTuPage.materialNameInput().fill(changedName);
+    await vatTuPage.openFromDanhMuc(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm'); await vatTuPage.materialNameInput().fill(changedName);
     // Hành động: Nhấn icon X.
     await vatTuPage.closeCreatingMaterial();
     // Xác nhận UI: Popup hiển thị đúng nội dung và đủ hai nút hành động.
@@ -4444,39 +4438,39 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.closeConfirmationButton('Xác nhận')).toBeVisible(); await expect(vatTuPage.closeConfirmationButton('Hủy')).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-833 - Hủy cảnh báo icon X giữ nguyên dữ liệu chưa lưu', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1799 - Hủy cảnh báo icon X giữ nguyên dữ liệu chưa lưu', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Nhập Tên vật tư unique rồi mở popup xác nhận bằng icon X.
     const changedName = new TestDataGenerator().uniqueKeyword('TC323');
-    await vatTuPage.openFromDanhMuc(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu'); await vatTuPage.materialNameInput().fill(changedName); await vatTuPage.closeCreatingMaterial();
+    await vatTuPage.openFromDanhMuc(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm'); await vatTuPage.materialNameInput().fill(changedName); await vatTuPage.closeCreatingMaterial();
     // Hành động: Nhấn Hủy trên popup xác nhận.
     await vatTuPage.dismissCloseConfirmation();
     // Xác nhận UI: Popup đóng, form còn mở và Tên vật tư giữ nguyên.
     await expect(vatTuPage.closeConfirmationDialog).toBeHidden(); await expect(vatTuPage.createMaterialDialog).toBeVisible(); await expect(vatTuPage.materialNameInput()).toHaveValue(changedName);
   });
 
-  test('TC_PMKT-U-00106-834 - Xác nhận cảnh báo icon X đóng form chưa lưu', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1800 - Xác nhận cảnh báo icon X đóng form chưa lưu', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Nhập Tên vật tư unique rồi mở popup xác nhận bằng icon X.
     const changedName = new TestDataGenerator().uniqueKeyword('TC324');
-    await vatTuPage.openFromDanhMuc(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu'); await vatTuPage.materialNameInput().fill(changedName); await vatTuPage.closeCreatingMaterial();
+    await vatTuPage.openFromDanhMuc(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm'); await vatTuPage.materialNameInput().fill(changedName); await vatTuPage.closeCreatingMaterial();
     // Hành động: Nhấn Xác nhận bỏ thay đổi.
     await vatTuPage.confirmClose();
     // Xác nhận UI: Popup và form đóng, màn danh sách hiển thị.
     await expect(vatTuPage.closeConfirmationDialog).toBeHidden(); await expect(vatTuPage.createMaterialDialog).toBeHidden(); await expect(vatTuPage.materialSearchInput()).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-835 - nút Hủy đóng form chưa thay đổi mà không cảnh báo', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Mở form Nguyên vật liệu mới và không thay đổi bất kỳ trường nào.
-    await vatTuPage.openFromDanhMuc(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1801 - nút Hủy đóng form chưa thay đổi mà không cảnh báo', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Bán thành phẩm mới và không thay đổi bất kỳ trường nào.
+    await vatTuPage.openFromDanhMuc(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm');
     // Hành động: Nhấn nút Hủy ở cuối form.
     await vatTuPage.cancelCreatingMaterial();
     // Xác nhận UI: Form đóng, danh sách hiển thị và không có popup xác nhận.
     await expect(vatTuPage.createMaterialDialog).toBeHidden(); await expect(vatTuPage.closeConfirmationDialog).toBeHidden(); await expect(vatTuPage.materialSearchInput()).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-836 - nút Hủy hiển thị cảnh báo khi form có thay đổi', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Mở form Nguyên vật liệu và nhập Tên vật tư unique nhưng chưa lưu.
+  test('TC_PMKT-U-00106-1802 - nút Hủy hiển thị cảnh báo khi form có thay đổi', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Bán thành phẩm và nhập Tên vật tư unique nhưng chưa lưu.
     const changedName = new TestDataGenerator().uniqueKeyword('TC326');
-    await vatTuPage.openFromDanhMuc(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu'); await vatTuPage.materialNameInput().fill(changedName);
+    await vatTuPage.openFromDanhMuc(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm'); await vatTuPage.materialNameInput().fill(changedName);
     // Hành động: Nhấn nút Hủy ở cuối form.
     await vatTuPage.cancelCreatingMaterial();
     // Xác nhận UI: Popup hiển thị đúng nội dung và đủ hai nút hành động.
@@ -4484,29 +4478,29 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect(vatTuPage.closeConfirmationButton('Xác nhận')).toBeVisible(); await expect(vatTuPage.closeConfirmationButton('Hủy')).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-837 - Hủy cảnh báo nút Hủy giữ nguyên dữ liệu chưa lưu', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1803 - Hủy cảnh báo nút Hủy giữ nguyên dữ liệu chưa lưu', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Nhập Tên vật tư unique rồi mở popup xác nhận bằng nút Hủy.
     const changedName = new TestDataGenerator().uniqueKeyword('TC327');
-    await vatTuPage.openFromDanhMuc(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu'); await vatTuPage.materialNameInput().fill(changedName); await vatTuPage.cancelCreatingMaterial();
+    await vatTuPage.openFromDanhMuc(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm'); await vatTuPage.materialNameInput().fill(changedName); await vatTuPage.cancelCreatingMaterial();
     // Hành động: Nhấn Hủy trên popup xác nhận.
     await vatTuPage.dismissCloseConfirmation();
     // Xác nhận UI: Popup đóng, form còn mở và Tên vật tư giữ nguyên.
     await expect(vatTuPage.closeConfirmationDialog).toBeHidden(); await expect(vatTuPage.createMaterialDialog).toBeVisible(); await expect(vatTuPage.materialNameInput()).toHaveValue(changedName);
   });
 
-  test('TC_PMKT-U-00106-838 - Xác nhận cảnh báo nút Hủy đóng form chưa lưu', async ({ vatTuPage }) => {
+  test('TC_PMKT-U-00106-1804 - Xác nhận cảnh báo nút Hủy đóng form chưa lưu', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Nhập Tên vật tư unique rồi mở popup xác nhận bằng nút Hủy.
     const changedName = new TestDataGenerator().uniqueKeyword('TC328');
-    await vatTuPage.openFromDanhMuc(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu'); await vatTuPage.materialNameInput().fill(changedName); await vatTuPage.cancelCreatingMaterial();
+    await vatTuPage.openFromDanhMuc(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm'); await vatTuPage.materialNameInput().fill(changedName); await vatTuPage.cancelCreatingMaterial();
     // Hành động: Nhấn Xác nhận bỏ thay đổi.
     await vatTuPage.confirmClose();
     // Xác nhận UI: Popup và form đóng, màn danh sách hiển thị.
     await expect(vatTuPage.closeConfirmationDialog).toBeHidden(); await expect(vatTuPage.createMaterialDialog).toBeHidden(); await expect(vatTuPage.materialSearchInput()).toBeVisible();
   });
 
-  test('TC_PMKT-U-00106-839 - chặn lưu khi bỏ trống toàn bộ trường bắt buộc', async ({ vatTuPage }) => {
-    // Chuẩn bị dữ liệu: Mở form Nguyên vật liệu và giữ trống toàn bộ trường bắt buộc.
-    await vatTuPage.openFromDanhMuc(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Nguyên vật liệu');
+  test('TC_PMKT-U-00106-1805 - chặn lưu khi bỏ trống toàn bộ trường bắt buộc', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Bán thành phẩm và giữ trống toàn bộ trường bắt buộc.
+    await vatTuPage.openFromDanhMuc(); await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Bán thành phẩm');
     // Hành động: Nhấn Lưu ở cuối form.
     await vatTuPage.saveMaterial();
     // Xác nhận UI: Hệ thống chặn lưu và hiển thị đúng lỗi dưới ba trường bắt buộc.
@@ -4514,6 +4508,45 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Nguyên vật liệu TC518-T
     await expect.soft(vatTuPage.validationMessage('Mã vật tư', 'Mã không được để trống')).toBeVisible();
     await expect.soft(vatTuPage.validationMessage('Tên vật tư', 'Tên không được để trống')).toBeVisible();
     await expect.soft(vatTuPage.validationMessage('Đơn vị tính chính', 'Đơn vị tính không được để trống')).toBeVisible();
+  });
+
+  test('TC_PMKT-U-00106-1806 - Hủy bỏ khi chưa nhập hoặc thay đổi dữ liệu trên form', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Mở form Bán thành phẩm và không thay đổi bất kỳ trường nào.
+    await vatTuPage.openFromDanhMuc();
+    await vatTuPage.openMaterialTypePopup();
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
+    // Hành động: Nhấn nút Hủy dưới chân form.
+    await vatTuPage.cancelCreatingMaterial();
+    // Xác nhận UI: Form đóng ngay, quay về danh sách và không hiển thị popup xác nhận.
+    await expect(vatTuPage.createMaterialDialog).toBeHidden();
+    await expect(vatTuPage.closeConfirmationDialog).toBeHidden();
+    await expect(vatTuPage.materialSearchInput()).toBeVisible();
+  });
+
+  test('TC_PMKT-U-00106-1807 - Hủy bỏ khi form đã có thay đổi dữ liệu', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Nhập Tên vật tư unique để form có thay đổi chưa lưu.
+    const changedName = new TestDataGenerator().uniqueKeyword('TC1807');
+    await vatTuPage.openFromDanhMuc();
+    await vatTuPage.openMaterialTypePopup();
+    await vatTuPage.selectMaterialType('Bán thành phẩm');
+    await vatTuPage.materialNameInput().fill(changedName);
+    // Hành động: Nhấn Hủy, chọn Hủy trên popup, sau đó mở lại popup và Xác nhận đóng.
+    await vatTuPage.cancelCreatingMaterial();
+    await expect(vatTuPage.closeConfirmationDialog).toBeVisible();
+    await vatTuPage.dismissCloseConfirmation();
+    await expect(vatTuPage.createMaterialDialog).toBeVisible();
+    await expect(vatTuPage.materialNameInput()).toHaveValue(changedName);
+    await vatTuPage.cancelCreatingMaterial();
+    await vatTuPage.confirmClose();
+    // Xác nhận UI: Popup và form đóng, màn danh sách vật tư hiển thị.
+    await expect(vatTuPage.closeConfirmationDialog).toBeHidden();
+    await expect(vatTuPage.createMaterialDialog).toBeHidden();
+    await expect(vatTuPage.materialSearchInput()).toBeVisible();
+  });
+
+  test('TC_PMKT-U-00106-1809 - tự động trim khoảng trắng đầu cuối khi lưu', async () => {
+    // Chuẩn bị dữ liệu: Case bị chặn bởi mismatch form Bán thành phẩm đã được xác nhận tại TC1484.
+    test.skip(true, 'BLOCK bởi TC1484: form Bán thành phẩm thiếu trường Loại hàng hóa đặc trưng');
   });
 
 

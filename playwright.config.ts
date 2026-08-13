@@ -10,11 +10,23 @@ export default defineConfig({
   workers: env.isCI ? 2 : 1,
   timeout: env.testTimeoutMs,
   expect: { timeout: env.expectTimeoutMs },
+  // reporter: [
+  //   ['./src/reporters/case-result.reporter.ts'],
+  //   ['list'],
+  //   ['html', { outputFolder: 'playwright-report', open: 'never' }],
+  //   ['allure-playwright', { resultsDir: 'allure-results', detail: true }],
+  // ],
   reporter: [
     ['./src/reporters/case-result.reporter.ts'],
     ['list'],
-    ['html', { outputFolder: 'playwright-report', open: 'never' }],
-    ['allure-playwright', { resultsDir: 'allure-results', detail: true }],
+    ['html', {
+      outputFolder: 'playwright-report',
+      open: 'never',
+    }],
+    ['allure-playwright', {
+      resultsDir: 'allure-results',
+      detail: true,
+    }],
   ],
   use: {
     baseURL: env.baseUrl,

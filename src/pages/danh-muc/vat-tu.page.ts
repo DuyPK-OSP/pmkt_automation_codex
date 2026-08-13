@@ -48,7 +48,7 @@ export interface FullGoodsMaterialInput {
 }
 
 export interface FullGoodsMaterialSelection {
-  readonly specialGoodsType: string;
+  readonly specialGoodsType: string | null;
   readonly warrantyUnit: string;
   readonly expenseAccount: string;
   readonly accounts: Readonly<Record<string, string | null>>;
@@ -137,6 +137,21 @@ export class VatTuPage extends BasePage {
     this.defaultAccountingTab = this.locators.defaultAccountingTab;
     this.accountingAccountDropdown = this.locators.visibleDropdown;
     this.accountingAccountColumnHeaders = this.locators.accountingAccountColumnHeaders;
+  }
+
+  /** Trả về cụm Tính chất hàng hóa riêng của form Công cụ, dụng cụ. */
+  ccdcMaterialTypeField(): Locator {
+    return this.locators.ccdcMaterialTypeField();
+  }
+
+  /** Trả về giá trị Tính chất hàng hóa read-only của form Thành phẩm. */
+  finishedProductMaterialTypeField(): Locator {
+    return this.locators.finishedProductMaterialTypeField();
+  }
+
+  /** Trả về giá trị Tính chất hàng hóa read-only của form Bán thành phẩm. */
+  semiFinishedProductMaterialTypeField(): Locator {
+    return this.locators.semiFinishedProductMaterialTypeField();
   }
 
   /** Mở màn hình Danh mục Vật tư và chờ danh sách sẵn sàng thao tác. */
@@ -577,7 +592,9 @@ export class VatTuPage extends BasePage {
     const groups = (await this.locators.formField('Nhóm vật tư').locator('.ant-select-selection-item').allTextContents())
       .map((value) => value.trim()).filter(Boolean);
     const imageVisible = await this.materialImagePreview().isVisible();
-    const specialGoodsType = await this.currentFormOption('Loại hàng hóa đặc trưng');
+    const specialGoodsType = await this.specialGoodsTypeCombobox().count() === 0
+      ? null
+      : await this.currentFormOption('Loại hàng hóa đặc trưng');
     const warrantyPeriod = await readInput('Thời hạn bảo hành');
     const warrantyUnit = await this.currentFormOption('Thời hạn bảo hành');
     const reducedTax = await this.checkbox('Giảm thuế theo quy định').isChecked();
@@ -683,7 +700,10 @@ export class VatTuPage extends BasePage {
     await this.selectGroup(input.group);
     await this.closeDropdown();
     await this.setCheckbox('Giảm thuế theo quy định', true);
-    const specialGoodsType = await this.selectFirstFormOption('Loại hàng hóa đặc trưng');
+    // Bốn loại vật tư quản lý kho hiện có bug thiếu field; giữ null để flow vẫn tiếp tục và spec ghi soft mismatch.
+    const specialGoodsType = locatorProfile === 'inventory-material' && await this.specialGoodsTypeCombobox().count() === 0
+      ? null
+      : await this.selectFirstFormOption('Loại hàng hóa đặc trưng');
     await this.fillFormField('Thời hạn bảo hành', '12');
     if (locatorProfile === 'inventory-material') {
       await this.selectInventoryWarrantyUnit('Ngày');
@@ -703,7 +723,9 @@ export class VatTuPage extends BasePage {
     await this.openFormTab('Thông tin kho');
     const warehouse = await this.currentFormOption('Kho mặc định')
       ?? await this.selectFirstActiveWarehouse();
-    const pricingMethod = await this.selectFirstFormOption('Phương pháp tính giá');
+    const clickedPricingMethod = await this.selectFirstFormOption('Phương pháp tính giá');
+    // Đọc lại đúng field sau khi portal đóng; text option vừa click có thể thuộc popup combogrid trước đó.
+    const pricingMethod = await this.currentFormOption('Phương pháp tính giá') ?? clickedPricingMethod;
     await this.fillFormField('Tồn tối thiểu', '10');
     await this.fillFormField('Tồn tối đa', '1000');
     await this.setCheckbox('Theo dõi lô', true);

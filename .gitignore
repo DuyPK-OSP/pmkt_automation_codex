@@ -156,3 +156,5 @@ blob-report/
 .playwright-mcp/
 task.md
 flaky_analysis.md
+report-management/
+report/evidence/

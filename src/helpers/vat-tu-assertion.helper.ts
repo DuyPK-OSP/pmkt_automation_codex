@@ -135,7 +135,9 @@ export async function verifyFullGoodsMaterialDetails(
   await expect(vatTuPage.materialDetailControl(input.code, 'Tên vật tư', 'textbox')).toHaveValue(input.name);
   await expect(vatTuPage.materialDetailSelectedValue(input.code, 'Nhóm vật tư', input.group.label)).toBeVisible();
   await expect(vatTuPage.materialDetailSelectedValue(input.code, 'Đơn vị tính chính', input.mainUnit.label)).toBeVisible();
-  await expect(vatTuPage.materialDetailSelectedValue(input.code, 'Loại hàng hóa đặc trưng', selection.specialGoodsType)).toBeVisible();
+  if (selection.specialGoodsType !== null) {
+    await expect(vatTuPage.materialDetailSelectedValue(input.code, 'Loại hàng hóa đặc trưng', selection.specialGoodsType)).toBeVisible();
+  }
   await expect(vatTuPage.materialDetailControl(input.code, 'Thời hạn bảo hành', 'spinbutton')).toHaveValue('12');
   await expect(vatTuPage.materialDetailText(input.code, selection.warrantyUnit)).toBeVisible();
   await expect(vatTuPage.materialDetailControl(input.code, 'Tên vật tư khi mua', 'textbox')).toHaveValue(input.purchaseName);

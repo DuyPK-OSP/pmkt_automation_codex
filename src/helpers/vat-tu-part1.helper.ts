@@ -28,6 +28,14 @@ const nullableNumericValue = (value: string | null | undefined): number | null =
   return numericText === undefined ? null : Number(numericText);
 };
 
+/** Ghi nhận bug thiếu Loại hàng hóa đặc trưng bằng soft assertion để testcase tiếp tục lưu và verify DB. */
+export async function recordMissingSpecialGoodsTypeBug(vatTuPage: VatTuPage, materialType: MaterialType): Promise<void> {
+  await expect.soft(
+    vatTuPage.specialGoodsTypeCombobox(),
+    `Form ${materialType} phải hiển thị trường Loại hàng hóa đặc trưng`,
+  ).toBeVisible({ timeout: 500 });
+}
+
 /** Đối chiếu đầy đủ sáu thẻ tính chất và mô tả theo testcase mới. */
 export async function verifyMaterialTypeCards(vatTuPage: VatTuPage): Promise<void> {
   for (const card of expectedMaterialTypeCards) {
@@ -127,7 +135,9 @@ export async function verifyFullGoodsSavedInDatabase(
   expect(actual.trackLot).toBe(true);
   expect(actual.trackBarcode).toBe(true);
   expect(nullableNumericValue(actual.defaultVatRate)).toBe(nullableNumericValue(selection.vatRate));
-  expect(nullableNumericValue(actual.defaultVatValue)).toBe(nullableNumericValue(selection.vatRateValue));
+  await expect.soft(nullableNumericValue(actual.defaultVatValue), 'DB phải lưu Giá trị thuế GTGT đúng như UI').toBe(
+    nullableNumericValue(selection.vatRateValue),
+  );
   expect(nullableNumericValue(actual.importTax)).toBe(0);
   expect(nullableNumericValue(actual.exportTax)).toBe(0);
   expect(actual.exciseTax).toBe(selection.exciseTax);
@@ -140,7 +150,9 @@ export async function verifyFullGoodsSavedInDatabase(
   expect(conversions[0]?.unit).toBe(selection.conversion.unit);
   expect(nullableNumericValue(conversions[0]?.ratio)).toBe(nullableNumericValue(selection.conversion.ratio));
   expect(conversions[0]?.operation).toBe(selection.conversion.operation);
-  expect(conversions[0]?.description).toBe(selection.conversion.description);
+  await expect.soft(conversions[0]?.description, 'DB phải lưu Mô tả quy đổi đúng như UI').toBe(
+    selection.conversion.description,
+  );
   expect(conversions[0]?.order).toBe(0);
 }
 
