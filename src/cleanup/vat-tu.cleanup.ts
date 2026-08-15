@@ -1,5 +1,7 @@
-import type { Page, Response, TestInfo } from '@playwright/test';
+import { expect, type Page, type Response, type TestInfo } from '@playwright/test';
 import type { VatTuPage } from '@pages/danh-muc/vat-tu.page';
+import type { DatabaseContext } from '@database/database.context';
+import { requireCredentials } from '@utils/env.config';
 
 /** Kết quả cleanup của từng Mã vật tư được tracker ghi vào evidence. */
 interface CleanupResult {
@@ -14,6 +16,7 @@ const MATERIAL_PATH = '/api/master-data/vat-tu';
 /** Theo dõi Vật tư do automation tạo qua response API và cleanup các bản ghi đó sau testcase. */
 export class MaterialCleanupTracker {
   private readonly createdMaterialCodes = new Set<string>();
+  private readonly explicitlyRegisteredCodes = new Set<string>();
   private readonly pendingCaptures = new Set<Promise<void>>();
   private readonly responseListener: (response: Response) => void;
 
@@ -21,6 +24,7 @@ export class MaterialCleanupTracker {
   constructor(
     private readonly page: Page,
     private readonly vatTuPage: VatTuPage,
+    private readonly db: DatabaseContext,
   ) {
     this.responseListener = (response) => {
       const capture = this.captureCreatedMaterial(response).finally(() => {
@@ -29,6 +33,15 @@ export class MaterialCleanupTracker {
       this.pendingCaptures.add(capture);
     };
     this.page.on('response', this.responseListener);
+  }
+
+  /** Đăng ký trực tiếp mã Vật tư automation để teardown không phụ thuộc việc bắt response tạo mới. */
+  register(code: string): void {
+    if (!code.startsWith(AUTOMATION_CODE_PREFIX)) {
+      throw new Error(`Cleanup chỉ nhận mã Vật tư bắt đầu bằng ${AUTOMATION_CODE_PREFIX}.`);
+    }
+    this.createdMaterialCodes.add(code);
+    this.explicitlyRegisteredCodes.add(code);
   }
 
   /** Thực thi teardown, ghi nhận kết quả từng bản ghi và attach JSON cleanup vào test result. */
@@ -40,6 +53,13 @@ export class MaterialCleanupTracker {
     for (const code of [...this.createdMaterialCodes].reverse()) {
       try {
         const deleted = await this.vatTuPage.deleteMaterialIfPresent(code);
+        if (this.explicitlyRegisteredCodes.has(code)) {
+          const credentials = requireCredentials();
+          await expect.poll(
+            () => this.db.vatTu.findByCodeForDefaultTenant(credentials.username, code),
+            { message: `Vật tư ${code} phải không còn hoạt động trong DB sau cleanup UI`, timeout: 15_000 },
+          ).toHaveLength(0);
+        }
         results.push({
           code,
           status: deleted ? 'deleted' : 'skipped',
@@ -59,6 +79,15 @@ export class MaterialCleanupTracker {
         body: Buffer.from(JSON.stringify(results, null, 2)),
         contentType: 'application/json',
       });
+    }
+
+    const explicitFailures = results.filter(
+      ({ code, status }) => this.explicitlyRegisteredCodes.has(code) && status === 'failed',
+    );
+    if (explicitFailures.length > 0) {
+      throw new Error(
+        `Cleanup Vật tư thất bại: ${explicitFailures.map(({ code, detail }) => `${code}: ${detail}`).join('; ')}`,
+      );
     }
   }
 

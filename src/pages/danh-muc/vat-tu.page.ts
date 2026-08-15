@@ -645,6 +645,48 @@ export class VatTuPage extends BasePage {
     };
   }
 
+  /** Đọc giá trị rỗng/mặc định thực tế trên form Dịch vụ tối thiểu. */
+  async readRequiredServiceUiDefaults(): Promise<RequiredGoodsUiDefaults> {
+    const readOptionalInput = async (label: string): Promise<string> => {
+      const textbox = this.formFieldControl(label, 'textbox');
+      if (await textbox.count()) return textbox.inputValue();
+      const spinbutton = this.formFieldControl(label, 'spinbutton');
+      return await spinbutton.count() ? spinbutton.inputValue() : '';
+    };
+    const purchaseName = await readOptionalInput('Tên vật tư khi mua');
+    const saleName = await readOptionalInput('Tên vật tư khi bán');
+    const description = await readOptionalInput('Mô tả');
+    const groups = (await this.locators.formField('Nhóm vật tư').locator('.ant-select-selection-item').allTextContents())
+      .map((value) => value.trim()).filter(Boolean);
+    const reducedTax = await this.checkbox('Giảm thuế theo quy định').isChecked();
+    await this.openDefaultAccountingTab();
+    const accounts: Record<string, string | null> = {
+      'Tài khoản vật tư': null,
+      'Tài khoản giá vốn': null,
+    };
+    for (const label of [
+      'Tài khoản doanh thu',
+      'Tài khoản hàng bán trả lại',
+      'Tài khoản chi phí',
+      'Tài khoản chiết khấu',
+      'Tài khoản giảm giá',
+    ]) accounts[label] = await this.currentFormOption(label);
+    await this.openFormTab('Thông tin thuế');
+    const defaultVatRate = await this.currentFormOption('Thuế suất GTGT mặc định');
+    const defaultVatValue = await this.vatRateValueInput().inputValue();
+    const exciseTax = await this.currentFormOption('Thuế tiêu thụ đặc biệt');
+    await this.openFormTab('Đơn vị tính khác');
+    const conversionRowCount = await this.alternativeUnitComboboxes().count();
+    return {
+      purchaseName, saleName, description, groups,
+      imageVisible: await this.materialImagePreview().isVisible(),
+      specialGoodsType: await this.currentFormOption('Loại hàng hóa đặc trưng'), warrantyPeriod: '', warrantyUnit: null, reducedTax, accounts,
+      warehouse: null, pricingMethod: null, minimumStock: '', maximumStock: '',
+      trackLot: false, trackBarcode: false, defaultVatRate, defaultVatValue,
+      importTax: '', exportTax: '', exciseTax, resourceTax: null, conversionRowCount,
+    };
+  }
+
   /** Nhập giá trị vào trường text hoặc number được xác định bằng label. */
   async fillFormField(label: string, value: string): Promise<void> {
     const textbox = this.formFieldControl(label, 'textbox');
@@ -811,6 +853,49 @@ export class VatTuPage extends BasePage {
     await this.click(option, 'Chọn Đơn vị tính khác hợp lệ đầu tiên');
     await option.waitFor({ state: 'hidden' });
     return value;
+  }
+
+  /** Trả về lưới Đơn vị tính khác của Dịch vụ. */
+  alternativeUnitGrid(): Locator {
+    return this.locators.alternativeUnitGrid();
+  }
+
+  /** Trả về các dòng dữ liệu hiện có trên lưới Đơn vị tính khác. */
+  alternativeUnitRows(): Locator {
+    return this.locators.alternativeUnitRows();
+  }
+
+  /** Trả về các combobox Đơn vị tính khác theo thứ tự dòng. */
+  alternativeUnitComboboxes(): Locator {
+    return this.locators.alternativeUnitComboboxes();
+  }
+
+  /** Trả về option Đơn vị tính khác theo nhãn mã — tên. */
+  alternativeUnitOptionByLabel(label: string): Locator {
+    return this.locators.namedDropdownOption(label);
+  }
+
+  /** Chọn Đơn vị tính khác tại một dòng bằng nhãn mã — tên đã lấy từ DB. */
+  async selectAlternativeUnitAtRow(rowIndex: number, option: CatalogueOption): Promise<void> {
+    const combobox = this.locators.alternativeUnitComboboxes().nth(rowIndex);
+    await this.click(combobox, `Mở Đơn vị tính khác dòng ${rowIndex + 1}`);
+    await this.type(combobox, option.code, `Tìm Đơn vị tính khác ${option.code}`);
+    await this.click(this.locators.namedDropdownOption(option.label), `Chọn ${option.label} tại dòng ${rowIndex + 1}`);
+  }
+
+  /** Trả về các ô STT read-only của lưới Đơn vị tính khác. */
+  alternativeUnitOrderInputs(): Locator {
+    return this.locators.alternativeUnitOrderInputs();
+  }
+
+  /** Xóa dòng Đơn vị tính khác theo chỉ số zero-based. */
+  async deleteAlternativeUnitRow(rowIndex = 0): Promise<void> {
+    await this.click(this.locators.alternativeUnitDeleteButtons().nth(rowIndex), `Xóa dòng Đơn vị tính khác ${rowIndex + 1}`);
+  }
+
+  /** Trả về lỗi validation của lưới Đơn vị tính khác. */
+  alternativeUnitValidation(message: string): Locator {
+    return this.locators.alternativeUnitValidation(message);
   }
 
   /** Trả về locator đại diện cho ảnh Vật tư đã upload thành công. */
@@ -1020,6 +1105,11 @@ export class VatTuPage extends BasePage {
   /** Trả về thông báo thành công đang hiển thị. */
   successNotification(): Locator {
     return this.locators.successNotification();
+  }
+
+  /** Trả về đúng notification có chứa triệu chứng cần kiểm tra, tránh strict mode khi toast tạo và xóa cùng tồn tại. */
+  notificationContaining(text: string | RegExp): Locator {
+    return this.locators.successNotification().filter({ hasText: text }).last();
   }
 
   /** Chờ thông báo thành công và trả về nội dung thông báo thực tế. */
@@ -1452,6 +1542,159 @@ export class VatTuPage extends BasePage {
     return this.locators.materialSearchInput();
   }
 
+  /** Trả về icon kính lúp đã xác minh trong ô tìm kiếm nhanh. */
+  materialSearchIcon(): Locator {
+    return this.locators.materialSearchIcon();
+  }
+
+  materialSearchClearButton(): Locator {
+    return this.locators.materialSearchClearButton();
+  }
+
+  async clickMaterialSearchIcon(query: string): Promise<void> {
+    const responseReceived = this.page.waitForResponse(response => this.isMaterialSearchResponse(response, query));
+    await this.click(this.materialSearchIcon(), 'Tìm kiếm Vật tư bằng icon kính lúp');
+    await responseReceived;
+  }
+
+  async clearMaterialSearch(): Promise<void> {
+    await this.click(this.materialSearchClearButton(), 'Xóa nhanh từ khóa tìm kiếm Vật tư');
+  }
+
+  /** Trả về toàn bộ tiêu đề cột của Data Grid Vật tư theo thứ tự hiển thị. */
+  materialColumnHeaders(): Locator {
+    return this.locators.materialColumnHeaders();
+  }
+
+  /** Trả về tiêu đề một cột theo tên nghiệp vụ. */
+  materialColumnHeader(name: string): Locator {
+    return this.locators.materialColumnHeader(name);
+  }
+
+  /** Trả về điểm mở bộ lọc của một cột; locator rỗng khi UI chưa triển khai control này. */
+  materialColumnFilterButton(name: string): Locator {
+    return this.locators.materialColumnFilterButton(name);
+  }
+
+  /** Trả về checkbox chọn toàn bộ của cột Chọn. */
+  materialSelectAllCheckbox(): Locator {
+    return this.locators.materialSelectAllCheckbox();
+  }
+
+  /** Trả về thông báo empty state theo Expected Result. */
+  materialEmptyState(): Locator {
+    return this.locators.materialEmptyState();
+  }
+
+  /** Trả về thông báo lỗi tải danh sách theo Expected Result. */
+  materialListLoadError(): Locator {
+    return this.locators.materialListLoadError();
+  }
+
+  /** Trả về nút tải lại danh sách sau lỗi. */
+  materialListRetryButton(): Locator {
+    return this.locators.materialListRetryButton();
+  }
+
+  /** Đọc thuộc tính text-align đã render của một tiêu đề cột. */
+  async materialColumnAlignment(name: string): Promise<string> {
+    return this.materialColumnHeader(name).evaluate(element => getComputedStyle(element).textAlign);
+  }
+
+  materialPageSizeCombobox(): Locator {
+    return this.locators.materialPageSizeCombobox();
+  }
+
+  materialPageSizeOption(pageSize: number): Locator {
+    return this.locators.materialPageSizeOption(pageSize);
+  }
+
+  /** Chọn số dòng trên một trang và chờ request danh sách tương ứng hoàn tất. */
+  async selectMaterialPageSize(pageSize: 10 | 20 | 50 | 100): Promise<void> {
+    const currentValue = (await this.locators.materialPageSizeSelectedValue().textContent() ?? '').trim();
+    if (new RegExp(`^${pageSize}(?:\\s|$)`).test(currentValue)) return;
+    const loaded = this.page.waitForResponse(response => {
+      const url = new URL(response.url());
+      return url.pathname === '/api/master-data/vat-tu'
+        && url.searchParams.get('pageSize') === String(pageSize)
+        && response.status() === 200;
+    });
+    await this.click(this.locators.materialPageSizeCombobox(), 'Mở lựa chọn kích thước trang');
+    await this.click(this.locators.materialPageSizeOption(pageSize), `Chọn ${pageSize} dòng trên trang`);
+    await loaded;
+  }
+
+  /** Đọc toàn bộ số thứ tự của các dòng đang hiển thị. */
+  async materialSequenceNumbers(): Promise<readonly number[]> {
+    return this.locators.materialDataRows().evaluateAll(rows => rows.map(row => {
+      const sequenceCell = row.querySelectorAll('[role="cell"], td').item(1);
+      return Number(sequenceCell?.textContent?.trim());
+    }));
+  }
+
+  /** Đọc các cột nghiệp vụ của toàn bộ dòng đang hiển thị, bỏ cột checkbox, STT và Chức năng. */
+  async visibleMaterialListValues(): Promise<readonly (readonly string[])[]> {
+    return this.locators.materialDataRows().evaluateAll(rows => rows.map(row =>
+      Array.from(row.querySelectorAll('[role="cell"], td'))
+        .slice(2, 11)
+        .map(cell => cell.textContent?.trim() ?? ''),
+    ));
+  }
+
+  /** Nhập từ khóa và gửi Enter, sau đó chờ đúng request tìm kiếm hoàn tất. */
+  async submitMaterialSearch(query: string): Promise<string> {
+    const responseReceived = this.page.waitForResponse(response => {
+      const url = new URL(response.url());
+      return url.pathname === '/api/master-data/vat-tu'
+        && (url.searchParams.get('search') ?? '').length > 0
+        && response.status() === 200;
+    });
+    await this.materialSearchInput().fill(query);
+    await this.materialSearchInput().press('Enter');
+    const response = await responseReceived;
+    return new URL(response.url()).searchParams.get('search') ?? '';
+  }
+
+  /** Trả về các checkbox dòng trên trang hiện tại. */
+  materialRowCheckboxes(): Locator {
+    return this.locators.materialRowCheckboxes();
+  }
+
+  /** Đọc trạng thái chọn của toàn bộ checkbox dòng đang hiển thị. */
+  async materialRowSelectionStates(): Promise<readonly boolean[]> {
+    return this.materialRowCheckboxes().evaluateAll(elements => elements.map(element => (element as HTMLInputElement).checked));
+  }
+
+  /** Trả về checkbox của dòng theo số hiển thị trên trang. */
+  materialRowCheckbox(rowNumber: number): Locator {
+    return this.locators.materialRowCheckbox(rowNumber);
+  }
+
+  /** Chọn hoặc bỏ chọn toàn bộ dòng trên trang. */
+  async toggleAllVisibleMaterials(): Promise<void> {
+    await this.click(this.materialSelectAllCheckbox(), 'Thay đổi lựa chọn toàn bộ Vật tư trên trang');
+  }
+
+  /** Cuộn dọc vùng Data Grid đến cuối và trả về tọa độ header trước/sau. */
+  async scrollMaterialGridVertically(): Promise<Readonly<{ beforeY: number; afterY: number; scrollTop: number }>> {
+    const header = this.materialColumnHeader('Mã vật tư');
+    const before = await header.boundingBox();
+    const scroller = this.locators.materialGridScroller();
+    await scroller.evaluate(element => { element.scrollTop = element.scrollHeight; });
+    const after = await header.boundingBox();
+    return { beforeY: before?.y ?? -1, afterY: after?.y ?? -1, scrollTop: await scroller.evaluate(element => element.scrollTop) };
+  }
+
+  /** Cuộn ngang Data Grid đến cuối và trả về tọa độ cột Chức năng trước/sau. */
+  async scrollMaterialGridHorizontally(): Promise<Readonly<{ beforeX: number; afterX: number; scrollLeft: number }>> {
+    const actionHeader = this.materialColumnHeader('Chức năng');
+    const before = await actionHeader.boundingBox();
+    const scroller = this.locators.materialGridScroller();
+    await scroller.evaluate(element => { element.scrollLeft = element.scrollWidth; });
+    const after = await actionHeader.boundingBox();
+    return { beforeX: before?.x ?? -1, afterX: after?.x ?? -1, scrollLeft: await scroller.evaluate(element => element.scrollLeft) };
+  }
+
   /** Lấy Mã vật tư đầu tiên đang tồn tại từ dữ liệu bảng UI thực tế. */
   async firstExistingMaterialCode(): Promise<string> {
     const codeButton = this.locators.firstExistingMaterialCode();
@@ -1491,16 +1734,128 @@ export class VatTuPage extends BasePage {
     return this.locators.materialRow(code);
   }
 
+  /** Đọc các Mã vật tư đang hiển thị trên trang hiện tại. */
+  async visibleMaterialCodes(): Promise<readonly string[]> {
+    return this.locators.visibleMaterialCodeButtons().allTextContents();
+  }
+
+  /** Chuyển sang trang kế và chờ nội dung phân trang thay đổi. */
+  async goToNextMaterialPage(): Promise<void> {
+    const before = await this.materialPaginationSummary().innerText();
+    await this.click(this.materialNextPageButton(), 'Chuyển sang trang kế của danh sách Vật tư');
+    await expect(this.materialPaginationSummary()).not.toHaveText(before);
+  }
+
+  /** Trả về nút Xóa của đúng dòng Vật tư theo mã unique. */
+  materialDeleteButton(code: string): Locator {
+    return this.locators.deleteMaterialButton(code);
+  }
+
+  /** Trả về nội dung tổng số bản ghi/phạm vi trang từ phân trang Vật tư. */
+  materialPaginationSummary(): Locator {
+    return this.locators.materialPaginationSummary();
+  }
+
+  /** Trả về nút chuyển trang trước của danh sách Vật tư. */
+  materialPreviousPageButton(): Locator {
+    return this.locators.materialPreviousPageButton();
+  }
+
+  /** Trả về nút chuyển trang kế của danh sách Vật tư. */
+  materialNextPageButton(): Locator {
+    return this.locators.materialNextPageButton();
+  }
+
+  materialPageButton(pageNumber: number): Locator {
+    return this.locators.materialPageButton(pageNumber);
+  }
+
+  materialBulkActionButton(): Locator {
+    return this.locators.materialBulkActionButton();
+  }
+
+  /** Trả về nút theo đúng wording TCS để spec ghi nhận bug UI bằng assertion mềm. */
+  expectedMaterialBulkActionButton(): Locator {
+    return this.locators.expectedMaterialBulkActionButton();
+  }
+
+  materialBulkDeleteItem(): Locator {
+    return this.locators.materialBulkDeleteItem();
+  }
+
+  /** Trả về checkbox của đúng Vật tư theo Mã unique đang hiển thị trên lưới. */
+  materialRowCheckboxByCode(code: string): Locator {
+    return this.locators.materialRowCheckboxByCode(code);
+  }
+
+  /** Trả về popup xác nhận xóa nhiều Vật tư đã chọn. */
+  materialBulkDeleteDialog(): Locator {
+    return this.locators.materialBulkDeleteDialog();
+  }
+
+  /** Trả về nút xác nhận theo wording TCS để ghi nhận mismatch UI. */
+  expectedMaterialBulkConfirmButton(): Locator {
+    return this.locators.expectedMaterialBulkConfirmButton();
+  }
+
+  /** Trả về nút Xóa thực tế để tiếp tục luồng bulk delete. */
+  materialBulkConfirmButton(): Locator {
+    return this.locators.materialBulkConfirmButton();
+  }
+
+  /** Trả về thông báo tổng hợp kết quả xóa hàng loạt theo Expected Result. */
+  materialBulkResultSummary(): Locator {
+    return this.locators.materialBulkResultSummary();
+  }
+
+  /** Trả về menu item theo đúng wording TCS để spec ghi nhận bug UI bằng assertion mềm. */
+  expectedMaterialBulkDeleteItem(): Locator {
+    return this.locators.expectedMaterialBulkDeleteItem();
+  }
+
+  /** Mở xác nhận xóa từ đúng dòng danh sách theo mã unique. */
+  async openListMaterialDeleteConfirmation(code: string): Promise<void> {
+    await this.click(this.materialDeleteButton(code), `Mở xác nhận xóa vật tư ${code} từ danh sách`);
+    await this.locators.deleteConfirmation().waitFor({ state: 'visible' });
+  }
+
+  /** Gửi yêu cầu xóa và trả trạng thái/body thật để testcase xử lý cả response lỗi. */
+  async confirmMaterialDeletionRequest(): Promise<Readonly<{ status: number; body: string }>> {
+    const deleteResponse = this.page.waitForResponse((response) => {
+      const request = response.request();
+      const url = new URL(response.url());
+      return request.method() === 'DELETE' && url.pathname.startsWith('/api/master-data/vat-tu/');
+    });
+    await this.click(this.locators.confirmDeleteButton(), 'Xác nhận xóa vật tư');
+    const response = await deleteResponse;
+    const body = await response.text().catch(() => '');
+    await this.locators.deleteConfirmation().waitFor({ state: 'hidden' }).catch(() => undefined);
+    return { status: response.status(), body };
+  }
+
+  /** Nhấn xác nhận xóa mà không dùng response làm expected; dùng cho mô phỏng lỗi mạng. */
+  async submitMaterialDeletion(): Promise<void> {
+    await this.click(this.locators.confirmDeleteButton(), 'Xác nhận xóa vật tư');
+  }
+
   /** Cleanup đúng Vật tư theo mã; trả về true khi bản ghi đã được xóa. */
   async deleteMaterialIfPresent(code: string): Promise<boolean> {
     if (!code.startsWith('AUTO_')) {
       throw new Error(`Từ chối cleanup vật tư không thuộc automation: ${code}`);
     }
 
+    const deleteConfirmation = this.locators.deleteConfirmation();
+    if (await deleteConfirmation.isVisible()) {
+      await this.click(this.locators.cancelDeleteButton(), 'Đóng xác nhận xóa còn mở trước cleanup');
+      await deleteConfirmation.waitFor({ state: 'hidden' });
+    }
     await this.discardMaterialFormIfOpen();
     const details = this.materialDetails(code);
     if (await details.isVisible()) {
-      await this.page.keyboard.press('Escape');
+      await this.click(
+        this.locators.materialDetailAction(code, 'Hủy'),
+        `Đóng chi tiết vật tư ${code} trước cleanup`,
+      );
       await details.waitFor({ state: 'hidden' });
     }
     const searchInput = this.materialSearchInput();
@@ -1530,6 +1885,10 @@ export class VatTuPage extends BasePage {
     await confirmation.waitFor({ state: 'hidden' });
     if (!response.ok()) {
       const detail = await response.text().catch(() => '');
+      if (response.status() === 409 && detail.includes('HAS_REFERENCES')) {
+        const removedConversions = await this.removeMaterialConversionDependencies(code);
+        if (removedConversions) return this.deleteMaterialIfPresent(code);
+      }
       throw new Error(`Cleanup ${code} bị backend từ chối (${response.status()}): ${detail}`);
     }
     const deletedRow = this.materialRow(code);
@@ -1537,6 +1896,30 @@ export class VatTuPage extends BasePage {
     if (await deletedRow.isVisible()) {
       throw new Error(`Cleanup ${code} thất bại: bản ghi vẫn hiển thị trên UI`);
     }
+    return true;
+  }
+
+  /** Xóa các dòng Đơn vị quy đổi do chính Vật tư automation tạo trước khi retry xóa Vật tư. */
+  async removeMaterialConversionDependencies(code: string): Promise<boolean> {
+    if (await this.materialRow(code).isVisible()) await this.openMaterialDetails(code);
+    await this.materialDetailHeading(code).waitFor({ state: 'visible' });
+    await this.openMaterialEdit(code);
+    const conversionTab = this.locators.materialEditTab(code, 'Đơn vị quy đổi');
+    if (!(await conversionTab.isVisible())) {
+      await this.cancelMaterialEdit(code);
+      return false;
+    }
+    await this.click(conversionTab, `Mở Đơn vị quy đổi khi cleanup ${code}`);
+    const deleteButtons = this.locators.materialEditConversionDeleteButtons(code);
+    const count = await deleteButtons.count();
+    for (let index = count - 1; index >= 0; index -= 1) {
+      await this.click(deleteButtons.nth(index), `Xóa dòng quy đổi ${index + 1} khi cleanup ${code}`);
+    }
+    if (count === 0) {
+      await this.cancelMaterialEdit(code);
+      return false;
+    }
+    await this.saveMaterialEdit(code);
     return true;
   }
 
@@ -1602,6 +1985,131 @@ export class VatTuPage extends BasePage {
       this.materialDetailTab(code, tabName),
       `Mở Tab ${tabName} trên chi tiết vật tư`,
     );
+  }
+
+  /** Trả về tiêu đề popup Chi tiết của đúng Vật tư. */
+  materialDetailHeading(code: string): Locator {
+    return this.locators.materialDetailHeading(code);
+  }
+
+  /** Trả về nút nghiệp vụ trên popup Chi tiết Vật tư. */
+  materialDetailAction(code: string, name: 'Chỉnh sửa' | 'Xóa' | 'Hủy'): Locator {
+    return this.locators.materialDetailAction(code, name);
+  }
+
+  /** Trả về icon X đóng popup Chi tiết của đúng Vật tư. */
+  materialDetailCloseButton(code: string): Locator {
+    return this.locators.materialDetailCloseButton(code);
+  }
+
+  /** Trả về popup xác nhận xóa Vật tư đang hiển thị. */
+  materialDeleteConfirmation(): Locator {
+    return this.locators.deleteConfirmation();
+  }
+
+  materialDeleteConfirmationButton(name: string): Locator {
+    return this.locators.deleteConfirmationButton(name);
+  }
+
+  /** Mở popup xác nhận xóa từ màn Chi tiết Vật tư. */
+  async openMaterialDeleteConfirmation(code: string): Promise<void> {
+    await this.click(this.materialDetailAction(code, 'Xóa'), `Xóa vật tư ${code} từ màn Chi tiết`);
+    await this.locators.deleteConfirmation().waitFor({ state: 'visible' });
+  }
+
+  /** Hủy xác nhận xóa và giữ nguyên màn Chi tiết Vật tư. */
+  async cancelMaterialDeletion(): Promise<void> {
+    await this.click(this.locators.cancelDeleteButton(), 'Hủy xác nhận xóa vật tư');
+    await this.locators.deleteConfirmation().waitFor({ state: 'hidden' });
+  }
+
+  /** Xác nhận xóa Vật tư từ màn Chi tiết và chờ backend hoàn tất. */
+  async confirmMaterialDeletion(code: string): Promise<void> {
+    const deleteResponse = this.page.waitForResponse((response) => {
+      const request = response.request();
+      const url = new URL(response.url());
+      return request.method() === 'DELETE' && url.pathname.startsWith('/api/master-data/vat-tu/');
+    });
+    await this.click(this.locators.confirmDeleteButton(), `Xác nhận xóa vật tư ${code}`);
+    const response = await deleteResponse;
+    if (!response.ok()) {
+      const detail = await response.text().catch(() => '');
+      throw new Error(`Xóa vật tư ${code} bị backend từ chối (${response.status()}): ${detail}`);
+    }
+    await this.locators.deleteConfirmation().waitFor({ state: 'hidden' });
+    await this.materialDetails(code).waitFor({ state: 'hidden' });
+  }
+
+  /** Đóng màn Chi tiết bằng nút Hủy. */
+  async closeMaterialDetailsByCancel(code: string): Promise<void> {
+    await this.click(this.materialDetailAction(code, 'Hủy'), `Đóng chi tiết vật tư ${code} bằng nút Hủy`);
+    await this.materialDetails(code).waitFor({ state: 'hidden' });
+  }
+
+  /** Đóng màn Chi tiết bằng icon X. */
+  async closeMaterialDetailsByIcon(code: string): Promise<void> {
+    await this.click(this.materialDetailCloseButton(code), `Đóng chi tiết vật tư ${code} bằng icon X`);
+    await this.materialDetails(code).waitFor({ state: 'hidden' });
+  }
+
+  /** Trả về toàn bộ control phải bị vô hiệu hóa trên popup Chi tiết. */
+  materialDetailControls(code: string): Locator {
+    return this.locators.materialDetailControls(code);
+  }
+
+  /** Trả về control readonly có ID nghiệp vụ ổn định trên popup Chi tiết. */
+  materialDetailControlById(code: string, id: string): Locator {
+    return this.locators.materialDetailControlById(code, id);
+  }
+
+  /** Trả về toàn bộ tab trên popup Chi tiết theo thứ tự UI. */
+  materialDetailTabs(code: string): Locator {
+    return this.locators.materialDetailTabs(code);
+  }
+
+  /** Trả về nội dung tab đang hiển thị trên popup Chi tiết. */
+  materialDetailTabPanel(code: string, tabName: string): Locator {
+    return this.locators.materialDetailTabPanel(code, tabName);
+  }
+
+  /** Trả về dòng dữ liệu trong tab Đơn vị quy đổi/Đơn vị tính khác theo giá trị unique. */
+  materialDetailGridRow(code: string, tabName: 'Đơn vị quy đổi' | 'Đơn vị tính khác', value: string): Locator {
+    return this.locators.materialDetailGridRow(code, tabName, value);
+  }
+
+  /** Chuyển popup Chi tiết sang chế độ Chỉnh sửa và chờ form editable. */
+  async openMaterialEdit(code: string): Promise<void> {
+    await this.click(this.materialDetailAction(code, 'Chỉnh sửa'), `Chỉnh sửa vật tư ${code}`);
+    await this.locators.materialEditHeading(code).waitFor({ state: 'visible' });
+  }
+
+  /** Trả về control có nhãn trên form Chỉnh sửa Vật tư. */
+  materialEditControl(
+    code: string,
+    label: string,
+    role: Parameters<Locator['getByRole']>[0],
+  ): Locator {
+    return this.locators.materialEditControl(code, label, role);
+  }
+
+  /** Nhập giá trị mới cho trường textbox trên form Chỉnh sửa Vật tư. */
+  async fillMaterialEditField(code: string, label: string, value: string): Promise<void> {
+    await this.type(this.materialEditControl(code, label, 'textbox'), value, `${label} khi chỉnh sửa vật tư`);
+  }
+
+  /** Lưu thay đổi và chờ popup Chỉnh sửa đóng. */
+  async saveMaterialEdit(code: string): Promise<void> {
+    await this.click(this.locators.materialEditAction(code, 'Lưu'), `Lưu chỉnh sửa vật tư ${code}`);
+    await this.locators.materialEditHeading(code).waitFor({ state: 'hidden' });
+  }
+
+  /** Hủy thay đổi đang nhập trên form Chỉnh sửa. */
+  async cancelMaterialEdit(code: string): Promise<void> {
+    await this.click(this.locators.materialEditAction(code, 'Hủy'), `Hủy chỉnh sửa vật tư ${code}`);
+    if (await this.closeConfirmationDialog.isVisible()) {
+      await this.confirmClose();
+    }
+    await this.locators.materialEditHeading(code).waitFor({ state: 'hidden' });
   }
 
   /** Trả về bảng Đơn vị quy đổi trên form. */

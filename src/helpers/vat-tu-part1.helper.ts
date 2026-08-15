@@ -7,6 +7,8 @@ import type {
   CatalogueOption,
   FullGoodsMaterialInput,
   FullGoodsMaterialSelection,
+  FullServiceMaterialInput,
+  FullServiceMaterialSelection,
   MaterialType,
   RequiredGoodsUiDefaults,
   TaxOption,
@@ -20,6 +22,12 @@ import { TestDataGenerator } from '@utils/test-data';
 const normalizeAccountLabel = (value: string | null | undefined): string | null => value
   ?.trim()
   .replace(/\s*[-–—]\s*/u, ' — ') ?? null;
+
+/** Chuẩn hóa text option tài khoản nhiều dòng của combogrid thành nhãn mã — tên. */
+const normalizeServiceAccountSelection = (value: string | null | undefined): string | null => {
+  const parts = value?.split(/\r?\n|\t/u).map((part) => part.trim()).filter(Boolean) ?? [];
+  return normalizeAccountLabel(parts.length >= 2 ? `${parts[0]} — ${parts[1]}` : value);
+};
 
 /** Chuẩn hóa riêng định dạng số; giữ nguyên khác biệt có ý nghĩa giữa NULL và 0. */
 const nullableNumericValue = (value: string | null | undefined): number | null => {
@@ -84,6 +92,64 @@ export function fullGoodsData(
     group,
     mainUnit,
   };
+}
+
+/** Sinh bộ dữ liệu Dịch vụ đầy đủ, unique và truy vết được. */
+export function fullServiceData(
+  testCaseId: string,
+  group: CatalogueOption,
+  mainUnit: CatalogueOption,
+): FullServiceMaterialInput {
+  const code = new TestDataGenerator().uniqueCode(testCaseId);
+  return {
+    code,
+    name: `Dịch vụ ${testCaseId} ${code}`,
+    description: `Mô tả nghiệp vụ ${testCaseId} ${code}`,
+    purchaseName: `Tên mua ${testCaseId} ${code}`,
+    saleName: `Tên bán ${testCaseId} ${code}`,
+    group,
+    mainUnit,
+  };
+}
+
+/** Đối chiếu toàn bộ dữ liệu Dịch vụ đã nhập với mst_vat_tu và Đơn vị tính khác. */
+export async function verifyFullServiceSavedInDatabase(
+  db: DatabaseContext,
+  username: string,
+  material: FullServiceMaterialInput,
+  selection: FullServiceMaterialSelection,
+  active: boolean,
+  expectedAlternativeUnitCount = 1,
+): Promise<void> {
+  await expect.poll(
+    async () => (await db.vatTu.findByCodeForDefaultTenant(username, material.code)).length,
+    { message: `DB phải có đúng một Dịch vụ ${material.code}` },
+  ).toBe(1);
+  const actual = (await db.vatTu.findByCodeForDefaultTenant(username, material.code))[0];
+  expect(actual, `Phải đọc được Dịch vụ ${material.code} từ DB`).toBeDefined();
+  if (!actual) return;
+  expect(actual.id).toBeTruthy();
+  expect(actual.tenantId).toBeTruthy();
+  expect(actual.code).toBe(material.code);
+  expect(actual.name).toBe(material.name);
+  expect(actual.materialType).toBe('Dịch vụ');
+  expect(actual.mainUnit).toBe(material.mainUnit.label);
+  expect(actual.purchaseName).toBe(material.purchaseName);
+  expect(actual.saleName).toBe(material.saleName);
+  expect(actual.description).toBe(material.description);
+  expect(actual.groups).toEqual([material.group.label]);
+  expect(actual.reducedTax).toBe(true);
+  expect(actual.active).toBe(active);
+  expect(normalizeAccountLabel(actual.revenueAccount)).toBe(normalizeServiceAccountSelection(selection.accounts['Tài khoản doanh thu']));
+  expect(normalizeAccountLabel(actual.salesReturnAccount)).toBe(normalizeServiceAccountSelection(selection.accounts['Tài khoản hàng bán trả lại']));
+  expect(normalizeAccountLabel(actual.expenseAccount)).toBe(normalizeServiceAccountSelection(selection.accounts['Tài khoản chi phí']));
+  expect(normalizeAccountLabel(actual.discountAccount)).toBe(normalizeServiceAccountSelection(selection.accounts['Tài khoản chiết khấu']));
+  expect(normalizeAccountLabel(actual.priceReductionAccount)).toBe(normalizeServiceAccountSelection(selection.accounts['Tài khoản giảm giá']));
+  expect(nullableNumericValue(actual.defaultVatRate)).toBe(nullableNumericValue(selection.vatRate));
+  expect(actual.exciseTax).toBe(selection.exciseTax);
+  expect(actual.deleted).toBe(false);
+  expect(actual.alternativeUnits).toHaveLength(expectedAlternativeUnitCount);
+  if (expectedAlternativeUnitCount > 0) expect(actual.alternativeUnits[0]).toBe(selection.alternativeUnit);
 }
 
 /** Đối chiếu toàn bộ dữ liệu Hàng hóa đã nhập với mst_vat_tu và bảng Đơn vị quy đổi. */
@@ -189,13 +255,14 @@ export async function verifyRequiredGoodsSavedInDatabase(
   const nullableText = (value: string): string | null => value === '' ? null : value;
   const nullableNumber = (value: string): number | null => value === '' ? null : Number(value);
   expect(actual.pricingMethod).toBe(defaults.pricingMethod);
-  expect(normalizeAccountLabel(actual.materialAccount)).toBe(normalizeAccountLabel(defaults.accounts['Tài khoản vật tư']));
-  expect(normalizeAccountLabel(actual.costOfGoodsAccount)).toBe(normalizeAccountLabel(defaults.accounts['Tài khoản giá vốn']));
-  expect(normalizeAccountLabel(actual.revenueAccount)).toBe(normalizeAccountLabel(defaults.accounts['Tài khoản doanh thu']));
-  expect(normalizeAccountLabel(actual.salesReturnAccount)).toBe(normalizeAccountLabel(defaults.accounts['Tài khoản hàng bán trả lại']));
-  expect(normalizeAccountLabel(actual.expenseAccount)).toBe(normalizeAccountLabel(defaults.accounts['Tài khoản chi phí']));
-  expect(normalizeAccountLabel(actual.discountAccount)).toBe(normalizeAccountLabel(defaults.accounts['Tài khoản chiết khấu']));
-  expect(normalizeAccountLabel(actual.priceReductionAccount)).toBe(normalizeAccountLabel(defaults.accounts['Tài khoản giảm giá']));
+  const normalizeExpectedAccount = materialType === 'Dịch vụ' ? normalizeServiceAccountSelection : normalizeAccountLabel;
+  expect(normalizeAccountLabel(actual.materialAccount)).toBe(normalizeExpectedAccount(defaults.accounts['Tài khoản vật tư']));
+  expect(normalizeAccountLabel(actual.costOfGoodsAccount)).toBe(normalizeExpectedAccount(defaults.accounts['Tài khoản giá vốn']));
+  expect(normalizeAccountLabel(actual.revenueAccount)).toBe(normalizeExpectedAccount(defaults.accounts['Tài khoản doanh thu']));
+  expect(normalizeAccountLabel(actual.salesReturnAccount)).toBe(normalizeExpectedAccount(defaults.accounts['Tài khoản hàng bán trả lại']));
+  expect(normalizeAccountLabel(actual.expenseAccount)).toBe(normalizeExpectedAccount(defaults.accounts['Tài khoản chi phí']));
+  expect(normalizeAccountLabel(actual.discountAccount)).toBe(normalizeExpectedAccount(defaults.accounts['Tài khoản chiết khấu']));
+  expect(normalizeAccountLabel(actual.priceReductionAccount)).toBe(normalizeExpectedAccount(defaults.accounts['Tài khoản giảm giá']));
   expect(actual.purchaseName).toBe(nullableText(defaults.purchaseName));
   expect(actual.saleName).toBe(nullableText(defaults.saleName));
   expect(actual.description).toBe(nullableText(defaults.description));
@@ -218,7 +285,8 @@ export async function verifyRequiredGoodsSavedInDatabase(
   expect(actual.exciseTax).toBe(defaults.exciseTax);
   expect(actual.resourceTax).toBe(defaults.resourceTax);
   expect(actual.deleted).toBe(false);
-  expect(await db.donViQuyDoiVatTu.listByMaterialCodeForDefaultTenant(username, expected.code)).toHaveLength(defaults.conversionRowCount);
+  if (materialType === 'Dịch vụ') expect(actual.alternativeUnits).toHaveLength(defaults.conversionRowCount);
+  else expect(await db.donViQuyDoiVatTu.listByMaterialCodeForDefaultTenant(username, expected.code)).toHaveLength(defaults.conversionRowCount);
 }
 
 /** Mở form Hàng hóa tại tab Hạch toán và trả về danh mục Tài khoản từ DB. */

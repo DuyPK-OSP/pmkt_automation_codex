@@ -18,6 +18,7 @@ import { IndustryCleanupTracker } from '@cleanup/nganh-nghe.cleanup';
 import { expect, runWithEvidenceContext } from '@utils/evidence-expect';
 import { KhoPage } from '@pages/danh-muc/kho.page';
 import { QuickAddCleanupRegistry } from '@cleanup/quick-add.cleanup';
+import { useMaterialListDataset, type MaterialListDataset } from '@helpers/vat-tu-list-dataset.helper';
 
 /** Danh sách Page Object, logger và cleanup tracker được khởi tạo riêng cho từng testcase. */
 interface FrameworkFixtures {
@@ -43,6 +44,7 @@ interface FrameworkFixtures {
 /** Database context được tái sử dụng trong một worker để tránh mở pool theo từng testcase. */
 interface FrameworkWorkerFixtures {
   readonly db: DatabaseContext;
+  readonly materialListDataset: MaterialListDataset;
 }
 
 /** Mở rộng Playwright test bằng các fixture của framework và lifecycle setup/teardown tương ứng. */
@@ -56,6 +58,17 @@ export const test = base.extend<FrameworkFixtures, FrameworkWorkerFixtures>({
     await use(database);
     // Teardown đóng pool một lần sau khi toàn bộ testcase của worker hoàn tất truy vấn DB.
     await database.close();
+  }, { scope: 'worker' }],
+  materialListDataset: [async ({ browser, db }, use) => {
+    // Dataset global tồn tại ngoài worker để không bị tạo lại khi Playwright restart worker sau testcase FAIL.
+    const globalPrefix = process.env.MATERIAL_LIST_DATASET_PREFIX;
+    if (globalPrefix) {
+      const codes = Array.from({ length: 110 }, (_, index) => `${globalPrefix}_${String(index + 1).padStart(3, '0')}`);
+      await use({ prefix: globalPrefix, codes });
+      return;
+    }
+    // Fallback cho lệnh chạy trực tiếp một case/spec không dùng cấu hình lifecycle riêng.
+    await useMaterialListDataset(browser, db, use);
   }, { scope: 'worker' }],
   logger: async ({ }, use) => { await use(new Logger()); },
   loginPage: async ({ page, logger }, use) => { await use(new LoginPage(page, logger)); },
@@ -80,8 +93,8 @@ export const test = base.extend<FrameworkFixtures, FrameworkWorkerFixtures>({
     // Cleanup chạy sau testcase, kể cả khi assertion trước đó thất bại.
     await tracker.cleanup(testInfo);
   }, { auto: true }],
-  materialCleanup: [async ({ page, vatTuPage }, use, testInfo) => {
-    const tracker = new MaterialCleanupTracker(page, vatTuPage);
+  materialCleanup: [async ({ page, vatTuPage, db }, use, testInfo) => {
+    const tracker = new MaterialCleanupTracker(page, vatTuPage, db);
     await use(tracker);
     // Tracker xóa các Mã vật tư AUTO_ đã bắt được từ response tạo mới thành công.
     await tracker.cleanup(testInfo);

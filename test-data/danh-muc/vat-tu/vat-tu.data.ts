@@ -1,3 +1,81 @@
+import { TestDataGenerator } from '@utils/test-data';
+import type {
+  CatalogueOption,
+  FullGoodsMaterialInput,
+  FullServiceMaterialInput,
+  MaterialType,
+} from '@pages/danh-muc/vat-tu.page';
+
+export interface MaterialDetailEditData {
+  readonly code: string;
+  readonly originalName: string;
+  readonly updatedName: string;
+  readonly cancelledDescription: string;
+}
+
+export interface MaterialDetailCreationData {
+  readonly code: string;
+  readonly name: string;
+}
+
+/** Sinh dữ liệu Vật tư riêng cho testcase thao tác xóa, không dùng dữ liệu nền. */
+export function materialDetailCreationData(testCaseId: string): MaterialDetailCreationData {
+  const generator = new TestDataGenerator();
+  return {
+    code: generator.uniqueCode(testCaseId),
+    name: generator.uniqueKeyword(testCaseId),
+  };
+}
+
+/** Sinh dữ liệu đầy đủ cho testcase Chi tiết của loại Vật tư có quản lý kho. */
+export function materialDetailFullInventoryData(
+  testCaseId: string,
+  materialType: Exclude<MaterialType, 'Dịch vụ'>,
+  group: CatalogueOption,
+  mainUnit: CatalogueOption,
+): FullGoodsMaterialInput {
+  const code = new TestDataGenerator().uniqueCode(testCaseId);
+  return {
+    code,
+    name: `${materialType} ${testCaseId} ${code}`,
+    description: `Mô tả ${testCaseId} ${code}`,
+    purchaseName: `Tên mua ${testCaseId} ${code}`,
+    saleName: `Tên bán ${testCaseId} ${code}`,
+    imagePath: 'test-data/danh-muc/vat-tu/tc32-material.png',
+    group,
+    mainUnit,
+  };
+}
+
+/** Sinh dữ liệu đầy đủ cho testcase Chi tiết Dịch vụ. */
+export function materialDetailFullServiceData(
+  testCaseId: string,
+  group: CatalogueOption,
+  mainUnit: CatalogueOption,
+): FullServiceMaterialInput {
+  const code = new TestDataGenerator().uniqueCode(testCaseId);
+  return {
+    code,
+    name: `Dịch vụ ${testCaseId} ${code}`,
+    description: `Mô tả ${testCaseId} ${code}`,
+    purchaseName: `Tên mua ${testCaseId} ${code}`,
+    saleName: `Tên bán ${testCaseId} ${code}`,
+    group,
+    mainUnit,
+  };
+}
+
+/** Sinh bộ dữ liệu unique, traceable cho luồng Chỉnh sửa rồi Hủy tại màn Chi tiết Vật tư. */
+export function materialDetailEditData(testCaseId: string): MaterialDetailEditData {
+  const generator = new TestDataGenerator();
+  return {
+    code: generator.uniqueCode(testCaseId),
+    originalName: generator.uniqueKeyword(`${testCaseId}-original`),
+    updatedName: generator.uniqueKeyword(`${testCaseId}-updated`),
+    cancelledDescription: generator.uniqueKeyword(`${testCaseId}-cancel`),
+  };
+}
+
 export const expectedMaterialTypeCards = [
   {
     type: 'Hàng hóa',
