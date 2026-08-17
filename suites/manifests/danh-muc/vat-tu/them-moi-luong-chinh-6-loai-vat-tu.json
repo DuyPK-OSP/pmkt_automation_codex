@@ -1,0 +1,49 @@
+{
+  "$schema": "../../../schemas/suite-manifest.schema.json",
+  "name": "vat-tu-create-flow-critical",
+  "description": "Chọn các testcase hoàn tất luồng tạo mới quan trọng từ nhiều spec Vật tư.",
+  "purpose": "critical-path",
+  "execution": {
+    "workers": 1,
+    "retries": 0,
+    "headed": false
+  },
+  "specs": [
+    {
+      "path": "src/tests/danh-muc/pmkt-u-00106_vat_tu/them-moi-vat-tu-hang-hoa.spec.ts",
+      "testCases": ["TC_PMKT-U-00106-308", "TC_PMKT-U-00106-309", "TC_PMKT-U-00106-310", "TC_PMKT-U-00106-311", "TC_PMKT-U-00106-312"],
+      "report": "report/them-moi-vat-tu-hang-hoa-report.html",
+      "reason": "Các luồng lưu Hàng hóa quan trọng."
+    },
+    {
+      "path": "src/tests/danh-muc/pmkt-u-00106_vat_tu/them-moi-vat-tu-dich-vu.spec.ts",
+      "testCases": ["TC_PMKT-U-00106-496", "TC_PMKT-U-00106-497", "TC_PMKT-U-00106-498", "TC_PMKT-U-00106-499", "TC_PMKT-U-00106-500"],
+      "report": "report/them-moi-vat-tu-dich-vu-report.html",
+      "reason": "Các luồng lưu Dịch vụ quan trọng."
+    },
+    {
+      "path": "src/tests/danh-muc/pmkt-u-00106_vat_tu/them-moi-vat-tu-nguyen-vat-lieu.spec.ts",
+      "testCases": ["TC_PMKT-U-00106-818", "TC_PMKT-U-00106-819", "TC_PMKT-U-00106-820", "TC_PMKT-U-00106-821", "TC_PMKT-U-00106-822"],
+      "report": "report/them-moi-vat-tu-nguyen-vat-lieu-report.html",
+      "reason": "Các luồng lưu Nguyên vật liệu quan trọng."
+    },
+    {
+      "path": "src/tests/danh-muc/pmkt-u-00106_vat_tu/them-moi-vat-tu-cong-cu-dung-cu.spec.ts",
+      "testCases": ["TC_PMKT-U-00106-1140", "TC_PMKT-U-00106-1141", "TC_PMKT-U-00106-1142", "TC_PMKT-U-00106-1143", "TC_PMKT-U-00106-1144"],
+      "report": "report/them-moi-vat-tu-cong-cu-dung-cu-report.html",
+      "reason": "Các luồng lưu Công cụ dụng cụ quan trọng."
+    },
+    {
+      "path": "src/tests/danh-muc/pmkt-u-00106_vat_tu/them-moi-vat-tu-thanh-pham.spec.ts",
+      "testCases": ["TC_PMKT-U-00106-1462", "TC_PMKT-U-00106-1463", "TC_PMKT-U-00106-1464", "TC_PMKT-U-00106-1465", "TC_PMKT-U-00106-1466"],
+      "report": "report/them-moi-vat-tu-thanh-pham-report.html",
+      "reason": "Các luồng lưu Thành phẩm quan trọng."
+    },
+    {
+      "path": "src/tests/danh-muc/pmkt-u-00106_vat_tu/them-moi-vat-tu-ban-thanh-pham.spec.ts",
+      "testCases": ["TC_PMKT-U-00106-1784", "TC_PMKT-U-00106-1785", "TC_PMKT-U-00106-1786", "TC_PMKT-U-00106-1787", "TC_PMKT-U-00106-1788"],
+      "report": "report/them-moi-vat-tu-ban-thanh-pham-report.html",
+      "reason": "Các luồng lưu Bán thành phẩm quan trọng."
+    }
+  ]
+}

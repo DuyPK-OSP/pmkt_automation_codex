@@ -84,7 +84,7 @@ export default class CaseResultReporter implements Reporter {
 
   /** Chuẩn hóa kết quả, lưu attachment body, ghi JSON testcase và cập nhật index ngay khi test kết thúc. */
   async onTestEnd(test: TestCase, result: TestResult): Promise<void> {
-    const testCaseId = test.title.match(/CL-UAT-U-\d+-\d+/)?.[0] ?? safeName(test.title);
+    const testCaseId = test.title.match(/(?:TC|CL)[A-Za-z0-9_-]+/)?.[0] ?? safeName(test.title);
     const project = test.parent.project()?.name ?? 'default';
     const recordKey = `${testCaseId}--${safeName(project)}--retry-${result.retry}`;
     const attachmentDir = resolve(this.caseResultsDir, 'attachments', recordKey);

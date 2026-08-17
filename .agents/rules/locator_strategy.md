@@ -87,3 +87,5 @@ Nếu luồng thao tác, validation hoặc Expected Result thay đổi, phải p
 
 Chi tiết locator cho từng framework xem tại:
 - Playwright: `.agents/rules/playwright_rules.md` (Section 3)
+
+Khi thứ tự ưu tiên chung khác với rule riêng của framework, rule riêng của framework được ưu tiên; với Playwright áp dụng đúng thứ tự tại `playwright_rules.md`.

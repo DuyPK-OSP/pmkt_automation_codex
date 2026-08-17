@@ -83,7 +83,18 @@ export default async function globalSetup(_: FullConfig): Promise<void> {
 
 /** Global teardown xóa đúng dataset trong state sau khi toàn bộ Playwright process kết thúc. */
 export async function globalTeardown(_: FullConfig): Promise<void> {
-  const dataset = JSON.parse(await readFile(STATE_PATH, 'utf8')) as MaterialListDataset;
+  let dataset: MaterialListDataset;
+  try {
+    dataset = JSON.parse(await readFile(STATE_PATH, 'utf8')) as MaterialListDataset;
+  } catch (error) {
+    // Fallback phục hồi cleanup theo prefix khi state bị tiến trình ngoài ý muốn xóa mất.
+    const prefix = process.env.MATERIAL_LIST_DATASET_PREFIX;
+    if (!prefix) throw error;
+    dataset = {
+      prefix,
+      codes: Array.from({ length: 110 }, (_, index) => `${prefix}_${String(index + 1).padStart(3, '0')}`),
+    };
+  }
   const browser = await chromium.launch({ headless: true });
   const db = new DatabaseContext();
   const credentials = requireCredentials();
@@ -98,7 +109,9 @@ export async function globalTeardown(_: FullConfig): Promise<void> {
     });
     const remaining = await db.vatTu.findActiveIdentitiesByCodesForDefaultTenant(credentials.username, dataset.codes);
     if (remaining.length > 0) throw new Error(`Global teardown còn sót ${remaining.map(item => item.code).join(', ')}.`);
-    await unlink(STATE_PATH);
+    await unlink(STATE_PATH).catch(error => {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    });
   } finally {
     delete process.env.MATERIAL_LIST_DATASET_PREFIX;
     await context.close();

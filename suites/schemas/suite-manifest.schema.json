@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pmkt.local/schemas/suite-manifest.schema.json",
+  "title": "PMKT Playwright Suite Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "description", "specs"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "name": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "description": { "type": "string", "minLength": 1 },
+    "purpose": {
+      "type": "string",
+      "enum": ["smoke", "regression", "critical-path", "release", "business-flow", "defect-verification", "custom"]
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "workers": { "const": 1 },
+        "retries": { "type": "integer", "minimum": 0 },
+        "headed": { "type": "boolean" }
+      }
+    },
+    "specs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path"],
+        "properties": {
+          "path": { "type": "string", "pattern": "^src/tests/.+\\.spec\\.ts$" },
+          "testCases": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "report": { "type": "string", "pattern": "^report/.+-report\\.html$" },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

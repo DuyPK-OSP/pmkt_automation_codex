@@ -126,25 +126,7 @@ industryCleanup.register(data.code);
 
 ### 6.0. Nguồn expected cho dữ liệu nghiệp vụ
 
-- Mọi expected liên quan đến dữ liệu nghiệp vụ phải lấy từ hoặc đối chiếu trực tiếp với database đúng tenant. Phạm vi bao gồm dữ liệu form, danh mục, dropdown, combogrid, giá trị mặc định, trạng thái, quan hệ, điều kiện lọc và dữ liệu sau thao tác tạo/sửa/xóa.
-- Nghiêm cấm dùng API response làm nguồn expected cho assertion dữ liệu. API chỉ được dùng để đồng bộ hoặc chờ hoàn tất thao tác kỹ thuật; payload API không quyết định kết quả PASS/FAIL của dữ liệu.
-- Sau thao tác ghi dữ liệu qua UI, testcase phải truy vấn bằng khóa unique do chính testcase tạo và xác nhận các trường, trạng thái, quan hệ hoặc ảnh hưởng dữ liệu được manual testcase yêu cầu.
-- Với testcase thêm mới thành công, phạm vi verify DB phải bao phủ toàn bộ trường trên UI có ánh xạ lưu trữ, không chỉ các trường người dùng chủ động nhập/chọn. Phải kiểm tra cả trường tự động điền, checkbox, trạng thái, dữ liệu bảng con và giá trị hệ thống phát sinh như ID, tenant, cờ xóa hoặc thứ tự dòng khi có.
-- Với testcase chỉ nhập các trường bắt buộc, trước khi lưu phải đọc và lưu lại toàn bộ giá trị mặc định thực tế đang hiển thị trên UI của các trường không nhập. Sau khi lưu, đối chiếu từng giá trị đó với DB; không được tự hardcode hoặc suy diễn default từ API, code ứng dụng hay một testcase khác.
-- **Quy tắc đối chiếu UI → DB nghiêm ngặt:** Expected của từng trường phải là giá trị thực tế đọc trực tiếp trên UI ngay trước thao tác Lưu; Actual phải là giá trị đọc trực tiếp từ đúng cột DB sau khi lưu. Không được tự suy diễn Expected từ trường liên quan, API, payload, code ứng dụng hoặc quy tắc nghiệp vụ chưa được testcase/UI thể hiện.
-- Phải giữ nguyên ý nghĩa của trạng thái dữ liệu khi so sánh: `NULL`, chuỗi rỗng, `0` và `false` là các giá trị khác nhau. Nghiêm cấm dùng phép chuyển đổi làm mất khác biệt này, ví dụ `Number(null) === 0`, `Boolean(null) === false` hoặc `value ?? defaultValue`, vì có thể tạo PASS giả. Chỉ chuyển kiểu sau khi đã xử lý `NULL`/rỗng riêng biệt.
-- Chỉ được chuẩn hóa khác biệt về **cách biểu diễn** mà không làm thay đổi giá trị nghiệp vụ, ví dụ UI `5` và DB `5.0000`, dấu phân cách `-`/`—` trong cùng nhãn mã–tên, hoặc enum DB ánh xạ đúng nhãn UI. UI `10` nhưng DB `NULL`, UI có mô tả nhưng DB `NULL`, hoặc UI trống nhưng DB `0` đều phải FAIL.
-- Với trường UI tự động sinh/tự động điền/read-only như mô tả quy đổi, giá trị thuế suất, tài khoản mặc định hoặc mô tả công thức, vẫn phải đọc giá trị hiển thị trên UI và đối chiếu đúng cột DB; không được mặc định kỳ vọng `NULL` chỉ vì người dùng không trực tiếp nhập.
-- Mỗi assertion DB phải ánh xạ rõ `Thông tin UI → bảng.cột DB`. Nếu một giá trị UI chưa xác định được cột lưu hoặc contract lưu trữ, phải làm rõ trước; không bỏ qua âm thầm và không kết luận đã verify DB đầy đủ.
-- Phải phân biệt placeholder với giá trị thực. Nội dung gợi ý như `Chọn`, `Chọn...`, `Chọn kho mặc định` không phải dữ liệu đã chọn và phải được chuẩn hóa tương ứng `NULL`/rỗng khi đối chiếu DB.
-- Trước assertion phải chuẩn hóa có chủ đích các khác biệt biểu diễn giữa UI và DB, gồm label combogrid, enum, number/decimal, boolean, chuỗi rỗng/`NULL` và quy ước thứ tự zero-based. Không được thay expected chỉ để làm testcase PASS; mọi quy tắc chuẩn hóa phải dựa trên contract hoặc dữ liệu chạy thực tế đã được xác minh.
-- Dùng cơ chế polling có timeout để chờ transaction ghi dữ liệu hoàn tất rồi mới đọc bản ghi; không dùng fixed sleep. Mismatch UI mềm như nội dung toast không được ngăn phần verify DB tiếp tục khi testcase cần thu thập đồng thời cả kết quả UI và DB.
-- Chỉ kết luận một testcase đã verify DB đầy đủ khi lần chạy thực tế đã đi xuyên qua toàn bộ DB assertions của chính testcase đó. Không suy luận kết quả từ testcase tương tự hoặc từ lần chạy đã dừng trước phần kiểm tra DB.
-- Mỗi bảng DB phải có repository riêng; không tạo repository tổng hợp chứa query của nhiều bảng nghiệp vụ khác ownership.
-- SQL chỉ nằm trong repository. Page Object không truy vấn DB; helper chỉ điều phối/ánh xạ; assertion nghiệp vụ nằm trong spec.
-- Query dùng để verify phải read-only, parameterized và xác định đúng `tenant_id`; không hardcode tenant, credential hoặc thông tin kết nối.
-- Với dropdown/combogrid dùng virtual scroll hoặc lazy-load, phải search/filter bằng khóa nghiệp vụ ổn định và unique (ưu tiên mã) để bản ghi được render vào DOM trước khi assert hoặc chọn. Không coi tập option đang render ban đầu là toàn bộ dữ liệu UI.
-- Chỉ phân loại là lỗi dữ liệu UI khi DB xác nhận bản ghi thuộc đúng tenant nhưng UI vẫn không trả về option sau khi tìm chính xác theo mã/tên. Ảnh chụp danh sách ban đầu chưa qua tìm kiếm không phải evidence đầy đủ cho lỗi thiếu dữ liệu.
+- Tuân thủ toàn bộ `.agents/rules/database_verification_rules.md`; file này là nguồn chuẩn duy nhất cho expected từ DB, ánh xạ UI → DB, tenant, repository và an toàn query.
 
 - Mỗi test case **BẮT BUỘC** có ít nhất 1 assertion ở cuối.
 - Nên có assertion xen kẽ ở các bước quan trọng.
@@ -172,18 +154,7 @@ industryCleanup.register(data.code);
 - Việc chụp evidence và thu thập log lỗi phải hoàn tất trước cleanup để không làm mất trạng thái phục vụ điều tra.
 - Cleanup không điều hướng hoặc tải lại trang nếu có thể hoàn thành trên màn hình hiện tại. Chỉ mở màn hình khác khi quy tắc nghiệp vụ của dự án hoặc testcase yêu cầu; không cần redirect trở lại màn hình ban đầu sau khi cleanup hoàn tất.
 
-## 8. Quy Tắc Report PMKT
+## 8. Quy Tắc Riêng Theo Sản Phẩm
 
-- Khi tạo report, bắt buộc dùng `report/templates/report-template.html` làm template duy nhất và tuân thủ đầy đủ các quy tắc được ghi trong template.
-- Mỗi lần `Chạy và report` chỉ tạo hoặc cập nhật một file HTML từ kết quả chạy thật; không sinh báo cáo Markdown.
-- Mỗi feature dùng một file HTML ổn định tên `<tên-spec>-report.html`; lần chạy sau cập nhật cùng file và bảo toàn dữ liệu tester/audit.
-- HTML giữ cơ chế Tester Review, draft, thêm evidence, Tester Reported Bug và Export Reviewed Report; Automation Result luôn read-only.
-- Bảng Tổng hợp Bugs gồm đúng các cột: `Bug ID`, `Mức độ`, `Số case ảnh hưởng`, `Tên case ảnh hưởng`, `Tóm tắt bug`. Tên case ảnh hưởng chỉ ghi TC ID.
-- Mỗi Chi tiết Bug gồm đúng bảy hạng mục: `Tiêu đề bug`, `Điều kiện tiên quyết`, `Các bước tái hiện`, `Data test`, `Kết quả mong đợi`, `Kết quả thực tế`, `Bằng chứng`.
-- Nếu nhiều testcase cùng một bug, dùng testcase đầu tiên làm case đại diện. Lấy nhất quán Pre-Condition, Steps, Test Data và Expected của case đại diện; vẫn giữ đầy đủ TC ID ảnh hưởng trong bảng Tổng hợp Bugs.
-- Pre-Condition và Steps phải khớp manual testcase, đúng thứ tự thao tác và tên control thực tế. Không dùng mô tả chung như `chạy TC`, `thực hiện theo testcase` hoặc `quan sát assertion`.
-- Expected và Actual phải cụ thể, tương ứng từng mục 1/2/3 nếu có nhiều kết quả. Actual là giá trị/hành vi quan sát thật; không tô đỏ hoặc highlight trong report.
-- Khi có đối chiếu DB, report phải phản ánh đúng `giá trị UI → bảng.cột DB`; không suy diễn và không coi `NULL`, rỗng, `0`, `false` là tương đương. Khác biệt biểu diễn tương đương như `5` và `5.0000` không phải bug.
-- FAIL là Actual không khớp testcase sau khi thực hiện được luồng; BLOCK chỉ dùng khi không thể thực hiện/đánh giá do tiền điều kiện hoặc case phụ thuộc và phải ghi rõ nguyên nhân. Lỗi locator/wait/script/test data là lỗi automation, không phải bug sản phẩm; sau khi sửa và rerun PASS phải loại khỏi report.
-- Evidence phải được mở kiểm tra trực quan trước khi bàn giao, thể hiện rõ Actual và triệu chứng bug; ảnh cần lưu trong report phải được nhúng WebP Base64 vào HTML.
-- Bảo toàn chỉnh sửa thủ công trong report hiện có; chỉ cập nhật phần người dùng yêu cầu.
+- Quy tắc report, chứng từ liên phân hệ và cleanup riêng của PMKT được định nghĩa tại `.agents/rules/pmkt_rules.md`.
+- Vòng đời bug và cơ chế cập nhật HTML tích lũy được định nghĩa tại `.agents/rules/report_lifecycle_rules.md`.

@@ -86,3 +86,8 @@ test.describe('Tên Module', () => {
 - Mỗi test block phải có **assertion rõ ràng**
 - Sử dụng `test.describe` để nhóm test theo module
 - Sử dụng `beforeEach` / `afterEach` để setup / teardown
+
+## 6. Playwright Suite
+
+- Khi tạo, sửa, review hoặc chạy suite gồm nhiều spec, bắt buộc tuân thủ `.agents/rules/playwright_suite_rules.md` và dùng template trong `suites/templates/`.
+- Suite chỉ điều phối phạm vi; mỗi spec giữ report HTML riêng và không dùng project để đại diện spec.

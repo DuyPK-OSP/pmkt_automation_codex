@@ -34,3 +34,5 @@ Sử dụng checklist này trước khi xác nhận công việc automation đã
 - Xóa các file tạm và lưu output vào đúng thư mục quy định của dự án.
 - Đảm bảo file cấu hình và file môi trường không chứa thông tin đăng nhập thực tế.
 - Tổng hợp kết quả pass, fail, skip và liệt kê các testcase đã triển khai.
+- Với `Chạy và report`, xác nhận mỗi testcase đã được xử lý và cập nhật HTML trước khi case kế tiếp chạy; mỗi FAIL đã được phân loại, Product Bug đã deduplicate theo root cause và final consolidation khớp toàn bộ kết quả.
+- Với suite nhiều spec, xác nhận mỗi spec có report riêng, không có bug/kết quả bị ghi nhầm report và tổng các report con khớp tổng kết quả suite.

@@ -253,6 +253,8 @@ Luồng này chỉ truy vấn read-only, không chạy UI và không sửa hoặ
 
 # 🧪 Chạy test và tạo báo cáo
 
+Khi cần tạo suite mới gồm nhiều spec, dùng quy chuẩn `.agents/rules/playwright_suite_rules.md` và hai template trong `suites/templates/`. Suite chỉ chọn phạm vi; mỗi spec luôn có report HTML riêng.
+
 <a id="chay-test-bang-npm"></a>
 
 ## 📦 Chạy test bằng npm
@@ -335,26 +337,28 @@ Chạy và report src/tests/danh-muc/vat-tu-tao-moi.spec.ts
 
 Agent sẽ:
 
-- Chạy preflight evidence trước; tự sửa mọi `expect.soft()` thiếu `await` hoặc import sai fixture rồi mới chạy suite.
-- Chạy toàn bộ spec và thu thập PASS, FAIL, SKIP, thời lượng cùng artifacts.
-- Phân tích lỗi và gom nhóm theo triệu chứng/root cause hợp lý.
-- Mở kiểm tra trực quan screenshot trước khi lưu làm evidence.
-- Lưu evidence lâu dài trong `report/evidence/<feature-or-run-id>/`.
-- Tạo báo cáo từ `report/templates/test-execution-report-template.md`.
-- Kiểm tra số liệu, bug mapping, liên kết evidence và `.gitignore` trước khi bàn giao.
+- Thực hiện preflight, chạy tuần tự từng testcase, phân tích failure và cập nhật HTML ngay sau mỗi case.
+- Sau khi chạy hết phạm vi, hợp nhất số liệu và bàn giao final report.
 
-Quy tắc evidence tự động:
+Lệnh runner tương ứng (chỉ cần cấp quyền theo prefix một lần):
 
-- `expect.soft()` phải được import từ `@fixtures/base.fixture` và luôn có `await`.
-- Khi soft assertion mismatch, fixture tự attach screenshot và JSON lỗi ngay tại thời điểm đó.
-- Khi testcase kết thúc, custom reporter ghi ngay kết quả riêng vào:
+```powershell
+npm run spec:report -- src/tests/<phan-he>/<feature>.spec.ts
+npm run suite:report -- suites/manifests/<phan-he>/<chuc-nang>/<suite-name>.json
+```
+
+Runner giữ cùng một process điều phối trong suốt lần chạy; mỗi FAIL được thu evidence, phân tích bằng Codex read-only và cập nhật report trước khi testcase kế tiếp bắt đầu.
+
+Toàn bộ contract về evidence, phân loại failure, deduplicate bug, HTML độc lập và vòng đời trạng thái nằm tại `.agents/rules/report_lifecycle_rules.md`. Khi đầu vào là suite, mỗi `.spec.ts` được suite chọn cập nhật một report HTML riêng; suite không gộp các spec vào một HTML chung.
+
+Các lệnh hỗ trợ:
+
+- Khi testcase kết thúc, custom reporter ghi kết quả riêng vào:
 
 ```text
 test-results/run-<timestamp>/case-results/<TC-ID>--<project>--retry-<n>.json
 ```
 
-- `index.json` trong cùng thư mục được cập nhật sau từng testcase để report cuối có thể tổng hợp kết quả đã hoàn thành.
-- Không thêm `--reporter` khi cần cơ chế này vì CLI sẽ thay thế danh sách reporter trong `playwright.config.ts`.
 - Có thể kiểm tra thủ công trước khi chạy bằng:
 
 ```powershell

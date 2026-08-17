@@ -62,6 +62,7 @@ export async function verifyMaterialDetailAgainstDatabase(
   db: DatabaseContext,
   code: string,
   materialType: MaterialType,
+  mode: 'detail' | 'edit' = 'detail',
 ): Promise<void> {
   const credentials = requireCredentials();
   const records = await db.vatTu.findByCodeForDefaultTenant(credentials.username, code);
@@ -74,6 +75,7 @@ export async function verifyMaterialDetailAgainstDatabase(
   await vatTuPage.searchMaterial(code);
   await vatTuPage.openMaterialDetails(code);
   await expect(vatTuPage.materialDetailHeading(code), 'Popup Chi tiết phải mở đúng mã lấy từ DB').toBeVisible();
+  if (mode === 'edit') await vatTuPage.openMaterialEdit(code);
 
   await expect.soft(vatTuPage.materialDetailControlById(code, 'loaiVatTu')).toHaveValue(materialTypeCodes[materialType]);
   await expect.soft(vatTuPage.materialDetailControlById(code, 'ma')).toHaveValue(record.code);
@@ -190,10 +192,12 @@ export async function verifyMaterialDetailAgainstDatabase(
     if (hasConversionTab) await verifyConversionRows(vatTuPage, code, conversions);
   }
 
-  await expect.soft(
-    await vatTuPage.materialDetailControls(code).evaluateAll((controls) => controls.every((control) => control.hasAttribute('disabled'))),
-    'Tất cả control dữ liệu trên màn Chi tiết phải readonly/disabled',
-  ).toBe(true);
+  if (mode === 'detail') {
+    await expect.soft(
+      await vatTuPage.materialDetailControls(code).evaluateAll((controls) => controls.every((control) => control.hasAttribute('disabled'))),
+      'Tất cả control dữ liệu trên màn Chi tiết phải readonly/disabled',
+    ).toBe(true);
+  }
 }
 
 async function verifyConversionRows(
@@ -213,4 +217,3 @@ async function verifyConversionRows(
     if (conversion.description) await expect.soft(rowValue, 'Mô tả quy đổi phải khớp DB').toContain(conversion.description);
   }
 }
-

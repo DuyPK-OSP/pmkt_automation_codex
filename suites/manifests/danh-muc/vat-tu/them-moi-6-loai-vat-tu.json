@@ -1,0 +1,49 @@
+{
+  "$schema": "../../../schemas/suite-manifest.schema.json",
+  "name": "vat-tu-six-types",
+  "description": "Chạy toàn bộ testcase thêm mới của sáu loại Vật tư theo thứ tự nghiệp vụ.",
+  "purpose": "regression",
+  "execution": {
+    "workers": 1,
+    "retries": 0,
+    "headed": false
+  },
+  "specs": [
+    {
+      "path": "src/tests/danh-muc/pmkt-u-00106_vat_tu/them-moi-vat-tu-hang-hoa.spec.ts",
+      "testCases": [],
+      "report": "report/them-moi-vat-tu-hang-hoa-report.html",
+      "reason": "Loại Hàng hóa."
+    },
+    {
+      "path": "src/tests/danh-muc/pmkt-u-00106_vat_tu/them-moi-vat-tu-dich-vu.spec.ts",
+      "testCases": [],
+      "report": "report/them-moi-vat-tu-dich-vu-report.html",
+      "reason": "Loại Dịch vụ."
+    },
+    {
+      "path": "src/tests/danh-muc/pmkt-u-00106_vat_tu/them-moi-vat-tu-nguyen-vat-lieu.spec.ts",
+      "testCases": [],
+      "report": "report/them-moi-vat-tu-nguyen-vat-lieu-report.html",
+      "reason": "Loại Nguyên vật liệu."
+    },
+    {
+      "path": "src/tests/danh-muc/pmkt-u-00106_vat_tu/them-moi-vat-tu-cong-cu-dung-cu.spec.ts",
+      "testCases": [],
+      "report": "report/them-moi-vat-tu-cong-cu-dung-cu-report.html",
+      "reason": "Loại Công cụ dụng cụ."
+    },
+    {
+      "path": "src/tests/danh-muc/pmkt-u-00106_vat_tu/them-moi-vat-tu-thanh-pham.spec.ts",
+      "testCases": [],
+      "report": "report/them-moi-vat-tu-thanh-pham-report.html",
+      "reason": "Loại Thành phẩm."
+    },
+    {
+      "path": "src/tests/danh-muc/pmkt-u-00106_vat_tu/them-moi-vat-tu-ban-thanh-pham.spec.ts",
+      "testCases": [],
+      "report": "report/them-moi-vat-tu-ban-thanh-pham-report.html",
+      "reason": "Loại Bán thành phẩm."
+    }
+  ]
+}

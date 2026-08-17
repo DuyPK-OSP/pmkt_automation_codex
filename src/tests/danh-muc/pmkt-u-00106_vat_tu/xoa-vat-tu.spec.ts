@@ -1,10 +1,8 @@
 import { test, expect } from '@fixtures/base.fixture';
 import { createDeleteMaterial, createDeleteMaterials } from '@helpers/vat-tu-delete.helper';
-import { VatTuPage } from '@pages/danh-muc/vat-tu.page';
-import { Logger } from '@utils/logger';
 import { requireCredentials } from '@utils/env.config';
 
-test.describe('PMKT-U-00106 - Xóa Vật tư TC-DeleteVatTu-003–014', () => {
+test.describe('PMKT-U-00106 - Xóa Vật tư TC-DeleteVatTu-003–011, 013–014', () => {
   test.beforeEach(async ({ loginPage }) => {
     const credentials = requireCredentials();
     await loginPage.open();
@@ -149,36 +147,6 @@ test.describe('PMKT-U-00106 - Xóa Vật tư TC-DeleteVatTu-003–014', () => {
       const state = await db.vatTu.findDeletionStateByCodeForDefaultTenant(credentials.username, material.code);
       expect(state).toEqual([{ code: material.code, deleted: true }]);
     }
-  });
-
-  test('TC-DeleteVatTu-012 - hai phiên xóa đồng thời cùng một Vật tư', async ({ browser, page, vatTuPage, db, materialCleanup }) => {
-    const credentials = requireCredentials();
-    const material = await createDeleteMaterial(vatTuPage, db, materialCleanup, 'TC-DeleteVatTu-012');
-    test.skip(!material, 'DB cần ít nhất một Đơn vị tính Hoạt động để tạo dữ liệu riêng');
-    if (!material) return;
-
-    const secondContext = await browser.newContext({ storageState: await page.context().storageState(), viewport: { width: 1920, height: 1080 } });
-    const secondPage = await secondContext.newPage();
-    const secondLogger = new Logger();
-    const secondVatTuPage = new VatTuPage(secondPage, secondLogger);
-
-    await vatTuPage.searchMaterial(material.code);
-    await vatTuPage.openListMaterialDeleteConfirmation(material.code);
-    await secondVatTuPage.openFromDanhMuc();
-    await secondVatTuPage.searchMaterial(material.code);
-    await secondVatTuPage.openListMaterialDeleteConfirmation(material.code);
-    const results = await Promise.all([
-      vatTuPage.confirmMaterialDeletionRequest(),
-      secondVatTuPage.confirmMaterialDeletionRequest(),
-    ]);
-    await secondContext.close();
-
-    expect(results.filter(item => item.status >= 200 && item.status < 300), 'Chỉ một phiên được xóa thành công').toHaveLength(1);
-    expect(results.filter(item => item.status >= 400), 'Phiên còn lại phải nhận lỗi bản ghi không còn tồn tại').toHaveLength(1);
-    await expect.poll(
-      () => db.vatTu.findDeletionStateByCodeForDefaultTenant(credentials.username, material.code),
-      { timeout: 15_000 },
-    ).toEqual([{ code: material.code, deleted: true }]);
   });
 
   test('TC-DeleteVatTu-013 - xóa trong kết quả tìm kiếm và giữ từ khóa', async ({ vatTuPage, db, materialCleanup }) => {

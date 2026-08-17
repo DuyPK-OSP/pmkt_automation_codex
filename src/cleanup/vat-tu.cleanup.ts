@@ -44,6 +44,12 @@ export class MaterialCleanupTracker {
     this.explicitlyRegisteredCodes.add(code);
   }
 
+  /** Ngừng theo dõi mã đã được luồng chính xác nhận xóa để teardown không xóa lặp lần hai. */
+  markDeleted(code: string): void {
+    this.createdMaterialCodes.delete(code);
+    this.explicitlyRegisteredCodes.delete(code);
+  }
+
   /** Thực thi teardown, ghi nhận kết quả từng bản ghi và attach JSON cleanup vào test result. */
   async cleanup(testInfo: TestInfo): Promise<void> {
     this.page.off('response', this.responseListener);

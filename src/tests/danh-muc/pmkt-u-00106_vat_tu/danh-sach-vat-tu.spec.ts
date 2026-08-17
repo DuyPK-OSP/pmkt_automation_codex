@@ -6,7 +6,7 @@ import {
   restoreMaterialListRequests,
   toExpectedMaterialListValues,
 } from '@helpers/vat-tu-list.helper';
-import { createDeleteMaterial } from '@helpers/vat-tu-delete.helper';
+import { createDeleteMaterial, createDeleteMaterials } from '@helpers/vat-tu-delete.helper';
 import { requireCredentials } from '@utils/env.config';
 
 test.describe('PMKT-U-00106 - Danh sách Vật tư TC-DanhSachVatTu', () => {
@@ -33,10 +33,10 @@ test.describe('PMKT-U-00106 - Danh sách Vật tư TC-DanhSachVatTu', () => {
     ], { timeout: 2_000 });
 
     for (const name of ['Mã vật tư', 'Trạng thái', 'Chức năng']) {
-      expect.soft(await vatTuPage.materialColumnAlignment(name), `Cột ${name} phải căn giữa`).toBe('center');
+      await expect.soft(await vatTuPage.materialColumnAlignment(name), `Cột ${name} phải căn giữa`).toBe('center');
     }
     for (const name of ['Tên vật tư', 'Nhóm vật tư', 'Loại vật tư', 'Đơn vị tính']) {
-      expect.soft(await vatTuPage.materialColumnAlignment(name), `Cột ${name} phải căn trái`).toBe('left');
+      await expect.soft(await vatTuPage.materialColumnAlignment(name), `Cột ${name} phải căn trái`).toBe('left');
     }
   });
 
@@ -1100,8 +1100,18 @@ test.describe('PMKT-U-00106 - Danh sách Vật tư TC113–143', () => {
     ).toHaveLength(0);
     for (const code of codes) await expect(vatTuPage.materialRow(code)).toBeHidden();
   });
-  test('TC-DanhSachVatTu-141 - Xóa hàng loạt có lỗi đơn vị quy đổi', async ({ vatTuPage, db, materialCleanup, materialListDataset }) => {
+  test('TC-DanhSachVatTu-141 - Xóa hàng loạt có lỗi đơn vị quy đổi', async ({ vatTuPage, db, materialCleanup }) => {
     const credentials = requireCredentials();
+    // Chuẩn bị dữ liệu: tạo riêng hai Vật tư hợp lệ, không sử dụng dataset mà testcase khác có thể xóa.
+    const validMaterials = await createDeleteMaterials(
+      vatTuPage,
+      db,
+      materialCleanup,
+      'TC-DanhSachVatTu-141-VALID',
+      2,
+    );
+    test.skip(validMaterials.length < 2, 'DB cần Đơn vị tính Hoạt động để tạo hai Vật tư hợp lệ riêng');
+    if (validMaterials.length < 2) return;
     const constrained = await createDeleteMaterial(
       vatTuPage,
       db,
@@ -1112,7 +1122,7 @@ test.describe('PMKT-U-00106 - Danh sách Vật tư TC113–143', () => {
     );
     test.skip(!constrained, 'DB cần Nhóm vật tư và Đơn vị tính Hoạt động để tạo Vật tư có Đơn vị quy đổi');
     if (!constrained) return;
-    const validCodes = materialListDataset.codes.slice(-2);
+    const validCodes = validMaterials.map(({ code }) => code);
 
     // Hành động: chọn hai Vật tư hợp lệ và một Vật tư có Đơn vị quy đổi rồi xác nhận xóa hỗn hợp.
     await vatTuPage.openFromDanhMuc();
@@ -1128,6 +1138,7 @@ test.describe('PMKT-U-00106 - Danh sách Vật tư TC113–143', () => {
       () => db.vatTu.findActiveIdentitiesByCodesForDefaultTenant(credentials.username, validCodes),
       { message: 'Hai Vật tư hợp lệ phải được xóa mềm', timeout: 15_000 },
     ).toHaveLength(0);
+    for (const code of validCodes) materialCleanup.markDeleted(code);
     expect(await db.vatTu.findByCodeForDefaultTenant(credentials.username, constrained.code)).toHaveLength(1);
     await expect.soft(
       vatTuPage.materialBulkResultSummary(),

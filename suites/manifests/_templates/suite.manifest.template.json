@@ -1,0 +1,25 @@
+{
+  "$schema": "../../schemas/suite-manifest.schema.json",
+  "name": "feature-smoke",
+  "description": "Smoke test cho một chức năng PMKT.",
+  "purpose": "smoke",
+  "execution": {
+    "workers": 1,
+    "retries": 0,
+    "headed": false
+  },
+  "specs": [
+    {
+      "path": "src/tests/module/feature-a.spec.ts",
+      "testCases": [],
+      "report": "report/feature-a-report.html",
+      "reason": "Chạy toàn bộ testcase của spec."
+    },
+    {
+      "path": "src/tests/module/feature-b.spec.ts",
+      "testCases": ["TC_MODULE_B-001", "TC_MODULE_B-002"],
+      "report": "report/feature-b-report.html",
+      "reason": "Chỉ chạy các critical cases đã chỉ định."
+    }
+  ]
+}

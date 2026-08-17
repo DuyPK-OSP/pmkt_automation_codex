@@ -19,10 +19,12 @@ import { expect, runWithEvidenceContext } from '@utils/evidence-expect';
 import { KhoPage } from '@pages/danh-muc/kho.page';
 import { QuickAddCleanupRegistry } from '@cleanup/quick-add.cleanup';
 import { useMaterialListDataset, type MaterialListDataset } from '@helpers/vat-tu-list-dataset.helper';
+import { FailureEvidenceCollector } from '@utils/failure-evidence.collector';
 
 /** Danh sách Page Object, logger và cleanup tracker được khởi tạo riêng cho từng testcase. */
 interface FrameworkFixtures {
   readonly evidenceContext: void;
+  readonly failureEvidence: void;
   readonly logger: Logger;
   readonly loginPage: LoginPage;
   readonly dashboardPage: DashboardPage;
@@ -52,6 +54,13 @@ export const test = base.extend<FrameworkFixtures, FrameworkWorkerFixtures>({
   // Fixture auto bao toàn bộ testcase để expect.soft() chụp evidence ngay tại thời điểm mismatch.
   evidenceContext: [async ({ page }, use, testInfo) => {
     await runWithEvidenceContext(page, testInfo, use);
+  }, { auto: true }],
+  // Thu console, network và trạng thái DOM để mỗi failure có gói evidence phục vụ phân loại ngay.
+  failureEvidence: [async ({ page }, use, testInfo) => {
+    const collector = new FailureEvidenceCollector(page);
+    collector.start();
+    await use();
+    await collector.stopAndAttach(testInfo);
   }, { auto: true }],
   db: [async ({ }, use) => {
     const database = new DatabaseContext();

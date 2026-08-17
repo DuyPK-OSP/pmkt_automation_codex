@@ -24,6 +24,9 @@ export function expectedVatRateLabel(value: string | null): string | null {
     KhongChiuThue: 'Không chịu thuế',
     KhongKeKhaiTinhNopThue: 'Không kê khai, tính nộp thuế',
     Khac: 'Khác',
+    KCT: 'Không chịu thuế',
+    KKKNT: 'Không kê khai, tính nộp thuế',
+    KHAC: 'KHÁC',
   };
   return labels[value] ?? `${Number(value)}%`;
 }

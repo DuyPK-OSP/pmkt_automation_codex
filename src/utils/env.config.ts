@@ -23,7 +23,7 @@ function booleanValue(name: string, fallback: boolean): boolean {
 
 /** Cấu hình runtime bất biến được đọc từ biến môi trường và giá trị mặc định an toàn. */
 export const env = Object.freeze({
-  baseUrl: process.env.APP_URL ?? 'http://18.141.17.116',
+  baseUrl: process.env.APP_URL ?? 'https://pmkt-staging.ospgroup.vn',
   username: process.env.TEST_USERNAME,
   password: process.env.TEST_PASSWORD,
   headless: booleanValue('HEADLESS', true),

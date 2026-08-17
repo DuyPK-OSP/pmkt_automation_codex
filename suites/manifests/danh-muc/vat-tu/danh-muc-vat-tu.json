@@ -1,0 +1,31 @@
+{
+  "$schema": "../../../schemas/suite-manifest.schema.json",
+  "name": "danh-muc-vat-tu",
+  "description": "Regression test cho danh sách, xem chi tiết và xóa vật tư.",
+  "purpose": "regression",
+  "execution": {
+    "workers": 1,
+    "retries": 0,
+    "headed": false
+  },
+  "specs": [
+    {
+      "path": "src/tests/danh-muc/pmkt-u-00106_vat_tu/danh-sach-vat-tu.spec.ts",
+      "testCases": [],
+      "report": "report/danh-sach-vat-tu-report.html",
+      "reason": "Chạy toàn bộ testcase danh sách vật tư."
+    },
+    {
+      "path": "src/tests/danh-muc/pmkt-u-00106_vat_tu/xem-chi-tiet-vat-tu.spec.ts",
+      "testCases": [],
+      "report": "report/xem-chi-tiet-vat-tu-report.html",
+      "reason": "Chạy toàn bộ testcase xem chi tiết vật tư."
+    },
+    {
+      "path": "src/tests/danh-muc/pmkt-u-00106_vat_tu/xoa-vat-tu.spec.ts",
+      "testCases": [],
+      "report": "report/xoa-vat-tu-report.html",
+      "reason": "Chạy toàn bộ testcase xóa vật tư."
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["classification", "summary", "preconditions", "steps", "testData", "expected", "actual", "rootCause", "rootCauseConfidence", "severity", "isProductBug", "deduplicationKey", "matchesExistingBugId", "existingBugStillPresent"],
+  "properties": {
+    "classification": { "enum": ["Product Bug", "Automation Bug", "Test Data", "Environment", "Unknown"] },
+    "summary": { "type": "string" },
+    "preconditions": { "type": "string" },
+    "steps": { "type": "string" },
+    "testData": { "type": "string" },
+    "expected": { "type": "string" },
+    "actual": { "type": "string" },
+    "rootCause": { "type": "string" },
+    "rootCauseConfidence": { "enum": ["confirmed", "inferred", "unknown"] },
+    "severity": { "enum": ["Rất cao", "Cao", "Trung bình", "Thấp", "Không áp dụng"] },
+    "isProductBug": { "type": "boolean" },
+    "deduplicationKey": { "type": "string" },
+    "matchesExistingBugId": { "type": "string" },
+    "existingBugStillPresent": { "enum": ["yes", "no", "unknown"] }
+  }
+}

@@ -29,3 +29,4 @@
 - Với luồng mua hàng, kiểm tra đúng vị trí: Phiếu nhập kho tại `Kho → Phiếu nhập kho`, Phiếu chi tại `Tiền mặt → Chi tiền`, và Ủy nhiệm chi/Séc tại `Tiền gửi → Chi tiền`.
 - Xác nhận teardown đã kiểm tra chứng từ liên quan tồn tại trước cleanup và không còn trên UI sau khi xóa chứng từ nguồn.
 - Xác nhận attachment `test-data-cleanup` ghi đủ chứng từ nguồn, chứng từ liên quan, loại chứng từ và kết quả cleanup.
+- Với báo cáo PMKT, áp dụng `.agents/rules/report_lifecycle_rules.md`; không định nghĩa lại lifecycle report trong file này.

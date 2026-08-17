@@ -194,6 +194,35 @@ export class VatTuRepository {
     return rows[0]?.code;
   }
 
+  /** Lấy mã Vật tư chưa xóa theo đúng Tính chất và tenant để chuẩn bị pre-condition read-only. */
+  async findFirstExistingCodeByTypeForDefaultTenant(
+    username: string,
+    materialType: VatTuDatabaseType,
+  ): Promise<string | undefined> {
+    const rows = await this.client.query<{ readonly code: string }>(
+      `
+        WITH selected_tenant AS (
+          SELECT mapping.tenant_id
+          FROM public.iam_tai_khoan account
+          INNER JOIN public.iam_tai_khoan_tenant mapping
+            ON mapping.tai_khoan_id = account.id AND mapping.da_xoa = FALSE
+          WHERE (LOWER(account.ten_dang_nhap) = LOWER($1) OR LOWER(account.email) = LOWER($1))
+            AND account.da_xoa = FALSE
+          ORDER BY mapping.la_tenant_mac_dinh DESC, mapping.ngay_tao ASC
+          LIMIT 1
+        )
+        SELECT material.ma AS code
+        FROM public.mst_vat_tu material
+        INNER JOIN selected_tenant tenant ON tenant.tenant_id = material.tenant_id
+        WHERE material.da_xoa = FALSE AND material.loai_vat_tu = $2
+        ORDER BY material.ngay_tao ASC, material.id ASC
+        LIMIT 1
+      `,
+      [username, materialType],
+    );
+    return rows[0]?.code;
+  }
+
   /** Đọc danh sách Vật tư theo đúng tenant, thứ tự mặc định và điều kiện tìm kiếm của Data Grid. */
   async listForDefaultTenant(
     username: string,

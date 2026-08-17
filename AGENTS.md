@@ -5,9 +5,11 @@
 - Sử dụng các skill của repository trong `.agents/skills` khi yêu cầu phù hợp với phần `description` của skill hoặc khi người dùng gọi skill bằng cú pháp `$skill-name`.
 - Chỉ đọc các file quy tắc liên quan trước khi triển khai hoặc review code automation:
   - `.agents/rules/automation_rules.md` cho quy ước automation và test data dùng chung.
+  - `.agents/rules/database_verification_rules.md` cho expected dữ liệu nghiệp vụ, ánh xạ UI → DB, tenant và query verification.
   - `.agents/rules/pmkt_rules.md` cho nghiệp vụ PMKT, chứng từ phát sinh liên phân hệ và teardown dữ liệu kế toán.
   - `.agents/rules/locator_strategy.md` cho chiến lược lựa chọn locator.
   - `.agents/rules/playwright_rules.md` cho công việc sử dụng Playwright.
+  - `.agents/rules/playwright_suite_rules.md` cho việc tạo, sửa, review và chạy Playwright suite.
   - `.agents/rules/report_lifecycle_rules.md` cho report HTML tích lũy, đối chiếu bug cũ/mới và vòng đời Open/Re-Open/Fixed/Done.
 - Gọi workflow skill bằng ký hiệu `$` và tên kebab-case, ví dụ `$generate-locator` hoặc `$analyze-flaky-tests`.
 
@@ -32,15 +34,8 @@
 
 ## Quy tắc bắt buộc về nguồn expected dữ liệu
 
-- Tất cả expected liên quan đến dữ liệu nghiệp vụ phải được lấy từ hoặc đối chiếu trực tiếp với database đúng tenant; quy tắc này áp dụng cho mọi loại dữ liệu, không chỉ dropdown hoặc combogrid.
-- Không sử dụng API response làm nguồn expected cho assertion dữ liệu. API chỉ được dùng cho mục đích kỹ thuật như đồng bộ trạng thái hoặc chờ request hoàn tất khi cần, nhưng dữ liệu trả về từ API không được dùng làm căn cứ xác nhận đúng/sai.
-- Sau thao tác tạo, sửa hoặc xóa qua UI, phải truy vấn DB bằng khóa unique do testcase quản lý và xác nhận toàn bộ trường, trạng thái, quan hệ hoặc ảnh hưởng dữ liệu mà Expected Result yêu cầu.
-- Dữ liệu danh mục, giá trị mặc định, trạng thái, quan hệ, điều kiện lọc và các ràng buộc nghiệp vụ phải lấy từ DB thay vì hardcode hoặc suy ra từ API.
-- Mỗi bảng DB phải có một repository riêng. Không gộp query của nhiều bảng nghiệp vụ không cùng ownership vào một repository tổng hợp.
-- SQL chỉ được đặt trong repository; Page Object chỉ thao tác/đọc UI; helper điều phối và ánh xạ dữ liệu; assertion nghiệp vụ đặt trong file spec.
-- Query verify phải read-only và parameterized, xác định đúng `tenant_id`, không hardcode thông tin kết nối, tenant hoặc credentials và không ghi dữ liệu nhạy cảm vào log/report.
-- Với dropdown/combogrid ảo hóa hoặc lazy-load, phải tìm/lọc trước bằng khóa nghiệp vụ ổn định và unique (ưu tiên mã) để option được render vào DOM rồi mới assert hoặc click; không được kết luận dữ liệu DB thiếu trên UI chỉ từ danh sách đang hiển thị ban đầu.
-- Chỉ ghi nhận lỗi dữ liệu UI sau khi DB xác nhận bản ghi thuộc đúng tenant và thao tác tìm chính xác theo mã/tên trên UI vẫn không trả về option. Screenshot chỉ chụp viewport ban đầu của danh sách ảo hóa không đủ làm evidence cho lỗi thiếu dữ liệu.
+- Bắt buộc đọc và tuân thủ `.agents/rules/database_verification_rules.md` trước mọi công việc có assertion dữ liệu nghiệp vụ hoặc truy vấn DB.
+- Tóm tắt không thay thế rule chi tiết: expected nghiệp vụ phải đối chiếu DB đúng tenant; không dùng API response làm expected; SQL chỉ nằm trong repository riêng theo bảng và query verify phải read-only, parameterized.
 
 ## Prompt chuẩn kiểm tra dữ liệu DB
 
@@ -56,35 +51,5 @@
 
 ## Quy tắc tạo báo cáo kiểm thử và lưu evidence
 
-- Khi người dùng nhập `Chạy và report <đường-dẫn-file-spec>`, BẮT BUỘC tự động thực hiện trọn quy trình sau mà không yêu cầu người dùng nhắc lại từng bước:
-  1. Chạy `npm run preflight:evidence -- <đường-dẫn-file-spec>`. Nếu preflight FAIL thì phải sửa vi phạm trước, không được chạy suite.
-  2. Chạy toàn bộ file spec được chỉ định bằng test runner và cấu hình phù hợp của repository.
-  3. Thu thập kết quả thực tế gồm PASS, FAIL, SKIP, thời lượng và artifacts.
-  4. Phân tích lỗi, gom nhóm các test có cùng triệu chứng hoặc cùng root cause hợp lý; phải ghi rõ nếu nhận định root cause chỉ là suy luận.
-  5. Sao chép các screenshot cần lưu lâu dài vào `report/evidence/<feature-or-run-id>/` và đặt tên theo bug/testcase.
-  6. Tạo hoặc cập nhật duy nhất một file báo cáo HTML theo `report/templates/report-template.html`; không sinh báo cáo Markdown.
-  7. Kiểm tra số liệu, nội dung bug, link điều hướng, evidence, trạng thái `.gitignore` và khả năng mở độc lập của báo cáo trước khi bàn giao.
-  8. Trả lại đường dẫn file HTML hoàn chỉnh và tóm tắt kết quả chạy.
-- BẮT BUỘC sử dụng `report/templates/report-template.html` làm mẫu nền duy nhất mỗi khi tạo báo cáo kết quả chạy test.
-- Báo cáo HTML phải là một file độc lập, không phụ thuộc thư viện hoặc tài nguyên ngoài; ảnh evidence phải được chuyển sang WebP, nhúng Base64 trực tiếp và chỉ nhúng một lần cho mỗi ảnh để báo cáo vẫn xem được khi thư mục ảnh gốc không còn tồn tại.
-- Báo cáo HTML phải giữ các chức năng của template: biểu đồ tổng quan, hiệu ứng và tooltip trên các thanh ngang, bộ lọc từng cột trong bảng kết quả chi tiết, dropdown trạng thái gồm Tất cả/PASS/FAIL/SKIP/BLOCK và chế độ xem ảnh phóng to. Không thêm section Thông tin kỹ thuật.
-- Nội dung báo cáo phải được tổng hợp từ kết quả chạy thật và artifacts tương ứng. KHÔNG tự tạo hoặc suy đoán kết quả, tần suất, test data, Expected/Actual hay evidence còn thiếu.
-- Mỗi feature dùng một file HTML ổn định, đặt tên `report/<tên-spec-không-gồm-.spec.ts>-report.html`; các lần chạy sau cập nhật đúng file này và không sinh file theo timestamp.
-- Xem `test-results/`, `playwright-report/` và `allure-results/` là artifacts tạm thời. Báo cáo cần đưa lên Git KHÔNG ĐƯỢC liên kết tới file nằm trong các thư mục này.
-- Với mỗi báo cáo cần lưu screenshot lâu dài, chỉ sao chép các evidence liên quan vào `report/evidence/<feature-or-run-id>/` và sử dụng tên file ổn định, có ý nghĩa.
-- Ưu tiên screenshot được attach ngay tại thời điểm mismatch. Với `expect.soft()` hoặc testcase tiếp tục thay đổi UI sau điểm lỗi, không dùng screenshot cuối testcase nếu nó không còn hiển thị triệu chứng; khi chưa có milestone evidence, phải trích đúng frame từ trace/video.
-- Mọi `expect.soft()` phải import `expect` từ `@fixtures/base.fixture` và bắt buộc có `await`. Fixture sẽ tự attach screenshot cùng JSON lỗi ngay tại mismatch, trước khi testcase tiếp tục thay đổi UI.
-- Không được bỏ qua, vô hiệu hóa hoặc chạy vòng qua `preflight:evidence` trong luồng `Chạy và report`.
-- Custom reporter phải ghi ngay một JSON riêng sau khi mỗi testcase kết thúc vào `test-results/run-<timestamp>/case-results/<TC-ID>--<project>--retry-<n>.json`, đồng thời cập nhật `index.json`. Không chờ toàn bộ suite kết thúc mới ghi kết quả.
-- Khi `Chạy và report`, không truyền `--reporter` trên CLI vì tùy chọn này thay thế reporter trong config và làm mất cơ chế ghi JSON từng testcase.
-- Bắt buộc mở kiểm tra trực quan từng ảnh trước khi đưa vào báo cáo, xác nhận ảnh thể hiện đúng trường, giá trị Actual và nội dung bug.
-- Khi chuẩn bị thay đổi để commit, phải bao gồm file báo cáo HTML đã cập nhật và evidence liên quan khi dự án vẫn cần lưu bản ảnh rời.
-- Trước khi bàn giao báo cáo, BẮT BUỘC kiểm tra:
-  - Tổng `PASS + FAIL + SKIP` bằng tổng số test.
-  - Tỷ lệ PASS được tính đúng.
-  - Mỗi test FAIL được ánh xạ tới một bug chi tiết hoặc có giải thích rõ nếu không phải lỗi sản phẩm.
-  - Mỗi bug có đủ bảy phần bắt buộc trong template.
-  - Có link quay lại đầu trang sau từng phần chi tiết chính.
-  - Tất cả evidence cần thiết hiển thị đúng trong HTML.
-  - Báo cáo HTML không liên kết tới evidence ngoài file và tất cả ảnh cần thiết đã được nhúng WebP Base64.
-- Bảo toàn các chỉnh sửa thủ công trong báo cáo hiện có. Chỉ cập nhật đúng phần người dùng yêu cầu, trừ khi người dùng yêu cầu viết lại toàn bộ file.
+- Khi người dùng nhập `Chạy và report <spec>` hoặc `Chạy và report <suite>`, bắt buộc thực hiện trọn workflow trong `.agents/rules/report_lifecycle_rules.md` mà không yêu cầu nhắc lại từng bước.
+- Tóm tắt điều phối không thay thế rule chi tiết: preflight trước khi chạy; xử lý tuần tự từng testcase; FAIL phải được thu evidence, phân loại và deduplicate; cập nhật HTML của đúng spec trước case kế tiếp; cuối phạm vi thực hiện final consolidation. Suite có nhiều spec phải tạo/cập nhật report riêng cho từng spec, không gộp thành một HTML suite.
