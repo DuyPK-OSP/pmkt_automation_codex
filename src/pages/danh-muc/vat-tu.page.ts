@@ -190,6 +190,8 @@ export class VatTuPage extends BasePage {
   /** Chọn Loại vật tư và chờ form Thêm mới tương ứng hiển thị. */
   async selectMaterialType(type: MaterialType): Promise<void> {
     await this.click(this.materialTypeTitle(type), `Chọn Loại vật tư ${type}`);
+    // Chờ popup Tính chất đóng hẳn để lần mở kế tiếp không nhận nhầm overlay đang chạy animation thoát.
+    await this.materialTypeDialog.waitFor({ state: 'hidden' });
     await this.createMaterialDialog.waitFor({ state: 'visible' });
   }
 
@@ -318,6 +320,34 @@ export class VatTuPage extends BasePage {
     });
   }
 
+  /** Thu thập đồng thời nhãn và trạng thái của toàn bộ dòng trong combogrid Đơn vị tính ảo hóa. */
+  async visibleMainUnitEntries(expectedCount?: number): Promise<readonly {
+    readonly label: string;
+    readonly status: 'HoatDong' | 'NgungHoatDong';
+  }[]> {
+    const rows = this.locators.mainUnitRows();
+    await rows.first().waitFor({ state: 'visible' });
+    const collected = await collectVirtualDropdownItems({
+      dropdown: this.locators.visibleDropdown,
+      readVisibleItems: async () => rows.evaluateAll((elements) => elements.map((row) => {
+        const cells = Array.from(row.querySelectorAll('[role="cell"], td'))
+          .map((cell) => (cell.textContent ?? '').trim());
+        return {
+          label: `${cells[0] ?? ''} — ${(cells[1] ?? '').replace(/\s*\(Ngừng hoạt động\)\s*$/u, '')}`,
+          status: cells.at(-1) === 'Hoạt động' ? 'HoatDong' as const : 'NgungHoatDong' as const,
+        };
+      }).filter(({ label }) => label !== ' — ')),
+      itemKey: ({ label }) => label,
+      expectedCount,
+    });
+    return collected;
+  }
+
+  /** Trả về ba header semantic đang hiển thị của combogrid Đơn vị tính quy đổi. */
+  conversionUnitDropdownColumnHeaders(): Locator {
+    return this.locators.conversionUnitDropdownColumnHeaders();
+  }
+
   /** Đọc style hiển thị của từng cell để theo dõi vùng chọn bàn phím trên combogrid Ant Table. */
   async mainUnitRowVisualStates(): Promise<readonly string[]> {
     return this.locators.mainUnitRows().evaluateAll((rows) => rows.map((row) =>
@@ -333,9 +363,21 @@ export class VatTuPage extends BasePage {
     await this.mainUnitCombobox.press(key);
   }
 
-  /** Đọc option active của Ant Select cũ để giữ tương thích với các spec legacy. */
+  /** Đọc option bàn phím đang focus từ aria-activedescendant, có fallback cho Ant Table không khai báo ARIA đầy đủ. */
+  private async activeComboboxOptionLabel(combobox: Locator, fallback: Locator): Promise<string> {
+    const activeDescendantId = await combobox.getAttribute('aria-activedescendant');
+    if (activeDescendantId) {
+      const activeDescendant = this.page.locator(`[id="${activeDescendantId}"]`);
+      if (await activeDescendant.count() > 0) return (await activeDescendant.innerText()).trim();
+    }
+    const fallbackOption = fallback.first();
+    if (await fallbackOption.count() === 0) return '';
+    return (await fallbackOption.innerText()).trim();
+  }
+
+  /** Đọc option Đơn vị tính chính đang được bàn phím focus. */
   async activeMainUnitLabel(): Promise<string> {
-    return (await this.locators.mainUnitActiveOption().innerText()).trim();
+    return this.activeComboboxOptionLabel(this.mainUnitCombobox, this.locators.mainUnitActiveOption());
   }
 
   /** Trả về locator của một lựa chọn Đơn vị tính chính. */
@@ -388,6 +430,32 @@ export class VatTuPage extends BasePage {
   /** Trả về nút thêm nhanh Đơn vị tính dành cho tài khoản có đủ quyền. */
   mainUnitQuickAddButton(): Locator {
     return this.locators.mainUnitQuickAddButton();
+  }
+
+  /** Mở form Thêm nhanh Đơn vị tính từ combogrid Đơn vị tính chính. */
+  async openMainUnitQuickAdd(): Promise<void> {
+    if (!await this.mainUnitDropdown().isVisible()) await this.openMainUnitDropdown();
+    await this.click(this.mainUnitQuickAddButton(), 'Mở form Thêm nhanh Đơn vị tính');
+    await this.locators.mainUnitQuickAddDialog().waitFor({ state: 'visible' });
+  }
+
+  mainUnitQuickAddDialog(): Locator { return this.locators.mainUnitQuickAddDialog(); }
+  mainUnitQuickAddCodeInput(): Locator { return this.locators.mainUnitQuickAddCodeInput(); }
+  mainUnitQuickAddNameInput(): Locator { return this.locators.mainUnitQuickAddNameInput(); }
+  mainUnitQuickAddStatusSwitch(): Locator { return this.locators.mainUnitQuickAddStatusSwitch(); }
+  mainUnitQuickAddValidation(message: string): Locator { return this.locators.mainUnitQuickAddValidation(message); }
+
+  async fillMainUnitQuickAdd(code: string, name: string): Promise<void> {
+    await this.type(this.mainUnitQuickAddCodeInput(), code, 'Nhập Mã đơn vị tính thêm nhanh');
+    await this.type(this.mainUnitQuickAddNameInput(), name, 'Nhập Tên đơn vị tính thêm nhanh');
+  }
+
+  async saveMainUnitQuickAdd(): Promise<void> {
+    await this.click(this.locators.mainUnitQuickAddAction('Lưu'), 'Lưu Đơn vị tính thêm nhanh');
+  }
+
+  async cancelMainUnitQuickAdd(): Promise<void> {
+    await this.click(this.locators.mainUnitQuickAddAction('Hủy'), 'Hủy form Thêm nhanh Đơn vị tính');
   }
 
   /** Trả về locator của Đơn vị tính chính đang được chọn. */
@@ -515,7 +583,10 @@ export class VatTuPage extends BasePage {
       { message: `${label} phải chỉ có một popup đang hiển thị` },
     ).toBe(1);
     const option = this.firstEnabledDropdownOption();
-    const value = (await option.innerText()).trim();
+    const cells = await option.getByRole('cell').allTextContents();
+    const value = cells.length >= 2
+      ? `${cells[0]?.trim()} — ${(cells[1] ?? '').trim().replace(/\s*\(Ngừng hoạt động\)\s*$/u, '')}`
+      : (await option.innerText()).trim();
     await this.click(option, `Chọn giá trị hợp lệ đầu tiên của ${label}`);
     await option.waitFor({ state: 'hidden' });
     return value;
@@ -549,13 +620,13 @@ export class VatTuPage extends BasePage {
     const field = this.formField(label);
     const titledValues = (await field.locator('[title]').evaluateAll((elements) =>
       elements.map((element) => element.getAttribute('title')?.trim() ?? '').filter(Boolean)))
-      .filter((value) => value !== label);
+      .filter((value) => value.localeCompare(label, 'vi', { sensitivity: 'base' }) !== 0);
     const titledValue = titledValues.map(actualValue).find((value) => value !== null);
     if (titledValue) return titledValue;
 
     const visibleLines = (await field.innerText()).split(/\r?\n/)
       .map((value) => value.trim())
-      .filter((value) => value && value !== label);
+      .filter((value) => value && value.localeCompare(label, 'vi', { sensitivity: 'base' }) !== 0);
     const visibleValue = visibleLines.map(actualValue).find((value) => value !== null);
     if (visibleValue) return visibleValue;
     return null;
@@ -614,7 +685,7 @@ export class VatTuPage extends BasePage {
     const importTax = await readInput('Thuế nhập khẩu');
     const exportTax = await readInput('Thuế xuất khẩu');
     const exciseTax = await this.currentFormOption('Thuế tiêu thụ đặc biệt');
-    const resourceTax = await this.currentFormOption('Thuế tài nguyên');
+    const resourceTax = await this.currentFormOption('Thuế Tài nguyên');
 
     await this.openFormTab('Đơn vị quy đổi');
     const conversionRowCount = await this.conversionRowControls('spinbutton').count();
@@ -1228,9 +1299,15 @@ export class VatTuPage extends BasePage {
     await rows.first().waitFor({ state: 'visible' });
     return collectVirtualDropdownItems({
       dropdown: this.locators.visibleDropdown,
-      readVisibleItems: async () => rows.evaluateAll((elements) => elements
-        .map((row) => (row.textContent ?? '').trim().replace(/\s*\(Ngừng hoạt động\)\s*$/u, ''))
-        .filter(Boolean)),
+      readVisibleItems: async () => rows.evaluateAll((elements) => elements.map((row) => {
+        const cells = Array.from(row.querySelectorAll('td'));
+        if (cells.length >= 2) {
+          const code = cells[0]?.textContent?.trim() ?? '';
+          const name = (cells[1]?.textContent?.trim() ?? '').replace(/\s*\(Ngừng hoạt động\)\s*$/u, '');
+          return code && name ? `${code} — ${name}` : '';
+        }
+        return (row.textContent ?? '').trim().replace(/\s*\(Ngừng hoạt động\)\s*$/u, '');
+      }).filter(Boolean)),
       itemKey: (item) => item,
       expectedCount,
     });
@@ -1238,9 +1315,15 @@ export class VatTuPage extends BasePage {
 
   /** Đọc các option thuế đang render sau khi lọc, không giả định dropdown có kết quả. */
   async currentTaxLabels(): Promise<readonly string[]> {
-    return this.locators.taxOptions().evaluateAll((elements) => elements
-      .map((option) => (option.textContent ?? '').trim().replace(/\s*\(Ngừng hoạt động\)\s*$/u, ''))
-      .filter(Boolean));
+    return this.locators.taxOptions().evaluateAll((elements) => elements.map((row) => {
+      const cells = Array.from(row.querySelectorAll('td'));
+      if (cells.length >= 2) {
+        const code = cells[0]?.textContent?.trim() ?? '';
+        const name = (cells[1]?.textContent?.trim() ?? '').replace(/\s*\(Ngừng hoạt động\)\s*$/u, '');
+        return code && name ? `${code} — ${name}` : '';
+      }
+      return (row.textContent ?? '').trim().replace(/\s*\(Ngừng hoạt động\)\s*$/u, '');
+    }).filter(Boolean));
   }
 
   /** Tìm kiếm Kho theo mã hoặc tên. */
@@ -1265,6 +1348,16 @@ export class VatTuPage extends BasePage {
     });
   }
 
+  /** Đọc style từng cell để theo dõi vùng chọn bàn phím trên combogrid Kho dạng table. */
+  async warehouseRowVisualStates(): Promise<readonly string[]> {
+    return this.locators.warehouseOptions().evaluateAll((rows) => rows.map((row) =>
+      Array.from(row.querySelectorAll('[role="cell"], td')).map((cell) => {
+        const style = getComputedStyle(cell);
+        return [style.backgroundColor, style.color, style.outline, cell.className].join('|');
+      }).join('||'),
+    ));
+  }
+
   /** Chọn Kho hoạt động đầu tiên từ combogrid và trả về nhãn chuẩn hóa mã — tên. */
   async selectFirstActiveWarehouse(): Promise<string> {
     await this.openWarehouseDropdown();
@@ -1286,9 +1379,7 @@ export class VatTuPage extends BasePage {
 
   /** Đọc dòng Kho đang được Ant Select đánh dấu active. */
   async activeWarehouseLabel(): Promise<string> {
-    const option = this.locators.warehouseActiveOption().first();
-    if (await option.count() === 0) return '';
-    return (await option.innerText()).trim();
+    return this.activeComboboxOptionLabel(this.warehouseCombobox(), this.locators.warehouseActiveOption());
   }
 
   /** Đọc màu và độ mờ thực tế của một dòng Kho. */
@@ -1389,7 +1480,7 @@ export class VatTuPage extends BasePage {
 
   /** Trả về một lựa chọn Thuế theo nhãn hiển thị. */
   taxOption(label: string): Locator {
-    return this.locators.dropdownOption(label);
+    return this.locators.taxOptionRow(label);
   }
 
   /** Trả về dropdown thuế đang mở để testcase xác nhận trạng thái đóng/mở. */
@@ -1433,7 +1524,8 @@ export class VatTuPage extends BasePage {
 
   /** Đọc option thuế đang được Ant Select đánh dấu active cho thao tác bàn phím. */
   async activeTaxLabel(): Promise<string> {
-    return (await this.locators.taxActiveOption().innerText()).trim();
+    const focusedCombobox = this.page.locator('[role="combobox"]:focus');
+    return this.activeComboboxOptionLabel(focusedCombobox, this.locators.taxActiveOption());
   }
 
   /** Xóa nhanh giá trị thuế đã chọn bằng nút Clear của đúng form item. */
@@ -1450,7 +1542,8 @@ export class VatTuPage extends BasePage {
 
   /** Trả về giá trị Thuế đang được chọn. */
   selectedTax(label: string, value: string): Locator {
-    return this.locators.selectedFieldValue(label, value);
+    void value;
+    return this.formFieldControl(label, 'combobox');
   }
 
   /** Mở dropdown Đơn vị tính tại dòng quy đổi đầu tiên. */
@@ -1466,7 +1559,7 @@ export class VatTuPage extends BasePage {
   /** Chọn Đơn vị tính cho dòng quy đổi đầu tiên. */
   async selectFirstConversionUnit(option: CatalogueOption): Promise<void> {
     await this.searchFirstConversionUnit(option.code);
-    await this.click(this.locators.dropdownOption(option.label), `Chọn Đơn vị quy đổi ${option.label}`);
+    await this.click(this.locators.mainUnitOption(option.label), `Chọn Đơn vị quy đổi ${option.label}`);
   }
 
   /** Trả về Đơn vị tính đang chọn tại dòng quy đổi đầu tiên. */
@@ -1474,14 +1567,24 @@ export class VatTuPage extends BasePage {
     return this.locators.selectedConversionUnit(label);
   }
 
+  /** Trả về dòng quy đổi đang chứa chính xác mã và tên Đơn vị tính vừa Thêm nhanh. */
+  selectedConversionUnitRow(code: string, name: string): Locator {
+    return this.locators.selectedConversionUnitRow(code, name);
+  }
+
   /** Trả về toàn bộ option đang render của dropdown Đơn vị tính quy đổi. */
   conversionUnitOptions(): Locator {
-    return this.locators.enabledDropdownOptions();
+    return this.locators.mainUnitOptions();
+  }
+
+  /** Trả về dòng Đơn vị tính quy đổi theo Mã và Tên lấy từ DB. */
+  conversionUnitOption(label: string): Locator {
+    return this.locators.mainUnitOption(label);
   }
 
   /** Đọc style của option Đơn vị tính quy đổi theo nhãn. */
   async conversionUnitOptionStyle(label: string): Promise<Readonly<{ color: string; opacity: string }>> {
-    return this.locators.dropdownOption(label).evaluate((element) => {
+    return this.conversionUnitOption(label).evaluate((element) => {
       const style = getComputedStyle(element);
       return { color: style.color, opacity: style.opacity };
     });
@@ -1489,7 +1592,10 @@ export class VatTuPage extends BasePage {
 
   /** Đọc nhãn option đang active khi điều hướng bàn phím trên dropdown quy đổi. */
   async activeConversionUnitLabel(): Promise<string> {
-    return (await this.locators.mainUnitActiveOption().innerText()).trim();
+    return this.activeComboboxOptionLabel(
+      this.conversionRowControls('combobox').first(),
+      this.locators.mainUnitActiveOption(),
+    );
   }
 
   /** Gửi phím điều hướng vào combogrid Đơn vị tính trên dòng quy đổi đầu tiên. */
@@ -1506,6 +1612,18 @@ export class VatTuPage extends BasePage {
   /** Trả về nút Thêm nhanh trong dropdown Đơn vị tính của dòng quy đổi. */
   conversionUnitQuickAddButton(): Locator {
     return this.locators.conversionUnitQuickAddButton();
+  }
+
+  /** Mở form Thêm nhanh Đơn vị tính từ dòng quy đổi đầu tiên. */
+  async openConversionUnitQuickAdd(): Promise<void> {
+    if (!await this.conversionUnitQuickAddButton().isVisible()) await this.openFirstConversionUnitDropdown();
+    await this.click(this.conversionUnitQuickAddButton(), 'Mở form Thêm nhanh Đơn vị tính quy đổi');
+    await this.mainUnitQuickAddDialog().waitFor({ state: 'visible' });
+  }
+
+  /** Trả về combobox Đơn vị tính trên dòng quy đổi đầu tiên. */
+  firstConversionUnitCombobox(): Locator {
+    return this.locators.firstConversionUnitCombobox();
   }
 
   /** Trả về thông báo validation của trường theo label và nội dung lỗi. */
@@ -2142,6 +2260,11 @@ export class VatTuPage extends BasePage {
     return this.locators.conversionOperationCell(value);
   }
 
+  /** Trả về đúng các option của Select Phép tính đang mở, không dùng dòng combogrid Đơn vị tính. */
+  conversionOperationOptions(): Locator {
+    return this.locators.conversionOperationOptions();
+  }
+
   /** Trả về các control theo role tại dòng quy đổi đầu tiên. */
   conversionRowControls(role: Parameters<Locator['getByRole']>[0]): Locator {
     return this.locators.conversionRowControls(role);
@@ -2161,8 +2284,9 @@ export class VatTuPage extends BasePage {
   async selectConversionUnit(rowIndex: number, option: CatalogueOption): Promise<void> {
     const input = this.conversionRowControls('combobox').nth(rowIndex * 2);
     await this.type(input, option.code, `Tìm Đơn vị tính dòng quy đổi ${rowIndex + 1}`);
-    await input.press('Enter');
-    await this.locators.selectedConversionUnit(option.label).nth(rowIndex).waitFor({ state: 'visible' });
+    // Chọn đúng row theo cặp Mã–Tên; không dùng Enter vì Mã có thể là tiền tố của bản ghi khác.
+    await this.click(this.conversionUnitOption(option.label), `Chọn Đơn vị tính quy đổi ${option.label}`);
+    await this.locators.selectedConversionUnitRow(option.code, option.name).nth(rowIndex).waitFor({ state: 'visible' });
   }
 
   /** Nhập tỷ lệ cho dòng quy đổi theo chỉ số bắt đầu từ 0. */
@@ -2201,7 +2325,11 @@ export class VatTuPage extends BasePage {
     const comboboxes = this.conversionRowControls('combobox');
     await this.click(comboboxes.nth(0), 'Mở Đơn vị quy đổi');
     const unitOption = this.locators.conversionUnitOption(mainUnit);
-    const unit = (await unitOption.innerText()).trim();
+    const unitCells = await unitOption.locator('[role="cell"], td').allTextContents();
+    const unitParts = unitCells.length >= 2
+      ? unitCells
+      : (await unitOption.innerText()).split(/\r?\n|\t/u).map((value) => value.trim()).filter(Boolean);
+    const unit = `${unitParts[0]?.trim()} — ${(unitParts[1] ?? '').trim().replace(/\s*\(Ngừng hoạt động\)\s*$/u, '')}`;
     await this.click(unitOption, 'Chọn Đơn vị quy đổi hợp lệ đầu tiên');
     await unitOption.waitFor({ state: 'hidden' });
 
@@ -2239,7 +2367,8 @@ export class VatTuPage extends BasePage {
       dropdown: this.locators.visibleDropdown,
       readVisibleItems: async () => Promise.all((await options.all()).map(async (row) => {
         const cells = await row.getByRole('cell').allTextContents();
-        return `${cells[0]?.trim()} — ${cells[1]?.trim()}`;
+        const code = (cells[0] ?? '').trim().replace(/^↳\s*/u, '');
+        return `${code} — ${cells[1]?.trim()}`;
       })),
       itemKey: (label) => label,
       expectedCount,
@@ -2251,14 +2380,9 @@ export class VatTuPage extends BasePage {
     return this.accountingAccountOptionRow(label).evaluate((element) => getComputedStyle(element).color);
   }
 
-  /** Đọc style từng cell để theo dõi vùng chọn bàn phím trên combogrid Tài khoản dạng table. */
+  /** Đọc nhãn dòng đang được keyboard focus, không phụ thuộc animation màu nền của Ant Table. */
   async accountingAccountRowVisualStates(): Promise<readonly string[]> {
-    return this.locators.accountingAccountOptions().evaluateAll((rows) => rows.map((row) =>
-      Array.from(row.querySelectorAll('[role="cell"], td')).map((cell) => {
-        const style = getComputedStyle(cell);
-        return [style.backgroundColor, style.color, style.outline, cell.className].join('|');
-      }).join('||'),
-    ));
+    return [await this.activeAccountingAccountLabel()];
   }
 
   /** Trả về popup xác nhận dùng Tài khoản đang Ngừng hoạt động. */
@@ -2286,7 +2410,10 @@ export class VatTuPage extends BasePage {
 
   /** Trả về nhãn dòng Tài khoản đang được keyboard focus. */
   async activeAccountingAccountLabel(): Promise<string> {
-    return (await this.locators.accountingAccountActiveOption().innerText()).trim();
+    return this.activeComboboxOptionLabel(
+      this.page.locator('[role="combobox"]:focus'),
+      this.locators.accountingAccountActiveOption(),
+    );
   }
 
   /** Xóa nhanh giá trị Tài khoản của trường được chỉ định. */
@@ -2324,6 +2451,19 @@ export class VatTuPage extends BasePage {
       this.accountingAccountOption(option.label),
       `Chọn ${fieldLabel} ${option.label}`,
     );
+  }
+
+  /** Tìm và chọn Tài khoản nếu combogrid thực tế có trả về bản ghi; dùng khi đối chiếu tập DB với UI server-side. */
+  async trySelectAccountingAccount(fieldLabel: string, option: AccountOption): Promise<boolean> {
+    await this.searchAccountingAccount(fieldLabel, option.code);
+    const row = this.accountingAccountOption(option.label);
+    try {
+      await row.waitFor({ state: 'visible', timeout: 2_000 });
+    } catch {
+      return false;
+    }
+    await this.click(row, `Chọn ${fieldLabel} ${option.label}`);
+    return true;
   }
 
   /** Trả về Tài khoản kế toán đang được chọn của một trường. */

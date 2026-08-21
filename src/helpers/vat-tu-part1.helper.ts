@@ -301,6 +301,23 @@ export async function prepareGoodsAccounting(
   return accounts;
 }
 
+/** Mở combogrid và chọn một Tài khoản Ngừng hoạt động lấy từ DB đúng tenant. */
+export async function prepareInactiveAccountingSelection(
+  vatTuPage: VatTuPage,
+  fieldLabel: string,
+): Promise<{ readonly account: AccountOption; readonly valueBefore: string }> {
+  const accounts = await prepareGoodsAccounting(vatTuPage);
+  const account = accounts.find((item) => item.code === '33311');
+  if (!account) throw new Error('DB đúng tenant không có Tài khoản 33311 theo test data đã thống nhất');
+  if (account.status !== 'NgungHoatDong') {
+    throw new Error(`Tài khoản 33311 trong DB đúng tenant phải Ngừng hoạt động, actual: ${account.status}`);
+  }
+  const valueBefore = await vatTuPage.formFieldControl(fieldLabel, 'combobox').inputValue();
+  await vatTuPage.openAccountingAccountDropdown(fieldLabel);
+  if (await vatTuPage.trySelectAccountingAccount(fieldLabel, account)) return { account, valueBefore };
+  throw new Error(`Combogrid ${fieldLabel} không trả về Tài khoản Ngừng hoạt động 33311 đang tồn tại trong DB đúng tenant`);
+}
+
 /** Mở form Hàng hóa tại tab Thông tin kho, không tương tác với trường nào. */
 export async function openGoodsInventoryTab(vatTuPage: VatTuPage, materialType: MaterialType = 'Hàng hóa'): Promise<void> {
   await vatTuPage.openFromDanhMuc();

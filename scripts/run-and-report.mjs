@@ -99,6 +99,39 @@ function reconcileBugLifecycle(state) {
   }
 }
 
+/** Phân tích một failure sau khi Playwright đã chạy xong toàn bộ spec và cập nhật bug registry tích lũy. */
+function analyzeRecordedFailure({ state, spec, testCaseId, record, stateRoot }) {
+  const caseState = state.cases.find((item) => item.id === testCaseId);
+  if (!caseState) throw new Error(`Không tìm thấy kết quả đã ghi của ${testCaseId}.`);
+  const analysisPath = resolve(stateRoot, `${testCaseId}-analysis.json`);
+  const existingBugsForTestcase = state.bugs
+    .filter((bug) => bug.affectedTestcases?.includes(testCaseId))
+    .map(({ evidenceData, evidencePath: oldEvidencePath, ...bug }) => bug);
+  const packet = { specPath: spec.path, testCaseId, title: record.title, source: record.source, errors: record.errors, attachments: record.attachments, existingBugsForTestcase };
+  caseState.analysis = analyzeFailure(packet, analysisPath);
+  if (!caseState.analysis.isProductBug) return;
+
+  const matchedBugs = matchedBugIds(caseState.analysis)
+    .map((id) => state.bugs.find((item) => item.id === id))
+    .filter(Boolean);
+  let targetBugs = matchedBugs;
+  if (!targetBugs.length) {
+    const deduplicated = state.bugs.find((item) => item.deduplicationKey === caseState.analysis.deduplicationKey);
+    if (deduplicated) targetBugs = [deduplicated];
+  }
+  if (!targetBugs.length) {
+    const bug = { id: `BUG-${basename(spec.path, '.spec.ts').toUpperCase().replace(/[^A-Z0-9]+/g, '-')}-${String(state.bugs.length + 1).padStart(3, '0')}`, status: 'Open', severity: caseState.analysis.severity, summary: caseState.analysis.summary, preconditions: caseState.analysis.preconditions, steps: caseState.analysis.steps, testData: caseState.analysis.testData, expected: caseState.analysis.expected, actual: caseState.analysis.actual, deduplicationKey: caseState.analysis.deduplicationKey, affectedTestcases: [], evidencePath: evidencePath(record) };
+    state.bugs.push(bug);
+    targetBugs = [bug];
+  }
+  for (const bug of targetBugs) {
+    if (matchedBugs.length) bug.status = 'Re-Open';
+    bug.actual = caseState.analysis.actual;
+    bug.evidencePath = evidencePath(record) || bug.evidencePath;
+    if (!bug.affectedTestcases.includes(testCaseId)) bug.affectedTestcases.push(testCaseId);
+  }
+}
+
 const isManifest = extname(targetPath).toLowerCase() === '.json';
 const manifest = isManifest ? readManifest(targetPath) : null;
 const specs = manifest?.specs ?? [{ path: target.replaceAll('\\', '/'), report: specReport(target) }];
@@ -134,6 +167,7 @@ for (const spec of specs) {
     lifecycleReady = true;
   }
   const state = { specPath: spec.path, reportPath: spec.report, expectedTotal: spec.selectedCases.length, cases: [], bugs: readReportBugRegistry(spec.report) };
+  const pendingFailures = [];
   for (const [index, testCaseId] of spec.selectedCases.entries()) {
     const outputDir = resolve(root, 'test-results', 'artifacts', runId, basename(spec.path, '.spec.ts'), testCaseId);
     const playwrightArgs = ['node_modules/@playwright/test/cli.js', 'test', spec.path, '--grep', `${testCaseId} -`, '--workers=1', '--retries=0', '--output', outputDir];
@@ -144,41 +178,30 @@ for (const spec of specs) {
     const result = command(process.execPath, playwrightArgs, { env: { ...process.env, TEST_RUN_ID: runId } });
     if (previousRunId === undefined) delete process.env.TEST_RUN_ID; else process.env.TEST_RUN_ID = previousRunId;
     const record = readCaseRecord(outputDir, runId);
-    const caseState = { id: testCaseId, title: record.title, status: record.status, durationMs: record.durationMs };
+    const caseState = {
+      id: testCaseId,
+      title: record.title,
+      status: record.status,
+      durationMs: record.durationMs,
+      ...(record.skipReason ? { skipReason: record.skipReason } : {}),
+    };
     if (record.status === 'FAIL') {
       anyFailure = true;
-      const analysisPath = resolve(stateRoot, `${testCaseId}-analysis.json`);
-      const existingBugsForTestcase = state.bugs.filter((bug) => bug.affectedTestcases?.includes(testCaseId)).map(({ evidenceData, evidencePath: oldEvidencePath, ...bug }) => bug);
-      const packet = { specPath: spec.path, testCaseId, title: record.title, source: record.source, errors: record.errors, attachments: record.attachments, existingBugsForTestcase };
-      caseState.analysis = analyzeFailure(packet, analysisPath);
-      if (caseState.analysis.isProductBug) {
-        const matchedBugs = matchedBugIds(caseState.analysis)
-          .map((id) => state.bugs.find((item) => item.id === id))
-          .filter(Boolean);
-        let targetBugs = matchedBugs;
-        if (!targetBugs.length) {
-          const deduplicated = state.bugs.find((item) => item.deduplicationKey === caseState.analysis.deduplicationKey);
-          if (deduplicated) targetBugs = [deduplicated];
-        }
-        if (!targetBugs.length) {
-          const bug = { id: `BUG-${basename(spec.path, '.spec.ts').toUpperCase().replace(/[^A-Z0-9]+/g, '-')}-${String(state.bugs.length + 1).padStart(3, '0')}`, status: 'Open', severity: caseState.analysis.severity, summary: caseState.analysis.summary, preconditions: caseState.analysis.preconditions, steps: caseState.analysis.steps, testData: caseState.analysis.testData, expected: caseState.analysis.expected, actual: caseState.analysis.actual, deduplicationKey: caseState.analysis.deduplicationKey, affectedTestcases: [], evidencePath: evidencePath(record) };
-          state.bugs.push(bug);
-          targetBugs = [bug];
-        }
-        for (const bug of targetBugs) {
-          if (matchedBugs.length) bug.status = 'Re-Open';
-          bug.actual = caseState.analysis.actual;
-          bug.evidencePath = evidencePath(record) || bug.evidencePath;
-          if (!bug.affectedTestcases.includes(testCaseId)) bug.affectedTestcases.push(testCaseId);
-        }
-      }
+      pendingFailures.push({ testCaseId, record });
     }
     state.cases.push(caseState);
-    reconcileBugLifecycle(state);
     writeFileSync(resolve(stateRoot, `${basename(spec.path, '.spec.ts')}.json`), JSON.stringify(state, null, 2), 'utf8');
-    await updateIncrementalReport({ ...state, runId });
     if (result.status !== 0 && record.status !== 'FAIL') anyFailure = true;
   }
+  process.stdout.write(`\nPhân tích ${pendingFailures.length} failure sau khi hoàn tất spec ${spec.path}.\n`);
+  for (const [index, failure] of pendingFailures.entries()) {
+    process.stdout.write(`[analysis ${index + 1}/${pendingFailures.length}] ${failure.testCaseId}\n`);
+    analyzeRecordedFailure({ state, spec, stateRoot, ...failure });
+    writeFileSync(resolve(stateRoot, `${basename(spec.path, '.spec.ts')}.json`), JSON.stringify(state, null, 2), 'utf8');
+  }
+  reconcileBugLifecycle(state);
+  writeFileSync(resolve(stateRoot, `${basename(spec.path, '.spec.ts')}.json`), JSON.stringify(state, null, 2), 'utf8');
+  await updateIncrementalReport({ ...state, runId });
   } finally {
     if (lifecycle && (lifecycleReady || existsSync(lifecycle.state))) {
       try {

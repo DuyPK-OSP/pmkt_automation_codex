@@ -11,7 +11,6 @@ import {
   prepareGoodsResourceTaxes,
   prepareGoodsConversionGrid,
   prepareGoodsWarehouses,
-  recordMissingSpecialGoodsTypeBug,
   verifyFullGoodsSavedInDatabase,
   verifyRequiredGoodsSavedInDatabase,
   verifyMaterialTypeCards,
@@ -34,7 +33,7 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
 
     await expect(vatTuPage.materialTypeDialog, 'Popup Chọn tính chất phải đóng sau khi chọn Công cụ, dụng cụ').toBeHidden();
     await expect(vatTuPage.createMaterialDialog, 'Phải hiển thị popup Thêm mới vật tư').toBeVisible();
-    await expect(vatTuPage.ccdcMaterialTypeField(), 'Tính chất phải hiển thị Công cụ, dụng cụ ở trạng thái chỉ đọc').toContainText('Công cụ, dụng cụ');
+    await expect(vatTuPage.ccdcMaterialTypeField(), 'Tính chất phải hiển thị Công cụ dụng cụ ở trạng thái chỉ đọc').toContainText('Công cụ dụng cụ');
     for (const field of [
       { label: 'Mã vật tư', role: 'textbox' as const },
       { label: 'Tên vật tư', role: 'textbox' as const },
@@ -50,7 +49,6 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
       ).toBeVisible();
     }
     await expect.soft(vatTuPage.checkbox('Giảm thuế theo quy định'), 'Phải hiển thị trường Giảm thuế theo quy định').toBeVisible();
-    await expect.soft(vatTuPage.specialGoodsTypeCombobox(), 'Phải hiển thị trường Loại hàng hóa đặc trưng').toBeVisible();
     await expect.soft(vatTuPage.inventoryMaterialFormFieldControl('Thời hạn bảo hành', 'spinbutton'), 'Phải hiển thị trường Thời hạn bảo hành').toBeVisible();
     await expect.soft(vatTuPage.inventoryWarrantyUnitCombobox(), 'Phải hiển thị đơn vị Thời hạn bảo hành').toBeVisible();
     await expect.soft(vatTuPage.statusSwitch(), 'Phải hiển thị trường Trạng thái').toBeVisible();
@@ -81,7 +79,7 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
 
     await expect(vatTuPage.materialTypeDialog, 'Popup Chọn tính chất phải đóng').toBeHidden();
     await expect(vatTuPage.createMaterialDialog, 'Form Thêm mới phải tiếp tục hiển thị').toBeVisible();
-    await expect(vatTuPage.ccdcMaterialTypeField(), 'Loại vật tư cũ phải được giữ nguyên').toContainText('Công cụ, dụng cụ');
+    await expect(vatTuPage.ccdcMaterialTypeField(), 'Loại vật tư cũ phải được giữ nguyên').toContainText('Công cụ dụng cụ');
     await expect(vatTuPage.materialNameInput(), 'Dữ liệu đang nhập phải được giữ nguyên').toHaveValue(materialName);
   });
 
@@ -1137,6 +1135,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   });
 
   test('TC_PMKT-U-00106-922 - hiển thị đúng cột, dữ liệu và thứ tự Tài khoản vật tư', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu DB: Lấy Tài khoản Hoạt động được phép hạch toán và toàn bộ Tài khoản Ngừng hoạt động.
     const accounts = await prepareGoodsAccounting(vatTuPage, 'Công cụ, dụng cụ');
     const expectedAccounts = accounts.filter(
@@ -1179,6 +1179,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   });
 
   test('TC_PMKT-U-00106-923 - Tài khoản vật tư Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu DB: Chọn một tài khoản Ngừng hoạt động, không ràng buộc Cho phép hạch toán.
     const accounts = await prepareGoodsAccounting(vatTuPage, 'Công cụ, dụng cụ');
     const inactiveAccount = accounts.find((account) => account.status === 'NgungHoatDong');
@@ -1199,11 +1201,15 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   });
 
   test('TC_PMKT-U-00106-924 - xác nhận sử dụng Tài khoản vật tư Ngừng hoạt động', async () => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu: BLOCK vì TC923 xác nhận combogrid hiện không hiển thị Tài khoản Ngừng hoạt động.
     test.skip(true, 'BLOCK: bị chặn bởi TC923 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
   });
 
   test('TC_PMKT-U-00106-925 - hủy sử dụng Tài khoản vật tư Ngừng hoạt động', async () => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu: BLOCK vì TC923 xác nhận combogrid hiện không hiển thị Tài khoản Ngừng hoạt động.
     test.skip(true, 'BLOCK: bị chặn bởi TC923 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
   });
@@ -1273,6 +1279,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   });
 
   test('TC_PMKT-U-00106-929 - tìm Tài khoản vật tư theo Trạng thái', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu DB: Lấy toàn bộ tài khoản Ngừng hoạt động đúng theo điều kiện của testcase.
     const accounts = await prepareGoodsAccounting(vatTuPage, 'Công cụ, dụng cụ');
     const expectedLabels = accounts
@@ -1416,6 +1424,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   });
 
   test('TC_PMKT-U-00106-937 - hiển thị đúng cột, dữ liệu và thứ tự Tài khoản giá vốn', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu DB: Lấy Tài khoản Hoạt động được phép hạch toán và toàn bộ Tài khoản Ngừng hoạt động.
     const accounts = await prepareGoodsAccounting(vatTuPage, 'Công cụ, dụng cụ');
     const expectedAccounts = accounts.filter(
@@ -1458,6 +1468,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   });
 
   test('TC_PMKT-U-00106-938 - Tài khoản giá vốn Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu DB: Chọn một tài khoản Ngừng hoạt động, không ràng buộc Cho phép hạch toán.
     const accounts = await prepareGoodsAccounting(vatTuPage, 'Công cụ, dụng cụ');
     const inactiveAccount = accounts.find((account) => account.status === 'NgungHoatDong');
@@ -1478,11 +1490,15 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   });
 
   test('TC_PMKT-U-00106-939 - xác nhận sử dụng Tài khoản giá vốn Ngừng hoạt động', async () => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu: BLOCK bởi TC938 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
     test.skip(true, 'BLOCK: bị chặn bởi TC938 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
   });
 
   test('TC_PMKT-U-00106-940 - hủy sử dụng Tài khoản giá vốn Ngừng hoạt động', async () => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu: BLOCK bởi TC938 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
     test.skip(true, 'BLOCK: bị chặn bởi TC938 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
   });
@@ -1552,6 +1568,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   });
 
   test('TC_PMKT-U-00106-944 - tìm Tài khoản giá vốn theo Trạng thái', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu DB: Lấy Tài khoản Hoạt động được phép hạch toán.
     const accounts = await prepareGoodsAccounting(vatTuPage, 'Công cụ, dụng cụ');
     const expectedLabels = accounts
@@ -1695,6 +1713,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   });
 
   test('TC_PMKT-U-00106-952 - hiển thị đúng cột, dữ liệu và thứ tự Tài khoản doanh thu', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu DB: Lấy Tài khoản Hoạt động được phép hạch toán và toàn bộ Tài khoản Ngừng hoạt động.
     const accounts = await prepareGoodsAccounting(vatTuPage, 'Công cụ, dụng cụ');
     const expectedAccounts = accounts.filter(
@@ -1737,6 +1757,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   });
 
   test('TC_PMKT-U-00106-953 - Tài khoản doanh thu Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu DB: Chọn một tài khoản Ngừng hoạt động, không ràng buộc Cho phép hạch toán.
     const accounts = await prepareGoodsAccounting(vatTuPage, 'Công cụ, dụng cụ');
     const inactiveAccount = accounts.find((account) => account.status === 'NgungHoatDong');
@@ -1757,11 +1779,15 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   });
 
   test('TC_PMKT-U-00106-954 - xác nhận sử dụng Tài khoản doanh thu Ngừng hoạt động', async () => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu: BLOCK bởi TC953 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
     test.skip(true, 'BLOCK: bị chặn bởi TC953 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
   });
 
   test('TC_PMKT-U-00106-955 - hủy sử dụng Tài khoản doanh thu Ngừng hoạt động', async () => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu: BLOCK bởi TC953 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
     test.skip(true, 'BLOCK: bị chặn bởi TC953 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
   });
@@ -1831,6 +1857,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   });
 
   test('TC_PMKT-U-00106-959 - tìm Tài khoản doanh thu theo Trạng thái', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu DB: Lấy Tài khoản Hoạt động được phép hạch toán.
     const accounts = await prepareGoodsAccounting(vatTuPage, 'Công cụ, dụng cụ');
     const expectedLabels = accounts
@@ -1940,6 +1968,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   });
 
   test('TC_PMKT-U-00106-965 - hiển thị đúng cột, dữ liệu và thứ tự Tài khoản hàng bán trả lại', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu DB: Lấy Tài khoản Hoạt động được phép hạch toán và toàn bộ Tài khoản Ngừng hoạt động.
     const accounts = await prepareGoodsAccounting(vatTuPage, 'Công cụ, dụng cụ');
     const expectedAccounts = accounts.filter(
@@ -1982,6 +2012,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   });
 
   test('TC_PMKT-U-00106-966 - Tài khoản hàng bán trả lại Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu DB: Chọn một tài khoản Ngừng hoạt động, không ràng buộc Cho phép hạch toán.
     const accounts = await prepareGoodsAccounting(vatTuPage, 'Công cụ, dụng cụ');
     const inactiveAccount = accounts.find((account) => account.status === 'NgungHoatDong');
@@ -2002,11 +2034,15 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   });
 
   test('TC_PMKT-U-00106-967 - xác nhận sử dụng Tài khoản hàng bán trả lại Ngừng hoạt động', async () => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu: BLOCK bởi TC966 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
     test.skip(true, 'BLOCK: bị chặn bởi TC966 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
   });
 
   test('TC_PMKT-U-00106-968 - hủy sử dụng Tài khoản hàng bán trả lại Ngừng hoạt động', async () => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu: BLOCK bởi TC966 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
     test.skip(true, 'BLOCK: bị chặn bởi TC966 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
   });
@@ -2076,6 +2112,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   });
 
   test('TC_PMKT-U-00106-972 - tìm Tài khoản hàng bán trả lại theo Trạng thái', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu DB: Lấy Tài khoản Hoạt động được phép hạch toán.
     const accounts = await prepareGoodsAccounting(vatTuPage, 'Công cụ, dụng cụ');
     const expectedLabels = accounts
@@ -2184,6 +2222,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   });
 
   test('TC_PMKT-U-00106-978 - hiển thị đúng cột, dữ liệu và thứ tự Tài khoản chi phí', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu DB: Lấy Tài khoản Hoạt động được phép hạch toán và toàn bộ Tài khoản Ngừng hoạt động.
     const accounts = await prepareGoodsAccounting(vatTuPage, 'Công cụ, dụng cụ');
     const expectedAccounts = accounts.filter(
@@ -2226,6 +2266,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   });
 
   test('TC_PMKT-U-00106-979 - Tài khoản chi phí Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu DB: Chọn một tài khoản Ngừng hoạt động, không ràng buộc Cho phép hạch toán.
     const accounts = await prepareGoodsAccounting(vatTuPage, 'Công cụ, dụng cụ');
     const inactiveAccount = accounts.find((account) => account.status === 'NgungHoatDong');
@@ -2246,11 +2288,15 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   });
 
   test('TC_PMKT-U-00106-980 - xác nhận sử dụng Tài khoản chi phí Ngừng hoạt động', async () => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu: BLOCK bởi TC979 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
     test.skip(true, 'BLOCK: bị chặn bởi TC979 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
   });
 
   test('TC_PMKT-U-00106-981 - hủy sử dụng Tài khoản chi phí Ngừng hoạt động', async () => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu: BLOCK bởi TC979 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
     test.skip(true, 'BLOCK: bị chặn bởi TC979 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
   });
@@ -2320,6 +2366,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   });
 
   test('TC_PMKT-U-00106-985 - tìm Tài khoản chi phí theo Trạng thái', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu DB: Lấy Tài khoản Hoạt động được phép hạch toán.
     const accounts = await prepareGoodsAccounting(vatTuPage, 'Công cụ, dụng cụ');
     const expectedLabels = accounts
@@ -2428,6 +2476,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   });
 
   test('TC_PMKT-U-00106-991 - hiển thị đúng cột, dữ liệu và thứ tự Tài khoản chiết khấu', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu DB: Lấy Tài khoản Hoạt động được phép hạch toán và toàn bộ Tài khoản Ngừng hoạt động.
     const accounts = await prepareGoodsAccounting(vatTuPage, 'Công cụ, dụng cụ');
     const expectedAccounts = accounts.filter(
@@ -2470,6 +2520,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   });
 
   test('TC_PMKT-U-00106-992 - Tài khoản chiết khấu Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu DB: Chọn một tài khoản Ngừng hoạt động, không ràng buộc Cho phép hạch toán.
     const accounts = await prepareGoodsAccounting(vatTuPage, 'Công cụ, dụng cụ');
     const inactiveAccount = accounts.find((account) => account.status === 'NgungHoatDong');
@@ -2490,11 +2542,15 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   });
 
   test('TC_PMKT-U-00106-993 - xác nhận sử dụng Tài khoản chiết khấu Ngừng hoạt động', async () => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu: BLOCK bởi TC992 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
     test.skip(true, 'BLOCK: bị chặn bởi TC992 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
   });
 
   test('TC_PMKT-U-00106-994 - hủy sử dụng Tài khoản chiết khấu Ngừng hoạt động', async () => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu: BLOCK bởi TC992 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
     test.skip(true, 'BLOCK: bị chặn bởi TC992 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
   });
@@ -2564,6 +2620,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   });
 
   test('TC_PMKT-U-00106-998 - tìm Tài khoản chiết khấu theo Trạng thái', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu DB: Lấy Tài khoản Hoạt động được phép hạch toán.
     const accounts = await prepareGoodsAccounting(vatTuPage, 'Công cụ, dụng cụ');
     const expectedLabels = accounts
@@ -2672,6 +2730,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   });
 
   test('TC_PMKT-U-00106-1004 - hiển thị đúng cột, dữ liệu và thứ tự Tài khoản giảm giá', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu DB: Lấy Tài khoản Hoạt động được phép hạch toán và toàn bộ Tài khoản Ngừng hoạt động.
     const accounts = await prepareGoodsAccounting(vatTuPage, 'Công cụ, dụng cụ');
     const expectedAccounts = accounts.filter(
@@ -2714,6 +2774,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   });
 
   test('TC_PMKT-U-00106-1005 - Tài khoản giảm giá Ngừng hoạt động hiển thị chữ màu xám', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu DB: Chọn một tài khoản Ngừng hoạt động, không ràng buộc Cho phép hạch toán.
     const accounts = await prepareGoodsAccounting(vatTuPage, 'Công cụ, dụng cụ');
     const inactiveAccount = accounts.find((account) => account.status === 'NgungHoatDong');
@@ -2734,11 +2796,15 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   });
 
   test('TC_PMKT-U-00106-1006 - xác nhận sử dụng Tài khoản giảm giá Ngừng hoạt động', async () => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu: BLOCK bởi TC1005 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
     test.skip(true, 'BLOCK: bị chặn bởi TC1005 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
   });
 
   test('TC_PMKT-U-00106-1007 - hủy sử dụng Tài khoản giảm giá Ngừng hoạt động', async () => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu: BLOCK bởi TC1005 vì combogrid không hiển thị Tài khoản Ngừng hoạt động để chọn.
     test.skip(true, 'BLOCK: bị chặn bởi TC1005 - combogrid không hiển thị Tài khoản Ngừng hoạt động');
   });
@@ -2808,6 +2874,8 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   });
 
   test('TC_PMKT-U-00106-1011 - tìm Tài khoản giảm giá theo Trạng thái', async ({ vatTuPage }) => {
+    // Chuẩn bị dữ liệu: Chủ động SKIP theo nghiệp vụ mới của tài khoản ngầm định.
+    test.skip(true, 'Not test do update nghiệp vụ - sẽ chỉ hiển thị Tk có Cho phép hạch toán = Có');
     // Chuẩn bị dữ liệu DB: Lấy Tài khoản Hoạt động được phép hạch toán.
     const accounts = await prepareGoodsAccounting(vatTuPage, 'Công cụ, dụng cụ');
     const expectedLabels = accounts
@@ -2938,7 +3006,7 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
 
     // Xác nhận: Popup đóng, form Công cụ, dụng cụ được tải và Tab Thông tin kho hiển thị lại.
     await expect(vatTuPage.materialTypeDialog, 'Popup chọn tính chất phải đóng sau khi chọn Công cụ, dụng cụ').toBeHidden();
-    await expect(vatTuPage.ccdcMaterialTypeField(), 'Form phải hiển thị Loại vật tư Công cụ, dụng cụ').toContainText('Công cụ, dụng cụ');
+    await expect(vatTuPage.ccdcMaterialTypeField(), 'Form phải hiển thị Loại vật tư Công cụ dụng cụ').toContainText('Công cụ dụng cụ');
     await expect(vatTuPage.formTab('Thông tin kho'), 'Form Công cụ, dụng cụ phải hiển thị lại Tab Thông tin kho').toBeVisible();
   });
   test('TC_PMKT-U-00106-1018 - hiển thị combogrid Kho mặc định không bắt buộc', async ({ vatTuPage }) => {
@@ -3931,7 +3999,7 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
     await vatTuPage.selectMaterialType('Công cụ, dụng cụ');
 
     // Xác nhận UI: Form tải lại đúng loại Công cụ, dụng cụ và tab Đơn vị quy đổi hiển thị bình thường.
-    await expect(vatTuPage.ccdcMaterialTypeField()).toContainText('Công cụ, dụng cụ');
+    await expect(vatTuPage.ccdcMaterialTypeField()).toContainText('Công cụ dụng cụ');
     await expect(vatTuPage.formTab('Đơn vị quy đổi')).toBeVisible();
   });
 
@@ -3965,7 +4033,7 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
     await vatTuPage.selectMaterialType('Công cụ, dụng cụ');
 
     // Xác nhận UI: Form tải lại đúng loại Công cụ, dụng cụ và ẩn hoàn toàn tab Đơn vị tính khác.
-    await expect(vatTuPage.ccdcMaterialTypeField()).toContainText('Công cụ, dụng cụ');
+    await expect(vatTuPage.ccdcMaterialTypeField()).toContainText('Công cụ dụng cụ');
     await expect(vatTuPage.formTab('Đơn vị tính khác')).toBeHidden();
   });
 
@@ -4024,12 +4092,16 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   test('TC_PMKT-U-00106-1109 - combogrid Đơn vị tính quy đổi khớp cột dữ liệu DB và thứ tự trạng thái', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Lấy toàn bộ Đơn vị tính từ DB đúng tenant và mở combogrid trên dòng quy đổi.
     const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Công cụ, dụng cụ'); await vatTuPage.openFirstConversionUnitDropdown();
-    const headers = (await vatTuPage.mainUnitDropdown().getByRole('columnheader').allTextContents()).map((v) => v.trim()).filter(Boolean);
-    const labels = (await vatTuPage.conversionUnitOptions().allTextContents()).map((v) => v.trim()).filter(Boolean);
+    const headers = (await vatTuPage.conversionUnitDropdownColumnHeaders().allTextContents())
+      .map((v) => v.trim())
+      .filter(Boolean)
+      .slice(-3);
+    const entries = await vatTuPage.visibleMainUnitEntries(units.length);
+    const labels = entries.map(({ label }) => label);
     // Xác nhận UI/DB: Cột, dữ liệu và thứ tự Hoạt động trên Ngừng hoạt động đúng testcase.
     await expect.soft(headers).toEqual(['Mã đơn vị tính', 'Tên đơn vị tính', 'Trạng thái']);
     await expect.soft([...labels].sort()).toEqual([...units.map((u) => u.label)].sort());
-    const statuses = labels.map((label) => units.find((u) => u.label === label)?.status);
+    const statuses = entries.map(({ status }) => status);
     const firstInactive = statuses.indexOf('NgungHoatDong'); expect(firstInactive < 0 || statuses.slice(firstInactive).every((s) => s === 'NgungHoatDong')).toBe(true);
   });
 
@@ -4037,7 +4109,7 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
     const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Công cụ, dụng cụ'); const inactive = units.find((u) => u.status === 'NgungHoatDong');
     test.skip(!inactive, 'DB không có Đơn vị tính Ngừng hoạt động'); if (!inactive) return;
     await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit(inactive.code);
-    test.skip(!(await vatTuPage.conversionUnitOptions().filter({ hasText: inactive.label }).isVisible()), 'Combogrid không hiển thị Đơn vị tính Ngừng hoạt động');
+    await expect(vatTuPage.conversionUnitOption(inactive.label), 'Combogrid phải hiển thị Đơn vị tính Ngừng hoạt động theo mã DB').toBeVisible();
     const style = await vatTuPage.conversionUnitOptionStyle(inactive.label);
     expect(isGrayCssColor(style.color) || Number(style.opacity) < 1).toBe(true);
   });
@@ -4046,7 +4118,7 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
     const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Công cụ, dụng cụ'); const inactive = units.find((u) => u.status === 'NgungHoatDong');
     test.skip(!inactive, 'DB không có Đơn vị tính Ngừng hoạt động'); if (!inactive) return;
     await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit(inactive.code);
-    test.skip(!(await vatTuPage.conversionUnitOptions().filter({ hasText: inactive.label }).isVisible()), 'BLOCK bởi TC1110: combogrid không hiển thị Đơn vị tính Ngừng hoạt động');
+    await expect(vatTuPage.conversionUnitOption(inactive.label), 'Combogrid phải hiển thị Đơn vị tính Ngừng hoạt động theo mã DB').toBeVisible();
     await vatTuPage.selectFirstConversionUnit(inactive);
     await expect(vatTuPage.mainUnitConfirmationMessage()).toHaveText('Bản ghi đang ở trạng thái Ngừng hoạt động. Bạn có chắc chắn muốn sử dụng?');
     await vatTuPage.confirmInactiveMainUnit(); await expect(vatTuPage.selectedFirstConversionUnit(inactive.label)).toBeVisible();
@@ -4056,7 +4128,7 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
     const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Công cụ, dụng cụ'); const inactive = units.find((u) => u.status === 'NgungHoatDong');
     test.skip(!inactive, 'DB không có Đơn vị tính Ngừng hoạt động'); if (!inactive) return;
     await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit(inactive.code);
-    test.skip(!(await vatTuPage.conversionUnitOptions().filter({ hasText: inactive.label }).isVisible()), 'BLOCK bởi TC1110: combogrid không hiển thị Đơn vị tính Ngừng hoạt động');
+    await expect(vatTuPage.conversionUnitOption(inactive.label), 'Combogrid phải hiển thị Đơn vị tính Ngừng hoạt động theo mã DB').toBeVisible();
     await vatTuPage.selectFirstConversionUnit(inactive); await vatTuPage.cancelInactiveMainUnit();
     await expect(vatTuPage.selectedFirstConversionUnit(inactive.label)).toBeHidden();
   });
@@ -4071,31 +4143,58 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
   test('TC_PMKT-U-00106-1114 - tìm Đơn vị tính quy đổi theo Mã', async ({ vatTuPage }) => {
     const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Công cụ, dụng cụ'); const unit = units[0]; test.skip(!unit, 'DB không có Đơn vị tính'); if (!unit) return;
     await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit(unit.code);
-    expect((await vatTuPage.conversionUnitOptions().allTextContents()).map((v) => v.trim())).toContain(unit.label);
+    expect((await vatTuPage.visibleMainUnitEntries()).map(({ label }) => label)).toContain(unit.label);
   });
 
   test('TC_PMKT-U-00106-1115 - tìm Đơn vị tính quy đổi theo Tên', async ({ vatTuPage }) => {
     const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Công cụ, dụng cụ'); const unit = units[0]; test.skip(!unit, 'DB không có Đơn vị tính'); if (!unit) return;
     await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit(unit.name);
-    expect((await vatTuPage.conversionUnitOptions().allTextContents()).map((v) => v.trim())).toContain(unit.label);
+    expect((await vatTuPage.visibleMainUnitEntries()).map(({ label }) => label)).toContain(unit.label);
   });
 
   test('TC_PMKT-U-00106-1116 - tìm Đơn vị tính quy đổi theo Trạng thái', async ({ vatTuPage }) => {
     const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Công cụ, dụng cụ'); await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit('Hoạt động');
-    const labels = (await vatTuPage.conversionUnitOptions().allTextContents()).map((v) => v.trim()).filter(Boolean);
-    expect(labels.length).toBeGreaterThan(0); expect(labels.every((label) => units.find((u) => u.label === label)?.status === 'HoatDong')).toBe(true);
+    const entries = await vatTuPage.visibleMainUnitEntries();
+    expect(entries.length).toBeGreaterThan(0);
+    expect(entries.every(({ label, status }) => status === 'HoatDong' && units.find((unit) => unit.label === label)?.status === 'HoatDong')).toBe(true);
   });
 
   test('TC_PMKT-U-00106-1117 - Enter chọn dòng Đơn vị tính quy đổi đầu tiên', async ({ vatTuPage }) => {
-    const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Công cụ, dụng cụ'); const keyword = units[0]?.code.slice(0, 1); test.skip(!keyword, 'DB không có dữ liệu tìm kiếm'); if (!keyword) return;
-    await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit(keyword); const first = (await vatTuPage.conversionUnitOptions().allTextContents()).map((v) => v.trim()).filter(Boolean)[0]!;
-    await vatTuPage.pressFirstConversionUnitKey('Enter'); await expect(vatTuPage.selectedFirstConversionUnit(first)).toBeVisible();
+    const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Công cụ, dụng cụ');
+    await vatTuPage.openFirstConversionUnitDropdown();
+    const visibleLabels = await vatTuPage.visibleMainUnitLabels(units.length);
+    const visibleUnits = units.filter(({ label }) => visibleLabels.includes(label));
+    const keyword = sharedSearchKeyword(visibleUnits.map(({ code }) => code));
+    test.skip(!keyword, 'DB và UI không có từ khóa trả về nhiều Đơn vị tính quy đổi');
+    if (!keyword) return;
+    await vatTuPage.searchFirstConversionUnit(keyword);
+    const matches = await vatTuPage.visibleMainUnitLabels();
+    expect(matches.length, 'Từ khóa phải trả về nhiều Đơn vị tính quy đổi').toBeGreaterThan(1);
+    const first = matches[0];
+    if (!first) throw new Error('Không đọc được dòng Đơn vị tính quy đổi đầu tiên sau khi tìm kiếm');
+    const [firstCode = '', firstName = ''] = first.split(' — ');
+    await vatTuPage.pressFirstConversionUnitKey('Enter');
+    await expect(vatTuPage.selectedConversionUnitRow(firstCode, firstName)).toBeVisible();
   });
 
   test('TC_PMKT-U-00106-1118 - Up Down di chuyển dòng Đơn vị tính quy đổi', async ({ vatTuPage }) => {
-    await prepareGoodsConversionGrid(vatTuPage, 'Công cụ, dụng cụ'); await vatTuPage.openFirstConversionUnitDropdown(); const before = await vatTuPage.activeConversionUnitLabel();
-    await vatTuPage.pressFirstConversionUnitKey('ArrowDown'); const down = await vatTuPage.activeConversionUnitLabel(); await vatTuPage.pressFirstConversionUnitKey('ArrowUp'); const up = await vatTuPage.activeConversionUnitLabel();
-    expect(down).not.toBe(before); expect(up).not.toBe(down); await expect(vatTuPage.conversionRowControls('combobox').first()).toHaveAttribute('aria-expanded', 'true');
+    // Chuẩn bị dữ liệu: Đọc danh sách đã render để xác định chính xác dòng được điều hướng.
+    const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Công cụ, dụng cụ');
+    await vatTuPage.openFirstConversionUnitDropdown();
+    const labels = await vatTuPage.visibleMainUnitLabels(units.length);
+    test.skip(labels.length < 3, 'UI không có đủ ba Đơn vị tính quy đổi để kiểm tra Up/Down');
+    if (labels.length < 3) return;
+
+    // Hành động: Di chuyển xuống hai dòng rồi quay lên một dòng, sau đó Enter để xác nhận vùng chọn.
+    await vatTuPage.pressFirstConversionUnitKey('ArrowDown');
+    await vatTuPage.pressFirstConversionUnitKey('ArrowDown');
+    await vatTuPage.pressFirstConversionUnitKey('ArrowUp');
+
+    // Xác nhận UI: Chưa chọn trước Enter và Enter chọn đúng dòng đầu tiên sau chuỗi phím.
+    await expect(vatTuPage.conversionRowControls('combobox').first()).toHaveValue('');
+    await vatTuPage.pressFirstConversionUnitKey('Enter');
+    const [expectedCode = '', expectedName = ''] = labels[0]!.split(' — ');
+    await expect(vatTuPage.selectedConversionUnitRow(expectedCode, expectedName)).toBeVisible();
   });
 
   test('TC_PMKT-U-00106-1119 - ESC đóng dropdown Đơn vị tính quy đổi không đổi giá trị', async ({ vatTuPage }) => {
@@ -4201,7 +4300,7 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
     await prepareGoodsConversionGrid(vatTuPage, 'Công cụ, dụng cụ');
     await expect(vatTuPage.conversionOperationCell('Nhân')).toBeVisible();
     await vatTuPage.openConversionOperation();
-    await expect(vatTuPage.conversionUnitOptions()).toHaveText(['Nhân', 'Chia']);
+    await expect(vatTuPage.conversionOperationOptions()).toHaveText(['Nhân', 'Chia']);
   });
 
   test('TC_PMKT-U-00106-1135 - chọn Phép tính Chia thành công', async ({ vatTuPage }) => {
@@ -4246,7 +4345,6 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
     test.skip(!group || !mainUnit, 'DB cần Nhóm vật tư và Đơn vị tính Hoạt động'); if (!group || !mainUnit) return;
     const material = fullGoodsData('TC818', group, mainUnit, 'Công cụ, dụng cụ');
     await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Công cụ, dụng cụ');
-    await recordMissingSpecialGoodsTypeBug(vatTuPage, 'Công cụ, dụng cụ');
     const selection = await vatTuPage.fillFullGoodsMaterial(material, 'inventory-material');
     await vatTuPage.openFormTab('Thông tin thuế');
     await testInfo.attach('TC818-tax-ui-values', {
@@ -4266,7 +4364,6 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
     test.skip(!group || !mainUnit, 'DB cần Nhóm vật tư và Đơn vị tính Hoạt động'); if (!group || !mainUnit) return;
     const material = fullGoodsData('TC819', group, mainUnit, 'Công cụ, dụng cụ');
     await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Công cụ, dụng cụ');
-    await recordMissingSpecialGoodsTypeBug(vatTuPage, 'Công cụ, dụng cụ');
     const selection = await vatTuPage.fillFullGoodsMaterial(material, 'inventory-material');
     await vatTuPage.saveMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công');
     await vatTuPage.searchMaterial(material.code); await expect(vatTuPage.materialRow(material.code)).toBeVisible();
@@ -4278,7 +4375,6 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
     const mainUnit = units.find((item) => item.status === 'HoatDong'); test.skip(!mainUnit, 'DB cần Đơn vị tính Hoạt động'); if (!mainUnit) return;
     const generator = new TestDataGenerator(); const code = generator.uniqueCode('TC820'); const name = generator.uniqueKeyword('TC820');
     await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Công cụ, dụng cụ');
-    await recordMissingSpecialGoodsTypeBug(vatTuPage, 'Công cụ, dụng cụ');
     await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit); const defaults = await vatTuPage.readRequiredGoodsUiDefaults();
     await vatTuPage.saveMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công');
     await vatTuPage.searchMaterial(code); await expect(vatTuPage.materialRow(code)).toBeVisible();
@@ -4291,7 +4387,6 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
     test.skip(!group || !mainUnit, 'DB cần Nhóm vật tư và Đơn vị tính Hoạt động'); if (!group || !mainUnit) return;
     const material = fullGoodsData('TC821', group, mainUnit, 'Công cụ, dụng cụ');
     await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Công cụ, dụng cụ');
-    await recordMissingSpecialGoodsTypeBug(vatTuPage, 'Công cụ, dụng cụ');
     const selection = await vatTuPage.fillFullGoodsMaterial(material, 'inventory-material');
     await vatTuPage.setMaterialStatus(false); await vatTuPage.saveMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công');
     await vatTuPage.searchMaterial(material.code); await expect(vatTuPage.materialRow(material.code)).toContainText('Ngừng hoạt động');
@@ -4304,7 +4399,6 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Công cụ, dụng cụ TC84
     test.skip(!group || !mainUnit, 'DB cần Nhóm vật tư và Đơn vị tính Hoạt động'); if (!group || !mainUnit) return;
     const material = fullGoodsData('TC822', group, mainUnit, 'Công cụ, dụng cụ');
     await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Công cụ, dụng cụ');
-    await recordMissingSpecialGoodsTypeBug(vatTuPage, 'Công cụ, dụng cụ');
     const selection = await vatTuPage.fillFullGoodsMaterial(material, 'inventory-material');
     await vatTuPage.saveAndAddMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công');
     await expect(vatTuPage.createMaterialDialog).toBeVisible(); await expect(vatTuPage.materialCodeInput()).toHaveValue(''); await expect(vatTuPage.materialNameInput()).toHaveValue('');

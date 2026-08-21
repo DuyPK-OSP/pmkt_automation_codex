@@ -18,9 +18,6 @@ const STABLE_FORM_CONTROL_IDS: Readonly<Record<string, string>> = {
   'Giá trị thuế suất GTGT': 'giaTriThueSuatGtgt',
   'Thuế nhập khẩu': 'thueNhapKhau',
   'Thuế xuất khẩu': 'thueXuatKhau',
-  'Thuế tiêu thụ đặc biệt': 'thueTtdbId',
-  'Thuế Tài nguyên': 'thueTnId',
-  'Thuế tài nguyên': 'thueTnId',
 };
 
 /** Tập trung toàn bộ locator của màn hình Danh mục Vật tư. */
@@ -70,8 +67,8 @@ export class VatTuLocators {
 
   materialTypeTitle = (type: string): Locator => this.materialTypeDialog.getByText(type, { exact: true });
   materialTypeDescription = (description: string): Locator => this.materialTypeDialog.getByText(description, { exact: true });
-  closeMaterialTypeButton = (): Locator => this.materialTypeDialog.getByRole('button', { name: 'Close', exact: true });
-  closeCreateMaterialButton = (): Locator => this.createMaterialDialog.getByRole('button', { name: 'Close', exact: true });
+  closeMaterialTypeButton = (): Locator => this.materialTypeDialog.getByRole('button', { name: 'Đóng', exact: true });
+  closeCreateMaterialButton = (): Locator => this.createMaterialDialog.getByRole('button', { name: 'Đóng', exact: true });
   cancelButton = (): Locator => this.createMaterialDialog.getByRole('button', { name: 'Hủy', exact: true });
   closeConfirmationMessage = (): Locator => this.closeConfirmationDialog.getByText(/Dữ liệu đã có thay đổi|Bạn có chắc chắn muốn hủy/);
   dismissCloseConfirmationButton = (): Locator => this.closeConfirmationDialog.getByRole('button', { name: 'Hủy', exact: true });
@@ -98,6 +95,9 @@ export class VatTuLocators {
     });
   };
   mainUnitColumnHeader = (name: string): Locator => this.visibleDropdown.getByRole('columnheader', { name, exact: true });
+  conversionUnitDropdownColumnHeaders = (): Locator => this.page
+    .getByRole('columnheader')
+    .filter({ hasText: /^(Mã đơn vị tính|Tên đơn vị tính|Trạng thái)$/u });
   mainUnitRows = (): Locator => this.dropdownDataRows();
   mainUnitStatusCells = (): Locator => this.visibleDropdown.getByRole('cell', { name: /^(Hoạt động|Ngừng hoạt động)$/ });
   mainUnitOptions = (): Locator => this.dropdownDataRows();
@@ -105,6 +105,14 @@ export class VatTuLocators {
     .and(this.page.locator('[aria-selected="true"], .ant-table-row-selected'));
   clearMainUnitButton = (): Locator => this.formField('Đơn vị tính chính').locator('.ant-select-clear');
   mainUnitQuickAddButton = (): Locator => this.visibleDropdown.getByRole('button', { name: 'Thêm nhanh', exact: true });
+  mainUnitQuickAddDialog = (): Locator => this.page.getByRole('dialog', { name: /Thêm nhanh đơn vị tính/i });
+  mainUnitQuickAddCodeInput = (): Locator => this.mainUnitQuickAddDialog().locator('#maDonViTinh');
+  mainUnitQuickAddNameInput = (): Locator => this.mainUnitQuickAddDialog().locator('#tenDonViTinh');
+  mainUnitQuickAddStatusSwitch = (): Locator => this.mainUnitQuickAddDialog().getByRole('switch');
+  mainUnitQuickAddAction = (name: 'Hủy' | 'Lưu'): Locator =>
+    this.mainUnitQuickAddDialog().getByRole('button', { name, exact: true });
+  mainUnitQuickAddValidation = (message: string): Locator =>
+    this.mainUnitQuickAddDialog().getByText(message, { exact: true });
   mainUnitConfirmationDialog = (): Locator => this.page.getByRole('dialog').filter({ hasText: 'Bản ghi đang ở trạng thái Ngừng hoạt động. Bạn có chắc chắn muốn sử dụng?' });
   mainUnitConfirmationMessage = (): Locator => this.mainUnitConfirmationDialog().getByText('Bản ghi đang ở trạng thái Ngừng hoạt động. Bạn có chắc chắn muốn sử dụng?', { exact: true });
   mainUnitConfirmationButton = (name: 'Xác nhận' | 'Hủy'): Locator => this.mainUnitConfirmationDialog().getByRole('button', { name, exact: true });
@@ -195,8 +203,17 @@ export class VatTuLocators {
   successNotification = (): Locator => this.page.getByRole('alert');
   warehouseColumnHeaders = (): Locator => this.visibleDropdown.locator('[role="columnheader"], th');
   taxColumnHeaders = (): Locator => this.visibleDropdown.locator('[role="columnheader"], th');
-  taxOptions = (): Locator => this.visibleDropdown.locator('.ant-select-item-option:not(.ant-select-item-option-disabled)');
-  taxActiveOption = (): Locator => this.visibleDropdown.locator('.ant-select-item-option-active');
+  /** Xác định thuế theo cell Mã trong combogrid; giữ fallback cho màn hình còn dùng Select cũ. */
+  taxOptionRow = (label: string): Locator => {
+    const [code = ''] = label.split(' — ');
+    const combogridRow = this.dropdownDataRows()
+      .filter({ has: this.page.getByRole('cell', { name: code, exact: true }) });
+    return combogridRow.or(this.dropdownOption(label));
+  };
+  taxOptions = (): Locator => this.dropdownDataRows().or(this.enabledDropdownOptions());
+  taxActiveOption = (): Locator => this.dropdownDataRows()
+    .and(this.page.locator('[aria-selected="true"], .ant-table-row-selected'))
+    .or(this.visibleDropdown.locator('.ant-select-item-option-active'));
   clearTaxButton = (label: string): Locator => this.formField(label).locator('.ant-select-clear');
   taxConfirmationDialog = (): Locator => this.page.getByRole('dialog').filter({
     hasText: 'Bản ghi đang ở trạng thái Ngừng hoạt động. Bạn có chắc chắn muốn sử dụng?',
@@ -292,7 +309,7 @@ export class VatTuLocators {
   materialDetailAction = (code: string, name: 'Chỉnh sửa' | 'Xóa' | 'Hủy'): Locator =>
     this.materialDetails(code).getByRole('button', { name, exact: true });
   materialDetailCloseButton = (code: string): Locator =>
-    this.materialDetails(code).getByRole('button', { name: 'Close', exact: true });
+    this.materialDetails(code).getByRole('button', { name: 'Đóng', exact: true });
   cancelDeleteButton = (): Locator =>
     this.deleteConfirmation().getByRole('button', { name: 'Hủy', exact: true });
   materialDetailControls = (code: string): Locator =>
@@ -316,14 +333,30 @@ export class VatTuLocators {
   conversionColumnHeaders = (): Locator => this.conversionGrid().getByRole('columnheader');
   conversionColumnHeader = (name: string): Locator => this.conversionGrid().getByRole('columnheader', { name, exact: true });
   conversionOperationCell = (value: string): Locator => this.conversionGrid().getByRole('cell', { name: new RegExp(`^${value}\\b`) });
-  selectedConversionUnit = (label: string): Locator => this.conversionGrid().getByTitle(label, { exact: true });
+  conversionOperationOptions = (): Locator => this.visibleDropdown.getByRole('option');
+  selectedConversionUnit = (label: string): Locator => {
+    const [code = '', name = ''] = label.split(' — ');
+    return this.selectedConversionUnitRow(code, name);
+  };
+  selectedConversionUnitRow = (code: string, name: string): Locator => this.conversionGrid()
+    .getByRole('row')
+    .filter({ hasText: code })
+    .filter({ hasText: name });
   clearConversionUnitButton = (): Locator => this.conversionGrid().locator('.ant-select-clear').first();
   conversionUnitQuickAddButton = (): Locator => this.visibleDropdown.getByRole('button', { name: 'Thêm nhanh', exact: true });
+  firstConversionUnitCombobox = (): Locator => this.conversionRowControls('combobox').first();
   conversionRowControls = (role: AriaRole): Locator => this.conversionGrid().getByRole(role);
   conversionValidationMessages = (): Locator => this.conversionGrid().locator('.ant-form-item-explain-error');
   conversionMessage = (message: string): Locator => this.createMaterialDialog.getByRole('tabpanel', { name: 'Đơn vị quy đổi', exact: true }).getByText(message, { exact: true });
   deleteConversionRowButton = (): Locator => this.conversionGrid().getByRole('button', { name: 'Xóa dòng', exact: true });
-  conversionUnitOption = (mainUnit: string): Locator => this.enabledDropdownOptions().filter({ hasNotText: mainUnit }).first();
+  /** Chọn dòng Đơn vị quy đổi Hoạt động đầu tiên, loại đúng Đơn vị tính chính theo cell Mã. */
+  conversionUnitOption = (mainUnit: string): Locator => {
+    const [mainUnitCode = ''] = mainUnit.split(' — ');
+    return this.dropdownDataRows()
+      .filter({ hasNot: this.page.getByRole('cell', { name: mainUnitCode, exact: true }) })
+      .filter({ hasNotText: 'Ngừng hoạt động' })
+      .first();
+  };
   visibleDropdownOption = (label: string): Locator => this.namedDropdownOption(label);
   accountingAccountOptionRow = (label: string): Locator => {
     const [code = '', name = ''] = label.split(' — ');
@@ -339,7 +372,8 @@ export class VatTuLocators {
   accountConfirmationButton = (name: 'Xác nhận' | 'Hủy'): Locator => this.accountConfirmationDialog().getByRole('button', { name, exact: true });
   selectedAccountValue = (fieldLabel: string, label: string): Locator => {
     const [code = '', name = ''] = label.split(' — ');
-    return this.formField(fieldLabel).getByText(`${code} - ${name}`, { exact: true });
+    const selectedText = `${code} - ${name}`.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
+    return this.formField(fieldLabel).getByText(new RegExp(`^${selectedText}(?: \\(Ngừng hoạt động\\))?$`, 'u'));
   };
   accountCombobox = (fieldLabel: string): Locator => this.formField(fieldLabel).getByRole('combobox');
 }

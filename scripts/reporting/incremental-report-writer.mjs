@@ -1,6 +1,9 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, resolve } from 'node:path';
 import { chromium } from '@playwright/test';
+import dotenv from 'dotenv';
+
+dotenv.config({ path: resolve(process.cwd(), process.env.ENV_FILE ?? '.env') });
 
 const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 const idSelector = (value) => String(value).replace(/[^A-Za-z0-9_-]/g, '-');
@@ -67,6 +70,33 @@ function preserve(oldDocument, pattern, fallback) {
   return oldDocument?.match(pattern)?.[0] ?? fallback;
 }
 
+/** Định dạng tổng thời gian thành hh:mm:ss; bỏ phần giờ khi tổng nhỏ hơn một giờ. */
+function formatDuration(durationMs) {
+  const totalSeconds = Math.round(durationMs / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const mm = String(minutes).padStart(2, '0');
+  const ss = String(seconds).padStart(2, '0');
+  return hours > 0 ? `${String(hours).padStart(2, '0')}:${mm}:${ss}` : `${mm}:${ss}`;
+}
+
+/** Đọc lý do SKIP chủ động từ spec để tương thích checkpoint cũ chưa lưu annotation. */
+function staticSkipReasons(specPath, cases) {
+  const source = readFileSync(resolve(specPath), 'utf8');
+  const definitions = [...source.matchAll(/\btest\s*\(\s*(['"`])((?:TC|CL)[A-Za-z0-9_-]+)\s+-/g)];
+  const reasons = new Map();
+  for (let index = 0; index < definitions.length; index += 1) {
+    const definition = definitions[index];
+    const id = definition[2];
+    if (!cases.some((item) => item.id === id && item.status === 'SKIP')) continue;
+    const block = source.slice(definition.index, definitions[index + 1]?.index ?? source.length);
+    const proactive = block.match(/test\.skip\(\s*true\s*,\s*(['"`])([\s\S]*?)\1\s*\)/);
+    if (proactive?.[2]) reasons.set(id, proactive[2]);
+  }
+  return reasons;
+}
+
 /** Dựng lại Automation Result từ toàn bộ template, đồng thời bảo toàn MANUAL BUGS/review/audit. */
 export async function updateIncrementalReport({ reportPath, specPath, runId, expectedTotal, cases, bugs }) {
   const absoluteReport = resolve(reportPath);
@@ -78,20 +108,57 @@ export async function updateIncrementalReport({ reportPath, specPath, runId, exp
   const total = cases.length;
   const percent = (value) => total ? (value * 100 / total).toFixed(2) : '0.00';
   const durationMs = cases.reduce((sum, item) => sum + item.durationMs, 0);
+  const fallbackSkipReasons = staticSkipReasons(specPath, cases);
+  for (const item of cases) {
+    if (item.status === 'SKIP' && !item.skipReason) item.skipReason = fallbackSkipReasons.get(item.id) ?? 'Playwright đánh dấu SKIP nhưng checkpoint không ghi lý do.';
+  }
+  const skipReasonCounts = new Map();
+  for (const item of cases.filter((entry) => entry.status === 'SKIP')) {
+    skipReasonCounts.set(item.skipReason, (skipReasonCounts.get(item.skipReason) ?? 0) + 1);
+  }
+  const skipTooltip = counts.SKIP
+    ? `SKIP: ${counts.SKIP}\n${[...skipReasonCounts].map(([reason, count]) => `• ${reason} (${count} case)`).join('\n')}`
+    : 'SKIP: 0\n• Không có testcase SKIP trong lần chạy này.';
   // Với failure không phải Product Bug, hiển thị nguyên nhân cụ thể để người đọc biết precondition/setup/teardown nào thất bại.
   const rows = cases.map((item) => {
     const classification = item.analysis?.classification ?? '—';
     const analysisDetail = item.status === 'FAIL' && item.analysis?.summary ? ` — ${item.analysis.summary}` : '';
-    return `<tr><td>${esc(item.id)}</td><td>${esc(item.title)}</td><td>${item.status}</td><td>${esc(`${classification}${analysisDetail}`)}</td><td>${(item.durationMs / 1000).toFixed(2)}s</td></tr>`;
+    const detail = item.status === 'SKIP' ? `Chủ động SKIP — ${item.skipReason}` : `${classification}${analysisDetail}`;
+    return `<tr><td>${esc(item.id)}</td><td>${esc(item.title)}</td><td>${item.status}</td><td>${esc(detail)}</td><td>${(item.durationMs / 1000).toFixed(2)}s</td></tr>`;
   }).join('');
   const bugRows = bugs.map((bug) => `<tr><td><a href="#${idSelector(bug.id)}">${esc(bug.id)}</a></td><td>${esc(bug.severity)}</td><td><div class="affected-count"><strong>${bug.affectedTestcases.length}</strong></div></td><td>${esc(bug.affectedTestcases.join(', '))}</td><td>${esc(bug.summary)}</td></tr>`).join('');
+  // A self-contained report must embed each binary image only once. When two
+  // deduplicated bugs share the exact screenshot, keep the first image and
+  // make the later bug point readers to its owning bug instead of repeating
+  // the same Base64 payload.
+  const evidenceOwners = new Map();
+  for (const bug of bugs) {
+    if (!bug.evidenceData) continue;
+    const owner = evidenceOwners.get(bug.evidenceData);
+    if (owner) {
+      bug.evidenceData = '';
+      bug.evidenceNote = `Dùng chung evidence với ${owner}.`;
+    } else {
+      evidenceOwners.set(bug.evidenceData, bug.id);
+    }
+  }
   const details = bugs.map((bug) => `<section id="${idSelector(bug.id)}" data-automation-bug data-severity="${esc(bug.severity ?? 'N/A')}" data-status="${esc(bug.status ?? 'Open')}" class="bug-collapsed"><h3>${esc(bug.id)} — ${esc(bug.summary)}</h3><button class="review-btn collapse-btn bug-section-toggle" type="button" aria-expanded="false">Mở rộng</button><div class="source-badge auto">🤖 AUTOMATION DETECTED<span class="readonly-note">READ ONLY</span></div><p><strong>Trạng thái:</strong> ${esc(bug.status ?? 'Open')}</p><div class="table-wrap bug-detail-wrap"><table class="bug-detail-table"><tbody><tr><th>Tiêu đề bug</th><td>${esc(bug.summary)}</td></tr><tr><th>Điều kiện tiên quyết</th><td>${esc(bug.preconditions ?? 'Điều kiện của testcase tại thời điểm chạy.')}</td></tr><tr><th>Các bước tái hiện</th><td>${esc(bug.steps ?? `Thực hiện testcase ${bug.affectedTestcases[0]} theo spec.`)}</td></tr><tr><th>Data test</th><td>${esc(bug.testData ?? 'Dữ liệu unique do testcase quản lý.')}</td></tr><tr><th>Kết quả mong đợi</th><td>${esc(bug.expected)}</td></tr><tr><th>Kết quả thực tế</th><td>${esc(bug.actual)}</td></tr><tr><th>Bằng chứng</th><td><div class="bug-detail-evidence">${bug.evidenceData ? `<button class="evidence" type="button"><img src="${bug.evidenceData}" alt="Bằng chứng ${esc(bug.id)}"></button>` : `<span class="bug-detail-empty">${esc(bug.evidenceNote ?? 'Không có screenshot phù hợp; xem error/runtime evidence.')}</span>`}</div></td></tr></tbody></table></div><p><a href="#top">↑ Quay lại đầu trang</a></p></section>`).join('');
   const registry = JSON.stringify(bugs.map(({ evidenceData, ...bug }) => bug)).replaceAll('<', '\\u003c');
 
   const automation = `<h2>Thông tin kiểm thử</h2><section class="run-info"><div class="run-info-item"><span>Môi trường</span><strong>PMKT Staging</strong></div><div class="run-info-item"><span>Tài khoản test</span><strong>Theo cấu hình môi trường</strong></div><div class="run-info-item"><span>Ngày</span><strong>${new Date().toLocaleDateString('vi-VN')}</strong></div><div class="run-info-item"><span>Tổng TCs</span><strong>${total}/${expectedTotal}</strong></div><div class="run-info-item"><span>Tổng thời gian</span><strong>${(durationMs / 1000).toFixed(2)}s</strong></div></section><section class="review-toolbar"><button class="review-btn primary" id="log-new-bug">🐞 Add Bug</button><button class="review-btn" id="save-draft" disabled>💾 Save</button><button class="review-btn primary" id="export-reviewed">📦 Export</button><button class="review-btn" id="back-to-top">↑ On top</button></section><h2>Tổng quan kết quả</h2><section class="summary-layout"><div class="result-charts"><div class="donut-wrap"><div class="donut" style="--pass-end:${percent(counts.PASS)}%;--fail-end:${percent(counts.PASS + counts.FAIL)}%;--skip-end:100%"><div class="donut-center"><strong>${percent(counts.PASS)}%</strong><span>PASS RATE</span></div></div><div class="chart-legend"><div>PASS · ${counts.PASS}</div><div>FAIL · ${counts.FAIL}</div><div>SKIP · ${counts.SKIP}</div><div>BLOCK · 0</div></div></div><div class="bar-chart">${['PASS', 'FAIL', 'SKIP', 'BLOCK'].map((status) => { const value = counts[status] ?? 0; return `<div class="bar-row" tabindex="0" data-tooltip="${status}: ${value}"><strong>${status}</strong><div class="bar-track"><div class="bar-value bar-${status.toLowerCase()}" style="--target:${percent(value)}%"></div></div><span>${value}</span></div>`; }).join('')}</div></div><aside class="review-summary"><div class="bug-count-card"><span>🤖 AUTOMATION BUGS</span><strong id="automation-bug-count">${bugs.length}</strong></div></aside></section><div class="section-heading-actions"><h2>Kết quả chi tiết</h2></div><div class="detail-filter-bar"><label>Trạng thái <select id="pipeline-status" class="column-filter"><option>Tất cả</option><option>PASS</option><option>FAIL</option><option>SKIP</option><option>BLOCK</option></select></label><span class="detail-filter-count">${total} testcase</span></div><div class="table-wrap"><table id="pipeline-results"><thead><tr><th>TC ID</th><th>Tên testcase</th><th>Trạng thái</th><th>Phân loại</th><th>Thời lượng</th></tr><tr class="column-filters"><th><input class="column-filter" data-col="0"></th><th><input class="column-filter" data-col="1"></th><th></th><th><input class="column-filter" data-col="3"></th><th><input class="column-filter" data-col="4"></th></tr></thead><tbody>${rows}</tbody></table></div><div class="section-heading-actions"><h2 id="bug-summary">Tổng hợp Bugs</h2><button class="review-btn collapse-btn" type="button">Thu gọn</button></div><div class="table-wrap"><table id="bug-summary-table"><thead><tr><th>Bug ID</th><th>Mức độ</th><th>Số case ảnh hưởng</th><th>Tên case ảnh hưởng</th><th>Tóm tắt bug</th></tr></thead><tbody>${bugRows}</tbody></table></div><div class="section-heading-actions"><h2>Chi tiết Bug</h2><button class="review-btn collapse-btn" type="button">Thu gọn</button></div>${details}<script type="application/json" id="automated-bug-registry">${registry}</script><script>(()=>{const rows=[...document.querySelectorAll('#pipeline-results tbody tr')],status=document.getElementById('pipeline-status'),inputs=[...document.querySelectorAll('#pipeline-results .column-filter')];function filter(){rows.forEach(row=>{const statusOk=status.value==='Tất cả'||row.cells[2].textContent===status.value;const columnsOk=inputs.every(input=>row.cells[Number(input.dataset.col)].textContent.toLowerCase().includes(input.value.toLowerCase()));row.classList.toggle('filtered-out',!(statusOk&&columnsOk))})}status.onchange=filter;inputs.forEach(input=>input.oninput=filter)})()</script>`;
 
   // Giữ bảng kết quả và bộ lọc theo contract của report; không loại bỏ chúng sau khi render.
-  const finalAutomation = automation;
+  const appUrl = process.env.APP_URL ?? 'https://pmkt-staging.ospgroup.vn';
+  const testAccount = process.env.TEST_USERNAME ?? 'Chưa cấu hình';
+  const finalAutomation = automation
+    .replace(
+      '<div class="run-info-item"><span>Tài khoản test</span><strong>Theo cấu hình môi trường</strong></div>',
+      `<div class="run-info-item"><span>Tài khoản test</span><strong>${esc(testAccount)}</strong></div>`,
+    )
+    .replace('<span>Môi trường</span><strong>PMKT Staging</strong>', `<span>Môi trường</span><strong>PMKT Staging — ${esc(appUrl)}</strong>`)
+    .replace(`<span>Tổng TCs</span><strong>${total}/${expectedTotal}</strong>`, `<span>Tổng TCs</span><strong>${total}</strong>`)
+    .replace(`<span>Tổng thời gian</span><strong>${(durationMs / 1000).toFixed(2)}s</strong>`, `<span>Tổng thời gian</span><strong>${formatDuration(durationMs)}</strong>`)
+    .replace(`data-tooltip="SKIP: ${counts.SKIP}"`, `data-tooltip="${esc(skipTooltip)}"`);
   const oldTester = preserve(oldDocument, /<section id="tester-bugs"[\s\S]*?(?=<\/main>)/, template.match(/<section id="tester-bugs"[\s\S]*?(?=<\/main>)/)?.[0] ?? '');
   const oldSeed = preserve(oldDocument, /<script id="review-seed"[\s\S]*?<\/script>/, template.match(/<script id="review-seed"[\s\S]*?<\/script>/)?.[0] ?? '');
   const oldAnnotations = preserve(oldDocument, /<script id="qa-team-annotations"[\s\S]*?<\/script>/, template.match(/<script id="qa-team-annotations"[\s\S]*?<\/script>/)?.[0] ?? '');

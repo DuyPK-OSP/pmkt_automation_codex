@@ -17,6 +17,7 @@ import { NganhNghePage } from '@pages/danh-muc/nganh-nghe.page';
 import { IndustryCleanupTracker } from '@cleanup/nganh-nghe.cleanup';
 import { expect, runWithEvidenceContext } from '@utils/evidence-expect';
 import { KhoPage } from '@pages/danh-muc/kho.page';
+import { DonViTinhPage } from '@pages/danh-muc/don-vi-tinh.page';
 import { QuickAddCleanupRegistry } from '@cleanup/quick-add.cleanup';
 import { useMaterialListDataset, type MaterialListDataset } from '@helpers/vat-tu-list-dataset.helper';
 import { FailureEvidenceCollector } from '@utils/failure-evidence.collector';
@@ -40,6 +41,7 @@ interface FrameworkFixtures {
   readonly industryPage: NganhNghePage;
   readonly industryCleanup: IndustryCleanupTracker;
   readonly warehousePage: KhoPage;
+  readonly unitPage: DonViTinhPage;
   readonly quickAddCleanup: QuickAddCleanupRegistry;
 }
 
@@ -91,8 +93,9 @@ export const test = base.extend<FrameworkFixtures, FrameworkWorkerFixtures>({
   paymentOrderListPage: async ({ page, logger }, use) => { await use(new TienGuiChiTienDanhSachPage(page, logger)); },
   industryPage: async ({ page, logger }, use) => { await use(new NganhNghePage(page, logger)); },
   warehousePage: async ({ page, logger }, use) => { await use(new KhoPage(page, logger)); },
-  quickAddCleanup: [async ({ warehousePage, db }, use, testInfo) => {
-    const registry = new QuickAddCleanupRegistry(warehousePage, db);
+  unitPage: async ({ page, logger }, use) => { await use(new DonViTinhPage(page, logger)); },
+  quickAddCleanup: [async ({ warehousePage, unitPage, db }, use, testInfo) => {
+    const registry = new QuickAddCleanupRegistry(warehousePage, unitPage, db);
     await use(registry);
     await registry.cleanup(testInfo);
   }, { auto: true }],

@@ -36,7 +36,7 @@ export class HeThongTaiKhoanRepository {
         FROM public.mst_he_thong_tai_khoan account
         INNER JOIN selected_tenant tenant ON tenant.tenant_id = account.tenant_id
         WHERE account.da_xoa = FALSE
-        ORDER BY account.trang_thai = 'ACTIVE' DESC, account.so_tai_khoan ASC
+        ORDER BY account.trang_thai IN ('HoatDong', 'ACTIVE') DESC, account.so_tai_khoan ASC
       `,
       [username],
     );

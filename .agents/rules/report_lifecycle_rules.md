@@ -14,7 +14,7 @@
 - `Chạy và report <suite>` dùng suite làm phạm vi điều phối: đọc config/runner để xác định toàn bộ spec được chọn, nhưng mỗi spec vẫn cập nhật file HTML riêng của chính nó.
 - Không tạo report HTML chung cho suite và không gộp kết quả, bug hoặc lịch sử tester của nhiều spec vào một file.
 - Testcase phải được ánh xạ về spec nguồn theo `test.location.file`; kết quả/evidence/bug chỉ được ghi vào report của spec đó.
-- Với suite, xử lý lần lượt theo từng spec và từng testcase trong spec. Chỉ chuyển sang testcase/spec kế tiếp sau khi report tương ứng đã cập nhật thành công.
+- Với suite, xử lý lần lượt theo từng spec. Trong mỗi spec, chạy hết các testcase trước; chỉ chuyển sang spec kế tiếp sau khi failure đã được phân tích và report của spec hiện tại cập nhật thành công.
 - Final consolidation của suite kiểm tra từng report con và tổng hợp số liệu toàn suite trong nội dung bàn giao; không sinh thêm HTML tổng hợp trừ khi người dùng yêu cầu riêng.
 
 ## Quy trình bắt buộc
@@ -23,12 +23,12 @@
 - Không phân loại Automation Bug chỉ vì assertion trong spec bị xem là quá chặt, khác casing hoặc ngoài phạm vi manual testcase. Automation Bug chỉ áp dụng khi lỗi kỹ thuật automation khiến contract trong spec chưa được thực thi hoặc đánh giá đáng tin cậy.
 
 1. Chạy preflight, dùng Playwright liệt kê phạm vi rồi chạy tuần tự từng testcase bằng process riêng và `workers=1`.
-2. Sau mỗi testcase, đọc JSON/artifacts vừa ghi. PASS/SKIP được cập nhật ngay; FAIL phải thu và phân tích evidence trước khi tiếp tục.
+2. Sau mỗi testcase, đọc và checkpoint JSON/artifacts vừa ghi. PASS/SKIP/FAIL đều được lưu ngay; FAIL chỉ đưa vào hàng đợi phân tích và không chặn testcase kế tiếp trong cùng spec.
 3. Evidence FAIL gồm error, Expected/Actual, screenshot, trace, URL/DOM, console, network, toast/popup/loading và DB/API evidence khi cần. Dùng DevTools MCP kiểm tra sâu nếu evidence tự động chưa đủ.
 4. Phân loại thành Product Bug, Automation Bug, Test Data, Environment hoặc Unknown. Runner status không đủ để kết luận Product Bug.
 5. Với Product Bug, đối chiếu Business Rule, Expected, Actual và evidence; mô tả hành vi sai cụ thể.
 6. Đọc HTML hiện có, tạo fingerprint theo root cause rồi deduplicate. Bug cùng root cause chỉ bổ sung Affected Testcases/evidence, không tạo Bug ID mới.
-7. Cập nhật cùng file HTML bằng thao tác ghi an toàn ngay sau testcase; bảo toàn MANUAL BUGS, nội dung tester, evidence và audit. Chỉ sau khi cập nhật thành công mới chạy testcase tiếp theo.
+7. Sau khi toàn bộ testcase trong spec chạy xong, phân tích lần lượt các failure, cập nhật state sau mỗi kết quả phân tích, reconciliation vòng đời bug rồi ghi an toàn file HTML đúng một lần cho spec. Bảo toàn MANUAL BUGS, nội dung tester, evidence và audit.
 8. Failure của một testcase không dừng các testcase còn lại, trừ blocker đặc biệt có lý do rõ ràng.
 9. Sau toàn bộ phạm vi, hợp nhất số liệu và kiểm tra trạng thái, link, evidence, audit, deduplication cùng khả năng mở độc lập trước khi bàn giao final report.
 
@@ -37,6 +37,7 @@
 - Chạy `npm run preflight:evidence -- <spec...>` trước khi chạy; nếu FAIL phải sửa và chạy lại, không được bỏ qua hoặc chạy vòng.
 - Dùng Playwright `--list` xác định đúng phạm vi/thứ tự rồi chạy từng testcase bằng process riêng với `--workers=1`. Không truyền `--reporter` trên CLI.
 - Custom reporter ghi JSON ngay sau mỗi testcase vào `test-results/run-<timestamp>/case-results/<TC-ID>--<project>--retry-<n>.json` và cập nhật `index.json`.
+- Analyzer, deduplicate bug, chuyển evidence lâu dài và render HTML chỉ bắt đầu sau khi Playwright hoàn tất toàn bộ testcase thuộc spec. Raw JSON/artifacts là checkpoint phục hồi nếu tiến trình dừng trước giai đoạn tổng hợp.
 - Gói FAIL gồm Playwright error, Expected/Actual, screenshot, trace, URL/DOM, console, network metadata, toast/popup/loading và DB/API evidence khi cần. Không lưu credential, cookie, authorization header hoặc payload nhạy cảm.
 - Nếu evidence tự động chưa đủ, dùng DevTools MCP kiểm tra DOM, console, network, request/response và trạng thái ứng dụng trước khi phân loại.
 - `expect.soft()` phải import `expect` từ `@fixtures/base.fixture` và có `await`; fixture attach screenshot cùng JSON ngay tại mismatch.

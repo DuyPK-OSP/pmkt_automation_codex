@@ -1,9 +1,10 @@
 import { expect, type TestInfo } from '@playwright/test';
 import type { KhoPage } from '@pages/danh-muc/kho.page';
+import type { DonViTinhPage } from '@pages/danh-muc/don-vi-tinh.page';
 import type { DatabaseContext } from '@database/database.context';
 import { requireCredentials } from '@utils/env.config';
 
-export type QuickAddCatalogue = 'warehouse';
+export type QuickAddCatalogue = 'warehouse' | 'unit';
 
 interface QuickAddRecord {
   readonly catalogue: QuickAddCatalogue;
@@ -16,6 +17,7 @@ export class QuickAddCleanupRegistry {
 
   constructor(
     private readonly warehousePage: KhoPage,
+    private readonly unitPage: DonViTinhPage,
     private readonly db: DatabaseContext,
   ) {}
 
@@ -30,13 +32,16 @@ export class QuickAddCleanupRegistry {
     const results: Array<{ catalogue: QuickAddCatalogue; code: string; status: 'deleted' | 'failed'; detail: string }> = [];
     for (const record of [...this.records].reverse()) {
       try {
-        await this.warehousePage.deleteByCode(record.code);
         const credentials = requireCredentials();
+        if (record.catalogue === 'warehouse') await this.warehousePage.deleteByCode(record.code);
+        else await this.unitPage.deleteByCode(record.code);
         await expect.poll(
-          () => this.db.kho.findByCodeForDefaultTenant(credentials.username, record.code),
-          { message: `Kho ${record.code} phải được xóa khỏi DB sau cleanup UI`, timeout: 15_000 },
+          () => record.catalogue === 'warehouse'
+            ? this.db.kho.findByCodeForDefaultTenant(credentials.username, record.code)
+            : this.db.donViTinh.findByCodeForDefaultTenant(credentials.username, record.code),
+          { message: `${record.catalogue} ${record.code} phải được xóa khỏi DB sau cleanup UI`, timeout: 15_000 },
         ).toBeNull();
-        results.push({ ...record, status: 'deleted', detail: 'Đã tìm và xóa qua màn Danh mục Kho' });
+        results.push({ ...record, status: 'deleted', detail: `Đã xóa qua màn Danh mục ${record.catalogue === 'warehouse' ? 'Kho' : 'Đơn vị tính'}` });
       } catch (error) {
         results.push({
           ...record,

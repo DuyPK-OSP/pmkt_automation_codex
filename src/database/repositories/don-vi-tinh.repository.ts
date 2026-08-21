@@ -36,4 +36,29 @@ export class DonViTinhRepository {
       [username],
     );
   }
+
+  /** Tìm chính xác một Đơn vị tính theo mã trong tenant mặc định. */
+  async findByCodeForDefaultTenant(username: string, code: string): Promise<DonViTinhRecord | null> {
+    const rows = await this.client.query<DonViTinhRecord>(
+      `
+        WITH selected_tenant AS (
+          SELECT mapping.tenant_id
+          FROM public.iam_tai_khoan account
+          INNER JOIN public.iam_tai_khoan_tenant mapping
+            ON mapping.tai_khoan_id = account.id AND mapping.da_xoa = FALSE
+          WHERE (LOWER(account.ten_dang_nhap) = LOWER($1) OR LOWER(account.email) = LOWER($1))
+            AND account.da_xoa = FALSE
+          ORDER BY mapping.la_tenant_mac_dinh DESC, mapping.ngay_tao ASC
+          LIMIT 1
+        )
+        SELECT catalogue.code, catalogue.ten AS name, catalogue.trang_thai AS active
+        FROM public.mst_don_vi_tinh catalogue
+        INNER JOIN selected_tenant tenant ON tenant.tenant_id = catalogue.tenant_id
+        WHERE catalogue.da_xoa = FALSE AND catalogue.code = $2
+        LIMIT 1
+      `,
+      [username, code],
+    );
+    return rows[0] ?? null;
+  }
 }

@@ -52,4 +52,4 @@
 ## Quy tắc tạo báo cáo kiểm thử và lưu evidence
 
 - Khi người dùng nhập `Chạy và report <spec>` hoặc `Chạy và report <suite>`, bắt buộc thực hiện trọn workflow trong `.agents/rules/report_lifecycle_rules.md` mà không yêu cầu nhắc lại từng bước.
-- Tóm tắt điều phối không thay thế rule chi tiết: preflight trước khi chạy; xử lý tuần tự từng testcase; FAIL phải được thu evidence, phân loại và deduplicate; cập nhật HTML của đúng spec trước case kế tiếp; cuối phạm vi thực hiện final consolidation. Suite có nhiều spec phải tạo/cập nhật report riêng cho từng spec, không gộp thành một HTML suite.
+- Tóm tắt điều phối không thay thế rule chi tiết: preflight trước khi chạy; xử lý tuần tự từng testcase và checkpoint JSON/evidence ngay; sau khi chạy hết một spec mới phân tích/deduplicate toàn bộ failure và cập nhật HTML của spec đó một lần; cuối phạm vi thực hiện final consolidation. Suite có nhiều spec phải tạo/cập nhật report riêng cho từng spec, không gộp thành một HTML suite.

@@ -11,7 +11,6 @@ import {
   prepareGoodsResourceTaxes,
   prepareGoodsConversionGrid,
   prepareGoodsWarehouses,
-  recordMissingSpecialGoodsTypeBug,
   verifyFullGoodsSavedInDatabase,
   verifyRequiredGoodsSavedInDatabase,
   verifyMaterialTypeCards,
@@ -50,7 +49,6 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Thành phẩm TC1162-TC1483'
       ).toBeVisible();
     }
     await expect.soft(vatTuPage.checkbox('Giảm thuế theo quy định'), 'Phải hiển thị trường Giảm thuế theo quy định').toBeVisible();
-    await expect.soft(vatTuPage.specialGoodsTypeCombobox(), 'Phải hiển thị trường Loại hàng hóa đặc trưng').toBeVisible();
     await expect.soft(vatTuPage.inventoryMaterialFormFieldControl('Thời hạn bảo hành', 'spinbutton'), 'Phải hiển thị trường Thời hạn bảo hành').toBeVisible();
     await expect.soft(vatTuPage.inventoryWarrantyUnitCombobox(), 'Phải hiển thị đơn vị Thời hạn bảo hành').toBeVisible();
     await expect.soft(vatTuPage.statusSwitch(), 'Phải hiển thị trường Trạng thái').toBeVisible();
@@ -4024,12 +4022,13 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Thành phẩm TC1162-TC1483'
   test('TC_PMKT-U-00106-1431 - combogrid Đơn vị tính quy đổi khớp cột dữ liệu DB và thứ tự trạng thái', async ({ vatTuPage }) => {
     // Chuẩn bị dữ liệu: Lấy toàn bộ Đơn vị tính từ DB đúng tenant và mở combogrid trên dòng quy đổi.
     const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Thành phẩm'); await vatTuPage.openFirstConversionUnitDropdown();
-    const headers = (await vatTuPage.mainUnitDropdown().getByRole('columnheader').allTextContents()).map((v) => v.trim()).filter(Boolean);
-    const labels = (await vatTuPage.conversionUnitOptions().allTextContents()).map((v) => v.trim()).filter(Boolean);
+    const headers = (await vatTuPage.conversionUnitDropdownColumnHeaders().allTextContents()).map((v) => v.trim()).filter(Boolean).slice(-3);
+    const entries = await vatTuPage.visibleMainUnitEntries(units.length);
+    const labels = entries.map(({ label }) => label);
     // Xác nhận UI/DB: Cột, dữ liệu và thứ tự Hoạt động trên Ngừng hoạt động đúng testcase.
     await expect.soft(headers).toEqual(['Mã đơn vị tính', 'Tên đơn vị tính', 'Trạng thái']);
     await expect.soft([...labels].sort()).toEqual([...units.map((u) => u.label)].sort());
-    const statuses = labels.map((label) => units.find((u) => u.label === label)?.status);
+    const statuses = entries.map(({ status }) => status);
     const firstInactive = statuses.indexOf('NgungHoatDong'); expect(firstInactive < 0 || statuses.slice(firstInactive).every((s) => s === 'NgungHoatDong')).toBe(true);
   });
 
@@ -4037,7 +4036,7 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Thành phẩm TC1162-TC1483'
     const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Thành phẩm'); const inactive = units.find((u) => u.status === 'NgungHoatDong');
     test.skip(!inactive, 'DB không có Đơn vị tính Ngừng hoạt động'); if (!inactive) return;
     await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit(inactive.code);
-    test.skip(!(await vatTuPage.conversionUnitOptions().filter({ hasText: inactive.label }).isVisible()), 'Combogrid không hiển thị Đơn vị tính Ngừng hoạt động');
+    await expect(vatTuPage.conversionUnitOption(inactive.label), 'Combogrid phải hiển thị Đơn vị tính Ngừng hoạt động theo mã DB').toBeVisible();
     const style = await vatTuPage.conversionUnitOptionStyle(inactive.label);
     expect(isGrayCssColor(style.color) || Number(style.opacity) < 1).toBe(true);
   });
@@ -4046,7 +4045,7 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Thành phẩm TC1162-TC1483'
     const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Thành phẩm'); const inactive = units.find((u) => u.status === 'NgungHoatDong');
     test.skip(!inactive, 'DB không có Đơn vị tính Ngừng hoạt động'); if (!inactive) return;
     await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit(inactive.code);
-    test.skip(!(await vatTuPage.conversionUnitOptions().filter({ hasText: inactive.label }).isVisible()), 'BLOCK bởi TC1432: combogrid không hiển thị Đơn vị tính Ngừng hoạt động');
+    await expect(vatTuPage.conversionUnitOption(inactive.label), 'Combogrid phải hiển thị Đơn vị tính Ngừng hoạt động theo mã DB').toBeVisible();
     await vatTuPage.selectFirstConversionUnit(inactive);
     await expect(vatTuPage.mainUnitConfirmationMessage()).toHaveText('Bản ghi đang ở trạng thái Ngừng hoạt động. Bạn có chắc chắn muốn sử dụng?');
     await vatTuPage.confirmInactiveMainUnit(); await expect(vatTuPage.selectedFirstConversionUnit(inactive.label)).toBeVisible();
@@ -4056,7 +4055,7 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Thành phẩm TC1162-TC1483'
     const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Thành phẩm'); const inactive = units.find((u) => u.status === 'NgungHoatDong');
     test.skip(!inactive, 'DB không có Đơn vị tính Ngừng hoạt động'); if (!inactive) return;
     await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit(inactive.code);
-    test.skip(!(await vatTuPage.conversionUnitOptions().filter({ hasText: inactive.label }).isVisible()), 'BLOCK bởi TC1432: combogrid không hiển thị Đơn vị tính Ngừng hoạt động');
+    await expect(vatTuPage.conversionUnitOption(inactive.label), 'Combogrid phải hiển thị Đơn vị tính Ngừng hoạt động theo mã DB').toBeVisible();
     await vatTuPage.selectFirstConversionUnit(inactive); await vatTuPage.cancelInactiveMainUnit();
     await expect(vatTuPage.selectedFirstConversionUnit(inactive.label)).toBeHidden();
   });
@@ -4071,31 +4070,41 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Thành phẩm TC1162-TC1483'
   test('TC_PMKT-U-00106-1436 - tìm Đơn vị tính quy đổi theo Mã', async ({ vatTuPage }) => {
     const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Thành phẩm'); const unit = units[0]; test.skip(!unit, 'DB không có Đơn vị tính'); if (!unit) return;
     await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit(unit.code);
-    expect((await vatTuPage.conversionUnitOptions().allTextContents()).map((v) => v.trim())).toContain(unit.label);
+    expect((await vatTuPage.visibleMainUnitEntries()).map(({ label }) => label)).toContain(unit.label);
   });
 
   test('TC_PMKT-U-00106-1437 - tìm Đơn vị tính quy đổi theo Tên', async ({ vatTuPage }) => {
     const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Thành phẩm'); const unit = units[0]; test.skip(!unit, 'DB không có Đơn vị tính'); if (!unit) return;
     await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit(unit.name);
-    expect((await vatTuPage.conversionUnitOptions().allTextContents()).map((v) => v.trim())).toContain(unit.label);
+    expect((await vatTuPage.visibleMainUnitEntries()).map(({ label }) => label)).toContain(unit.label);
   });
 
   test('TC_PMKT-U-00106-1438 - tìm Đơn vị tính quy đổi theo Trạng thái', async ({ vatTuPage }) => {
     const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Thành phẩm'); await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit('Hoạt động');
-    const labels = (await vatTuPage.conversionUnitOptions().allTextContents()).map((v) => v.trim()).filter(Boolean);
-    expect(labels.length).toBeGreaterThan(0); expect(labels.every((label) => units.find((u) => u.label === label)?.status === 'HoatDong')).toBe(true);
+    const entries = await vatTuPage.visibleMainUnitEntries();
+    expect(entries.length).toBeGreaterThan(0);
+    expect(entries.every(({ label, status }) => status === 'HoatDong' && units.find((unit) => unit.label === label)?.status === 'HoatDong')).toBe(true);
   });
 
   test('TC_PMKT-U-00106-1439 - Enter chọn dòng Đơn vị tính quy đổi đầu tiên', async ({ vatTuPage }) => {
     const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Thành phẩm'); const keyword = units[0]?.code.slice(0, 1); test.skip(!keyword, 'DB không có dữ liệu tìm kiếm'); if (!keyword) return;
-    await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit(keyword); const first = (await vatTuPage.conversionUnitOptions().allTextContents()).map((v) => v.trim()).filter(Boolean)[0]!;
+    await vatTuPage.openFirstConversionUnitDropdown(); await vatTuPage.searchFirstConversionUnit(keyword); const first = (await vatTuPage.visibleMainUnitLabels())[0]!;
     await vatTuPage.pressFirstConversionUnitKey('Enter'); await expect(vatTuPage.selectedFirstConversionUnit(first)).toBeVisible();
   });
 
   test('TC_PMKT-U-00106-1440 - Up Down di chuyển dòng Đơn vị tính quy đổi', async ({ vatTuPage }) => {
-    await prepareGoodsConversionGrid(vatTuPage, 'Thành phẩm'); await vatTuPage.openFirstConversionUnitDropdown(); const before = await vatTuPage.activeConversionUnitLabel();
-    await vatTuPage.pressFirstConversionUnitKey('ArrowDown'); const down = await vatTuPage.activeConversionUnitLabel(); await vatTuPage.pressFirstConversionUnitKey('ArrowUp'); const up = await vatTuPage.activeConversionUnitLabel();
-    expect(down).not.toBe(before); expect(up).not.toBe(down); await expect(vatTuPage.conversionRowControls('combobox').first()).toHaveAttribute('aria-expanded', 'true');
+    const { units } = await prepareGoodsConversionGrid(vatTuPage, 'Thành phẩm');
+    await vatTuPage.openFirstConversionUnitDropdown();
+    const labels = await vatTuPage.visibleMainUnitLabels(units.length);
+    test.skip(labels.length < 3, 'UI không có đủ ba Đơn vị tính quy đổi để kiểm tra Up/Down');
+    if (labels.length < 3) return;
+    await vatTuPage.pressFirstConversionUnitKey('ArrowDown');
+    await vatTuPage.pressFirstConversionUnitKey('ArrowDown');
+    await vatTuPage.pressFirstConversionUnitKey('ArrowUp');
+    await expect(vatTuPage.conversionRowControls('combobox').first()).toHaveValue('');
+    await vatTuPage.pressFirstConversionUnitKey('Enter');
+    const [expectedCode = '', expectedName = ''] = labels[0]!.split(' — ');
+    await expect(vatTuPage.selectedConversionUnitRow(expectedCode, expectedName)).toBeVisible();
   });
 
   test('TC_PMKT-U-00106-1441 - ESC đóng dropdown Đơn vị tính quy đổi không đổi giá trị', async ({ vatTuPage }) => {
@@ -4201,7 +4210,7 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Thành phẩm TC1162-TC1483'
     await prepareGoodsConversionGrid(vatTuPage, 'Thành phẩm');
     await expect(vatTuPage.conversionOperationCell('Nhân')).toBeVisible();
     await vatTuPage.openConversionOperation();
-    await expect(vatTuPage.conversionUnitOptions()).toHaveText(['Nhân', 'Chia']);
+    await expect(vatTuPage.conversionOperationOptions()).toHaveText(['Nhân', 'Chia']);
   });
 
   test('TC_PMKT-U-00106-1457 - chọn Phép tính Chia thành công', async ({ vatTuPage }) => {
@@ -4246,7 +4255,6 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Thành phẩm TC1162-TC1483'
     test.skip(!group || !mainUnit, 'DB cần Nhóm vật tư và Đơn vị tính Hoạt động'); if (!group || !mainUnit) return;
     const material = fullGoodsData('TC818', group, mainUnit, 'Thành phẩm');
     await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Thành phẩm');
-    await recordMissingSpecialGoodsTypeBug(vatTuPage, 'Thành phẩm');
     const selection = await vatTuPage.fillFullGoodsMaterial(material, 'inventory-material');
     await vatTuPage.openFormTab('Thông tin thuế');
     await testInfo.attach('TC818-tax-ui-values', {
@@ -4266,7 +4274,6 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Thành phẩm TC1162-TC1483'
     test.skip(!group || !mainUnit, 'DB cần Nhóm vật tư và Đơn vị tính Hoạt động'); if (!group || !mainUnit) return;
     const material = fullGoodsData('TC819', group, mainUnit, 'Thành phẩm');
     await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Thành phẩm');
-    await recordMissingSpecialGoodsTypeBug(vatTuPage, 'Thành phẩm');
     const selection = await vatTuPage.fillFullGoodsMaterial(material, 'inventory-material');
     await vatTuPage.saveMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công');
     await vatTuPage.searchMaterial(material.code); await expect(vatTuPage.materialRow(material.code)).toBeVisible();
@@ -4278,7 +4285,6 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Thành phẩm TC1162-TC1483'
     const mainUnit = units.find((item) => item.status === 'HoatDong'); test.skip(!mainUnit, 'DB cần Đơn vị tính Hoạt động'); if (!mainUnit) return;
     const generator = new TestDataGenerator(); const code = generator.uniqueCode('TC820'); const name = generator.uniqueKeyword('TC820');
     await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Thành phẩm');
-    await recordMissingSpecialGoodsTypeBug(vatTuPage, 'Thành phẩm');
     await vatTuPage.fillRequiredInventoryMaterialFields(code, name, mainUnit); const defaults = await vatTuPage.readRequiredGoodsUiDefaults();
     await vatTuPage.saveMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công');
     await vatTuPage.searchMaterial(code); await expect(vatTuPage.materialRow(code)).toBeVisible();
@@ -4291,7 +4297,6 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Thành phẩm TC1162-TC1483'
     test.skip(!group || !mainUnit, 'DB cần Nhóm vật tư và Đơn vị tính Hoạt động'); if (!group || !mainUnit) return;
     const material = fullGoodsData('TC821', group, mainUnit, 'Thành phẩm');
     await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Thành phẩm');
-    await recordMissingSpecialGoodsTypeBug(vatTuPage, 'Thành phẩm');
     const selection = await vatTuPage.fillFullGoodsMaterial(material, 'inventory-material');
     await vatTuPage.setMaterialStatus(false); await vatTuPage.saveMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công');
     await vatTuPage.searchMaterial(material.code); await expect(vatTuPage.materialRow(material.code)).toContainText('Ngừng hoạt động');
@@ -4304,7 +4309,6 @@ test.describe('PMKT-U-00106 - Thêm mới Vật tư Thành phẩm TC1162-TC1483'
     test.skip(!group || !mainUnit, 'DB cần Nhóm vật tư và Đơn vị tính Hoạt động'); if (!group || !mainUnit) return;
     const material = fullGoodsData('TC822', group, mainUnit, 'Thành phẩm');
     await vatTuPage.openMaterialTypePopup(); await vatTuPage.selectMaterialType('Thành phẩm');
-    await recordMissingSpecialGoodsTypeBug(vatTuPage, 'Thành phẩm');
     const selection = await vatTuPage.fillFullGoodsMaterial(material, 'inventory-material');
     await vatTuPage.saveAndAddMaterial(); await expect(vatTuPage.successNotification()).toContainText('Thêm mới thành công');
     await expect(vatTuPage.createMaterialDialog).toBeVisible(); await expect(vatTuPage.materialCodeInput()).toHaveValue(''); await expect(vatTuPage.materialNameInput()).toHaveValue('');

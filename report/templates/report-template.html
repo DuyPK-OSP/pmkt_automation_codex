@@ -27,6 +27,7 @@
     @media(max-width:980px){.summary-layout{grid-template-columns:1fr}.summary-layout .result-charts{grid-template-columns:1fr}.bug-count-grid{grid-template-columns:1fr 1fr}}@media(max-width:560px){.bug-count-grid{grid-template-columns:1fr}}
     .review-toolbar{top:auto;right:20px;bottom:76px;left:auto;width:115px;flex-direction:column;align-items:stretch;transform:none}.review-toolbar .spacer{display:none}.review-toolbar .review-btn{width:100%}.review-toolbar .draft-indicator{justify-content:center;text-align:center}.top{right:22px;bottom:22px}body{padding-bottom:0}.toast-review{top:22px;right:22px;bottom:auto;background:#16a34a;color:#fff}.bug-detail-table{table-layout:auto;min-width:720px}.bug-detail-table th{position:static;width:220px;border-right:1px solid var(--line);background:#f8fafc}.bug-detail-table td{width:auto}.bug-detail-table ol,.bug-detail-table ul{margin:0;padding-left:20px}.bug-detail-table p{margin:0;white-space:pre-wrap}.bug-detail-table mark{padding:0;background:transparent;color:#d70018;font-weight:750}.bug-detail-evidence{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}.bug-detail-evidence .evidence{margin:0}.bug-detail-evidence img{width:100%;max-height:320px;object-fit:contain}.bug-detail-empty{color:var(--muted);font-style:italic}.bar-row:after{max-width:520px}@media(max-width:760px){.review-toolbar{top:auto;right:14px;bottom:72px;left:auto;width:min(115px,calc(100vw - 28px));transform:none}.top{right:16px;bottom:18px}.toast-review{top:14px;right:14px;bottom:auto;left:14px;max-width:none}}
     .run-info{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:28px}.run-info-item{padding:14px;border:1px solid var(--line);border-radius:12px;background:#f8fafc}.run-info-item span{display:block;margin-bottom:6px;color:#e60012;font-size:12px;font-weight:700}.run-info-item strong{overflow-wrap:anywhere}@media(max-width:980px){.run-info{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.run-info{grid-template-columns:1fr}}
+    .bar-row:after{max-width:520px;white-space:pre-line}
   </style>
 </head>
 <body><div class="shell"><main class="report"><h1 id="top">{{REPORT_TITLE}}</h1><h2>Thông tin kiểm thử</h2><section class="run-info"><div class="run-info-item"><span>Môi trường</span><strong>{{ENVIRONMENT}}</strong></div><div class="run-info-item"><span>Tài khoản test</span><strong>{{TEST_ACCOUNT}}</strong></div><div class="run-info-item"><span>Ngày</span><strong>{{RUN_DATE}}</strong></div><div class="run-info-item"><span>Tổng TCs</span><strong>5</strong></div><div class="run-info-item"><span>Tổng thời gian</span><strong>{{TOTAL_DURATION}}</strong></div></section><section class="review-toolbar"><button class="review-btn primary" id="log-new-bug">🐞 Add Bug</button><button class="review-btn" id="save-draft" disabled>💾 Save</button><button class="review-btn primary" id="export-reviewed">📦 Export</button><button class="review-btn" id="back-to-top">↑ On top</button></section><h2>Tổng quan kết quả</h2><section class="summary-layout"><div class="result-charts"><div class="donut-wrap"><div class="donut" style="--pass-end:20.00%;--fail-end:100%;--skip-end:100%"><div class="donut-center"><strong>20.00%</strong><span>PASS RATE</span></div></div><div class="chart-legend"><div>PASS · 1</div><div>FAIL · 4</div><div>SKIP · 0</div><div>BLOCK · 0</div></div></div><div class="bar-chart"><div class="bar-row"><strong>PASS</strong><div class="bar-track"><div class="bar-value bar-pass" style="--target:20.00%"></div></div><span>1</span></div><div class="bar-row"><strong>FAIL</strong><div class="bar-track"><div class="bar-value bar-fail" style="--target:80.00%"></div></div><span>4</span></div></div></div><aside class="review-summary"><div class="bug-count-card"><span>🤖 AUTOMATION BUGS</span><strong id="automation-bug-count">2</strong></div></aside></section><div class="section-heading-actions"><h2 id="bug-summary">Tổng hợp Bugs</h2><button class="review-btn collapse-btn" type="button">Thu gọn</button></div><div class="table-wrap"><table id="bug-summary-table"><thead><tr><th>Bug ID</th><th>Mức độ</th><th>Số case ảnh hưởng</th><th>Tên case ảnh hưởng</th><th>Tóm tắt bug</th></tr></thead><tbody><tr><td><a href="#bug-vthh-cf-2">BUG-VTHH-CF-2</a></td><td>Cao</td><td><div class="affected-count"><strong>4</strong></div></td><td>TC_PMKT-U-00106-308, TC_PMKT-U-00106-309, TC_PMKT-U-00106-311, TC_PMKT-U-00106-312</td><td>DB không lưu Giá trị thuế GTGT đúng như UI</td></tr><tr><td><a href="#bug-vthh-cf-3">BUG-VTHH-CF-3</a></td><td>Cao</td><td><div class="affected-count"><strong>3</strong></div></td><td>TC_PMKT-U-00106-309, TC_PMKT-U-00106-311, TC_PMKT-U-00106-312</td><td>DB không lưu Mô tả quy đổi đúng như UI</td></tr></tbody></table></div><h2>Chi tiết Bug</h2><section id="bug-vthh-cf-2" data-automation-bug class="bug-collapsed"><h3>BUG-VTHH-CF-2 — DB không lưu Giá trị thuế GTGT đúng như UI</h3><button class="review-btn collapse-btn bug-section-toggle" type="button" aria-expanded="false">Mở rộng</button><div class="source-badge auto">🤖 AUTOMATION DETECTED<span class="readonly-note">READ ONLY</span></div><div class="table-wrap bug-detail-wrap"><table class="bug-detail-table"><tbody><tr><th>Tiêu đề bug</th><td>DB không lưu Giá trị thuế GTGT đúng như UI</td></tr><tr><th>Điều kiện tiên quyết</th><td>Đăng nhập PMKT Tendoo và mở form Thêm mới Hàng hóa.</td></tr><tr><th>Các bước tái hiện</th><td><ol><li>Thực hiện luồng thêm mới theo testcase TC_PMKT-U-00106-308.</li><li>Lưu dữ liệu và đối chiếu DB đúng tenant.</li></ol></td></tr><tr><th>Data test</th><td>Dữ liệu unique do testcase tạo trong lần chạy 20260813T042343Z.</td></tr><tr><th>Kết quả mong đợi</th><td>DB phải lưu Giá trị thuế GTGT bằng 0 đúng như UI.</td></tr><tr><th>Kết quả thực tế</th><td>UI hiển thị Giá trị thuế GTGT = 0 nhưng DB lưu NULL.</td></tr><tr><th>Bằng chứng</th><td><button class="evidence"><img src="data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEAAUAmJaQAA3AA/v89WAAAAA==" alt="Bằng chứng BUG-VTHH-CF-2"></button></td></tr></tbody></table></div></section>
@@ -313,16 +314,17 @@
     SKIP:skipCount?`${skipCount} case SKIP — rê chuột vào từng kết quả SKIP để xem lý do cụ thể.`:'0 case SKIP — không có testcase nào chủ động bỏ qua trong lần thực thi này.',
     BLOCK:blockTooltip
   };
-  const chart=document.querySelector('.bar-chart');
+  const chart=document.querySelector('.bar-chart');let chartRows=new Map();
   if(chart){
     const existing=new Map([...chart.querySelectorAll('.bar-row')].map(row=>[row.querySelector('strong')?.textContent.trim(),row]));
+    chartRows=existing;
     for(const [status,count,css] of [['SKIP',String(skipCount),'bar-skip'],['BLOCK',String(blockCount),'bar-block']])if(!existing.has(status)){
       const row=document.createElement('div');row.className='bar-row';row.innerHTML=`<strong>${status}</strong><div class="bar-track"><div class="bar-value ${css}" style="--target:0%"></div></div><span>${count}</span>`;chart.append(row);existing.set(status,row);
     }
-    existing.forEach((row,status)=>{row.tabIndex=0;row.dataset.tooltip=summaryTooltips[status]||''});
+    existing.forEach((row,status)=>{row.tabIndex=0;if(status!=='SKIP'||!row.dataset.tooltip)row.dataset.tooltip=summaryTooltips[status]||''});
   }
   const legend=[...document.querySelectorAll('.chart-legend>div')];
-  legend.forEach(item=>{const status=item.textContent.trim().split(/\s/)[0];item.title=summaryTooltips[status]||''});
+  legend.forEach(item=>{const status=item.textContent.trim().split(/\s/)[0],chartTooltip=chartRows.get(status)?.dataset.tooltip;item.title=chartTooltip||summaryTooltips[status]||''});
   const detailHeading=[...document.querySelectorAll('.section-heading-actions > h2,.report > h2')].find(item=>item.textContent.trim().startsWith('Chi ti\u1ebft Bug'));
   const detailButton=detailHeading?.parentElement?.querySelector(':scope > .collapse-btn');
   const detailSections=()=>[...document.querySelectorAll('section[data-automation-bug],section.tester-bug')];
@@ -354,4 +356,18 @@
 }</script>
 <!-- TEMPLATE RULE: Nếu BLOCK > 0, phải tổng hợp nguyên nhân thực tế theo nhóm. Mỗi phần tử là một dòng gạch đầu dòng, có số lượng/range testcase và nguyên nhân hoặc testcase gây chặn; không dùng mô tả chung chung. -->
 <script id="block-reason-summary" type="application/json">[]</script>
-<script id="automation-run-meta" type="application/json">{"runId":"20260813T042343Z","project":"vat-tu-hang-hoa-create-flow"}</script></body></html>
+<script id="automation-run-meta" type="application/json">{"runId":"20260813T042343Z","project":"vat-tu-hang-hoa-create-flow"}</script>
+<script>
+  (()=>{
+    const table=document.getElementById('pipeline-results');
+    const wrap=table?.closest('.table-wrap');
+    const filter=wrap?.previousElementSibling;
+    const heading=filter?.previousElementSibling;
+    if(!wrap||!filter||!heading?.classList.contains('section-heading-actions'))return;
+    let button=heading.querySelector('.pipeline-results-toggle');
+    if(!button){button=document.createElement('button');button.type='button';button.className='review-btn collapse-btn pipeline-results-toggle';heading.append(button)}
+    const setExpanded=expanded=>{wrap.hidden=!expanded;filter.hidden=!expanded;button.textContent=expanded?'Thu gọn':'Mở rộng';button.setAttribute('aria-expanded',String(expanded))};
+    button.onclick=()=>setExpanded(wrap.hidden);
+    setExpanded(false);
+  })();
+</script></body></html>

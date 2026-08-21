@@ -70,7 +70,7 @@ export async function openVatTuWithAccounts(vatTuPage: VatTuPage): Promise<reado
   return accounts.map((account) => ({
     code: account.code,
     name: account.name,
-    status: account.status === 'ACTIVE' ? 'HoatDong' : 'NgungHoatDong',
+    status: account.status === 'HoatDong' || account.status === 'ACTIVE' ? 'HoatDong' : 'NgungHoatDong',
     allowed: account.allowed,
     label: `${account.code} — ${account.name}`,
   }));

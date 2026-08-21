@@ -17,6 +17,7 @@ interface CaseResultRecord {
   readonly status: 'PASS' | 'FAIL' | 'SKIP';
   readonly runnerStatus: TestResult['status'];
   readonly expectedStatus: TestCase['expectedStatus'];
+  readonly skipReason?: string;
   readonly durationMs: number;
   readonly startedAt: string;
   readonly finishedAt: string;
@@ -125,6 +126,9 @@ export default class CaseResultReporter implements Reporter {
       status: normalizedStatus(result),
       runnerStatus: result.status,
       expectedStatus: test.expectedStatus,
+      ...(normalizedStatus(result) === 'SKIP'
+        ? { skipReason: test.annotations.find((annotation) => annotation.type === 'skip')?.description ?? 'Playwright đánh dấu SKIP nhưng không cung cấp lý do.' }
+        : {}),
       durationMs: result.duration,
       startedAt: startedAt.toISOString(),
       finishedAt: finishedAt.toISOString(),

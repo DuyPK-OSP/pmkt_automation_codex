@@ -35,13 +35,20 @@ export class LoaiVatTuRepository {
           LIMIT 1
         )
         SELECT
-          CONCAT(material_account.so_tai_khoan, ' - ', material_account.ten_tai_khoan) AS "materialAccount",
-          CONCAT(cost_account.so_tai_khoan, ' - ', cost_account.ten_tai_khoan) AS "costOfGoodsAccount",
-          CONCAT(revenue_account.so_tai_khoan, ' - ', revenue_account.ten_tai_khoan) AS "revenueAccount",
-          CONCAT(return_account.so_tai_khoan, ' - ', return_account.ten_tai_khoan) AS "salesReturnAccount",
-          CONCAT(expense_account.so_tai_khoan, ' - ', expense_account.ten_tai_khoan) AS "expenseAccount",
-          CONCAT(discount_account.so_tai_khoan, ' - ', discount_account.ten_tai_khoan) AS "discountAccount",
-          CONCAT(reduction_account.so_tai_khoan, ' - ', reduction_account.ten_tai_khoan) AS "priceReductionAccount"
+          CASE WHEN material_account.id IS NULL THEN NULL
+            ELSE CONCAT(material_account.so_tai_khoan, ' - ', material_account.ten_tai_khoan) END AS "materialAccount",
+          CASE WHEN cost_account.id IS NULL THEN NULL
+            ELSE CONCAT(cost_account.so_tai_khoan, ' - ', cost_account.ten_tai_khoan) END AS "costOfGoodsAccount",
+          CASE WHEN revenue_account.id IS NULL THEN NULL
+            ELSE CONCAT(revenue_account.so_tai_khoan, ' - ', revenue_account.ten_tai_khoan) END AS "revenueAccount",
+          CASE WHEN return_account.id IS NULL THEN NULL
+            ELSE CONCAT(return_account.so_tai_khoan, ' - ', return_account.ten_tai_khoan) END AS "salesReturnAccount",
+          CASE WHEN expense_account.id IS NULL THEN NULL
+            ELSE CONCAT(expense_account.so_tai_khoan, ' - ', expense_account.ten_tai_khoan) END AS "expenseAccount",
+          CASE WHEN discount_account.id IS NULL THEN NULL
+            ELSE CONCAT(discount_account.so_tai_khoan, ' - ', discount_account.ten_tai_khoan) END AS "discountAccount",
+          CASE WHEN reduction_account.id IS NULL THEN NULL
+            ELSE CONCAT(reduction_account.so_tai_khoan, ' - ', reduction_account.ten_tai_khoan) END AS "priceReductionAccount"
         FROM public.mst_loai_vat_tu material_type
         INNER JOIN selected_tenant tenant ON tenant.tenant_id = material_type.tenant_id
         LEFT JOIN public.mst_he_thong_tai_khoan material_account ON material_account.id = material_type.tai_khoan_vat_tu_id
